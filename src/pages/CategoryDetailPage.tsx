@@ -1,0 +1,60 @@
+import { useParams } from 'react-router'
+import { categoryPath, collectSubtreeIds } from '../domain/categoryTree'
+import { useCategories, useItemTagLinks, useItems, usePresetAssetMap, useTags } from '../features/data/hooks'
+import { categoryNameOf, tagNamesOf } from '../features/data/viewModels'
+import PageHeader from '../components/PageHeader'
+import ItemCard from '../components/ItemCard'
+import EmptyState from '../components/EmptyState'
+
+export default function CategoryDetailPage() {
+  const { id } = useParams<{ id: string }>()
+  const categories = useCategories()
+  const items = useItems()
+  const tags = useTags()
+  const links = useItemTagLinks()
+  const assetMap = usePresetAssetMap()
+
+  const loading = !categories || !items || !tags || !links || !assetMap
+  if (loading) return null
+
+  const category = categories.find((c) => c.id === id)
+  if (!category) {
+    return (
+      <div>
+        <PageHeader title="分类" />
+        <EmptyState title="分类不存在" subtitle="它可能已经被删除" />
+      </div>
+    )
+  }
+
+  const subtree = collectSubtreeIds(categories, category.id)
+  const categoryItems = items.filter((i) => subtree.has(i.categoryId))
+
+  return (
+    <div>
+      <PageHeader title={category.name} />
+      <div className="px-5 pt-4">
+        <p className="text-caption text-ink-tertiary">
+          {categoryPath(categories, category.id)} · {categoryItems.length} 件物品
+        </p>
+
+        {categoryItems.length === 0 ? (
+          <EmptyState title="这个分类还没有物品" subtitle="点击右下角 ＋ 新增一件物品吧" />
+        ) : (
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {categoryItems.map((item) => (
+              <ItemCard
+                key={item.id}
+                to={`/items/${item.id}`}
+                name={item.name}
+                iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
+                categoryName={categoryNameOf(categories, item.categoryId)}
+                tagNames={tagNamesOf(item.id, links, tags)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
