@@ -5,6 +5,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Cloudflare Workers / Wrangler 本地状态（dev 缓存、上传临时文件）
+.wrangler/
+
 # 测试覆盖率报告
 coverage/
 

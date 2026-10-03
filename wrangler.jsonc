@@ -1,0 +1,14 @@
+{
+  // Cloudflare Workers —— 纯静态资产部署（Static Assets）
+  // 本项目没有后端：没有 Worker 入口（无 main / 无 functions），不做任何 API。
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "item-storage-app",
+  "compatibility_date": "2026-10-03",
+  "assets": {
+    // 构建产物目录，与 vite build 的 outDir 保持一致
+    "directory": "./dist",
+    // SPA fallback：/search、/items/:id、/categories/:id 等深链一律回落到 index.html
+    // （由 Cloudflare 资产路由处理，不依赖 Pages 的 _redirects）
+    "not_found_handling": "single-page-application"
+  }
+}
