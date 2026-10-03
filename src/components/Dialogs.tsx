@@ -55,6 +55,41 @@ export default function ConfirmDialog({
   )
 }
 
+/** 单按钮信息对话框（说明性内容，无需二选一决策） */
+export function AlertDialog({
+  open,
+  title,
+  message,
+  confirmLabel = '知道了',
+  onClose,
+}: {
+  open: boolean
+  title: string
+  message: string
+  confirmLabel?: string
+  onClose: () => void
+}) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center px-10">
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="relative w-full max-w-[300px] rounded-2xl bg-white p-5 shadow-xl">
+        <p className="text-center text-item text-ink-primary">{title}</p>
+        <p className="mt-2 whitespace-pre-line text-center text-caption leading-relaxed text-ink-tertiary">
+          {message}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-4 flex h-11 w-full items-center justify-center rounded-xl bg-neutral-900 text-secondary font-medium text-white transition-transform duration-100 active:scale-[0.97]"
+        >
+          {confirmLabel}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /** 带标题与自定义内容的表单对话框（分类/标签编辑用） */
 export function FormDialog({
   open,
