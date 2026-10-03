@@ -8,7 +8,8 @@ import type { AppMeta, Asset, Category, Item, ItemTag, Tag } from '../domain/typ
  *
  * 版本史：
  *   v1  初始 6 表
- *   v2  Item 增加购买信息字段（purchaseDate / purchasePriceCents / purchasePlatform）
+ *   v2  Item 增加购买信息字段
+ *       （purchaseDate / purchasePriceCents / additionalCostCents / purchasePlatform）
  *       非索引字段无需改 stores，仅需 upgrade 把旧记录的新字段补为 null
  */
 class AppDatabase extends Dexie {
@@ -47,6 +48,7 @@ class AppDatabase extends Dexie {
           .modify((item: Record<string, unknown>) => {
             item.purchaseDate ??= null
             item.purchasePriceCents ??= null
+            item.additionalCostCents ??= null
             item.purchasePlatform ??= null
           })
       })

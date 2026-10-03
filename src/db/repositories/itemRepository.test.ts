@@ -22,6 +22,7 @@ const baseInput = {
   tagIds: [] as string[],
   purchaseDate: null as string | null,
   purchasePriceCents: null as number | null,
+  additionalCostCents: null as number | null,
   purchasePlatform: null as 'jd' | 'taobao' | null,
 }
 
@@ -76,17 +77,24 @@ describe('itemRepository', () => {
     expect(fetched?.name).toBe('AirPods Pro 2')
   })
 
-  it('create 保存购买信息字段', async () => {
+  it('create 保存购买信息字段（含附加花费）', async () => {
     const item = await itemRepository.create({
       ...baseInput,
       purchaseDate: '2026-01-01',
       purchasePriceCents: 149_900,
+      additionalCostCents: 20_000,
       purchasePlatform: 'jd',
     })
     const fetched = await itemRepository.getActive(item.id)
     expect(fetched?.purchaseDate).toBe('2026-01-01')
     expect(fetched?.purchasePriceCents).toBe(149_900)
+    expect(fetched?.additionalCostCents).toBe(20_000)
     expect(fetched?.purchasePlatform).toBe('jd')
+  })
+
+  it('create 时附加花费默认为 null', async () => {
+    const item = await itemRepository.create(baseInput)
+    expect((await itemRepository.getActive(item.id))?.additionalCostCents).toBeNull()
   })
 
   it('update 修改购买信息字段（含清空回 null）', async () => {
@@ -95,20 +103,24 @@ describe('itemRepository', () => {
       ...baseInput,
       purchaseDate: '2026-01-01',
       purchasePriceCents: 149_900,
+      additionalCostCents: 20_000,
       purchasePlatform: 'jd',
     })
     let fetched = await itemRepository.getActive(item.id)
     expect(fetched?.purchasePriceCents).toBe(149_900)
+    expect(fetched?.additionalCostCents).toBe(20_000)
 
     await itemRepository.update(item.id, {
       ...baseInput,
       purchaseDate: null,
       purchasePriceCents: null,
+      additionalCostCents: null,
       purchasePlatform: null,
     })
     fetched = await itemRepository.getActive(item.id)
     expect(fetched?.purchaseDate).toBeNull()
     expect(fetched?.purchasePriceCents).toBeNull()
+    expect(fetched?.additionalCostCents).toBeNull()
     expect(fetched?.purchasePlatform).toBeNull()
   })
 })

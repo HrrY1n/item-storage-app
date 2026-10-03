@@ -16,6 +16,7 @@ export interface ItemInput {
   /** 购买信息（全部可选） */
   purchaseDate: string | null
   purchasePriceCents: number | null
+  additionalCostCents: number | null
   purchasePlatform: PurchasePlatform | null
 }
 
@@ -64,6 +65,7 @@ export const itemRepository = {
       sourceType: 'preset',
       purchaseDate: input.purchaseDate,
       purchasePriceCents: input.purchasePriceCents,
+      additionalCostCents: input.additionalCostCents,
       purchasePlatform: input.purchasePlatform,
       createdAt: now,
       updatedAt: now,
@@ -92,6 +94,7 @@ export const itemRepository = {
         iconAssetId: input.iconAssetId,
         purchaseDate: input.purchaseDate,
         purchasePriceCents: input.purchasePriceCents,
+        additionalCostCents: input.additionalCostCents,
         purchasePlatform: input.purchasePlatform,
         updatedAt: now,
       })

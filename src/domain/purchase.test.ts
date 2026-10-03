@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   calculateDailyCostCents,
   calculateOwnershipDays,
+  calculateTotalCostCents,
   centsToPriceInput,
   formatCents,
   formatPurchaseDate,
@@ -60,7 +61,35 @@ describe('calculateOwnershipDays（按日历日，含购买当天）', () => {
   })
 })
 
-describe('calculateDailyCostCents', () => {
+describe('calculateTotalCostCents（总投入 = 购买价格 + 附加花费）', () => {
+  it('两者都有：10000 + 2000 = 12000', () => {
+    expect(calculateTotalCostCents(10_000, 2_000)).toBe(12_000)
+  })
+
+  it('只有购买价格：原值返回（附加花费按 0 计）', () => {
+    expect(calculateTotalCostCents(10_000, null)).toBe(10_000)
+  })
+
+  it('只有附加花费：¥299 也能算出总投入', () => {
+    expect(calculateTotalCostCents(null, 29_900)).toBe(29_900)
+  })
+
+  it('两者都为 null → null（不显示为 ¥0.00）', () => {
+    expect(calculateTotalCostCents(null, null)).toBeNull()
+  })
+
+  it('两者都为 0（赠品）→ 0', () => {
+    expect(calculateTotalCostCents(0, 0)).toBe(0)
+  })
+
+  it('负数 / 非有限数（脏数据）→ null', () => {
+    expect(calculateTotalCostCents(-1, 0)).toBeNull()
+    expect(calculateTotalCostCents(0, -1)).toBeNull()
+    expect(calculateTotalCostCents(Number.NaN, 0)).toBeNull()
+  })
+})
+
+describe('calculateDailyCostCents（基于总投入，而非仅购买价格）', () => {
   it('基本：¥1000 / 今天购买 = 100000 分/天', () => {
     expect(calculateDailyCostCents(100_000, '2026-10-03', '2026-10-03')).toBe(100_000)
   })
@@ -75,7 +104,20 @@ describe('calculateDailyCostCents', () => {
     expect(calculateDailyCostCents(0, '2026-01-01', '2026-10-03')).toBe(0)
   })
 
-  it('缺价格或缺日期 → null', () => {
+  it('只有附加花费（无购买价格）也能算日均：¥299 / 276 天', () => {
+    const total = calculateTotalCostCents(null, 29_900)
+    expect(total).toBe(29_900)
+    const cost = calculateDailyCostCents(total, '2026-01-01', '2026-10-03')
+    expect(cost).not.toBeNull()
+    expect(Math.round(cost!)).toBe(108)
+  })
+
+  it('总投入含附加花费：¥100 + ¥20 / 2 天 = 60 分/天', () => {
+    const total = calculateTotalCostCents(10_000, 2_000)
+    expect(calculateDailyCostCents(total, '2026-10-02', '2026-10-03')).toBe(6_000)
+  })
+
+  it('缺总投入或缺日期 → null', () => {
     expect(calculateDailyCostCents(null, '2026-01-01')).toBeNull()
     expect(calculateDailyCostCents(100, null)).toBeNull()
     expect(calculateDailyCostCents(null, null)).toBeNull()

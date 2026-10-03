@@ -16,7 +16,8 @@ import { CURRENT_SCHEMA_VERSION } from './types'
 
 /**
  * 当前写入的备份格式版本。
- * v2 = Item 增加购买信息（purchaseDate / purchasePriceCents / purchasePlatform）
+ * v2 = Item 增加购买信息与附加花费
+ *      （purchaseDate / purchasePriceCents / additionalCostCents / purchasePlatform）
  */
 export const BACKUP_SCHEMA_VERSION = 2
 
@@ -169,6 +170,7 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
   // v2 购买信息字段：v1 旧备份一律迁移为 null；v2 备份必须带类型正确的字段
   let purchaseDate: string | null = null
   let purchasePriceCents: number | null = null
+  let additionalCostCents: number | null = null
   let purchasePlatform: PurchasePlatform | null = null
 
   if (schemaVersion >= 2) {
@@ -177,6 +179,9 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
     }
     if (!(raw.purchasePriceCents === null || isNumber(raw.purchasePriceCents))) {
       return { ok: false, error: `items[${i}].purchasePriceCents 无效` }
+    }
+    if (!(raw.additionalCostCents === null || isNumber(raw.additionalCostCents))) {
+      return { ok: false, error: `items[${i}].additionalCostCents 无效` }
     }
     if (
       !(
@@ -188,6 +193,7 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
     }
     purchaseDate = raw.purchaseDate as string | null
     purchasePriceCents = raw.purchasePriceCents as number | null
+    additionalCostCents = raw.additionalCostCents as number | null
     purchasePlatform = raw.purchasePlatform as PurchasePlatform | null
   }
 
@@ -202,6 +208,7 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
       sourceType: raw.sourceType as Item['sourceType'],
       purchaseDate,
       purchasePriceCents,
+      additionalCostCents,
       purchasePlatform,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,

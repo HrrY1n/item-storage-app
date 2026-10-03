@@ -24,6 +24,7 @@ function validData(): BackupData {
         sourceType: 'preset',
         purchaseDate: '2026-01-01',
         purchasePriceCents: 1_499_900,
+        additionalCostCents: 20_000,
         purchasePlatform: 'jd',
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-02T00:00:00.000Z',
@@ -224,16 +225,18 @@ describe('v1 旧备份迁移（schemaVersion = 1）', () => {
     const items = d.items as unknown as Record<string, unknown>[]
     delete items[0].purchaseDate
     delete items[0].purchasePriceCents
+    delete items[0].additionalCostCents
     delete items[0].purchasePlatform
     return d
   }
 
-  it('v1 Item 导入时购买字段迁移为 null', () => {
+  it('v1 Item 导入时购买字段迁移为 null（含附加花费）', () => {
     const r = validateBackupData(v1Data(), 1)
     expect(r.ok).toBe(true)
     if (r.ok) {
       expect(r.value.items[0].purchaseDate).toBeNull()
       expect(r.value.items[0].purchasePriceCents).toBeNull()
+      expect(r.value.items[0].additionalCostCents).toBeNull()
       expect(r.value.items[0].purchasePlatform).toBeNull()
     }
   })
@@ -249,10 +252,17 @@ describe('v1 旧备份迁移（schemaVersion = 1）', () => {
 })
 
 describe('v2 购买字段校验', () => {
-  it('v2 缺少购买字段被拒绝', () => {
+  it('v2 缺少购买价格被拒绝', () => {
     const d = validData()
     const items = d.items as unknown as Record<string, unknown>[]
     delete items[0].purchasePriceCents
+    expect(validateCurrent(d).ok).toBe(false)
+  })
+
+  it('v2 缺少附加花费被拒绝', () => {
+    const d = validData()
+    const items = d.items as unknown as Record<string, unknown>[]
+    delete items[0].additionalCostCents
     expect(validateCurrent(d).ok).toBe(false)
   })
 
@@ -268,10 +278,26 @@ describe('v2 购买字段校验', () => {
     expect(validateCurrent(d).ok).toBe(false)
   })
 
-  it('v2 三个字段全为 null 也合法（全部可选）', () => {
+  it('v2 附加花费类型非法被拒绝', () => {
+    const d = validData()
+    d.items[0].additionalCostCents = '200' as unknown as number
+    expect(validateCurrent(d).ok).toBe(false)
+  })
+
+  it('v2 附加花费随备份完整还原', () => {
+    const r = validateCurrent(validData())
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      expect(r.value.items[0].additionalCostCents).toBe(20_000)
+      expect(toBackupPayload(r.value).items[0].additionalCostCents).toBe(20_000)
+    }
+  })
+
+  it('v2 四个字段全为 null 也合法（全部可选）', () => {
     const d = validData()
     d.items[0].purchaseDate = null
     d.items[0].purchasePriceCents = null
+    d.items[0].additionalCostCents = null
     d.items[0].purchasePlatform = null
     expect(validateCurrent(d).ok).toBe(true)
   })

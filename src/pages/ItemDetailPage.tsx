@@ -4,6 +4,7 @@ import { categoryPath } from '../domain/categoryTree'
 import {
   calculateDailyCostCents,
   calculateOwnershipDays,
+  calculateTotalCostCents,
   formatCents,
   formatPurchaseDate,
   platformLabel,
@@ -56,12 +57,17 @@ export default function ItemDetailPage() {
     .filter((t): t is NonNullable<typeof t> => Boolean(t))
   const iconUrl = assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'
 
-  // 购买信息：三个字段全为空则整个区块不显示
+  // 购买信息：四个字段全为空则整个区块不显示
   const hasPurchase =
     item.purchaseDate !== null ||
     item.purchasePriceCents !== null ||
+    item.additionalCostCents !== null ||
     item.purchasePlatform !== null
-  const dailyCents = calculateDailyCostCents(item.purchasePriceCents, item.purchaseDate)
+  const totalCents = calculateTotalCostCents(
+    item.purchasePriceCents,
+    item.additionalCostCents,
+  )
+  const dailyCents = calculateDailyCostCents(totalCents, item.purchaseDate)
   const ownershipDays = item.purchaseDate ? calculateOwnershipDays(item.purchaseDate) : null
   const purchaseSubline = [
     item.purchasePlatform ? platformLabel(item.purchasePlatform) : null,
@@ -132,12 +138,28 @@ export default function ItemDetailPage() {
             {item.purchasePriceCents !== null && (
               <p className="text-item text-ink-primary">{formatCents(item.purchasePriceCents)}</p>
             )}
+            {item.additionalCostCents !== null && (
+              <p className="mt-0.5 text-secondary text-ink-secondary">
+                附加花费 {formatCents(item.additionalCostCents)}
+              </p>
+            )}
+            {totalCents !== null && (
+              <p className="mt-0.5 text-secondary text-ink-secondary">
+                总投入{' '}
+                <span className="font-medium text-ink-primary">{formatCents(totalCents)}</span>
+              </p>
+            )}
             {purchaseSubline && (
               <p className="mt-1 text-secondary text-ink-secondary">{purchaseSubline}</p>
             )}
-            {dailyCents !== null && ownershipDays !== null && (
-              <p className="mt-1.5 text-secondary text-ink-secondary">
-                已持有 {ownershipDays} 天 · 日均使用成本{' '}
+            {ownershipDays !== null && (
+              <p className="mt-1 text-secondary text-ink-secondary">
+                已持有 {ownershipDays} 天
+              </p>
+            )}
+            {dailyCents !== null && (
+              <p className="mt-0.5 text-secondary text-ink-secondary">
+                日均使用成本{' '}
                 <span className="font-medium text-ink-primary">{formatCents(dailyCents)} / 天</span>
               </p>
             )}

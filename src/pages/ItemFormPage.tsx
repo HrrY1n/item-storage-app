@@ -8,6 +8,7 @@ import {
   PURCHASE_PLATFORMS,
   calculateDailyCostCents,
   calculateOwnershipDays,
+  calculateTotalCostCents,
   centsToPriceInput,
   formatCents,
   parsePriceInput,
@@ -63,6 +64,7 @@ export default function ItemFormPage() {
   // 购买信息（全部可选）
   const [purchaseDate, setPurchaseDate] = useState('')
   const [priceText, setPriceText] = useState('')
+  const [additionalCostText, setAdditionalCostText] = useState('')
   const [purchasePlatform, setPurchasePlatform] = useState<PurchasePlatform | null>(null)
   const [confirmDiscard, setConfirmDiscard] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -83,44 +85,52 @@ export default function ItemFormPage() {
     setPriceText(
       existingItem.purchasePriceCents !== null ? centsToPriceInput(existingItem.purchasePriceCents) : '',
     )
+    setAdditionalCostText(
+      existingItem.additionalCostCents !== null
+        ? centsToPriceInput(existingItem.additionalCostCents)
+        : '',
+    )
     setPurchasePlatform(existingItem.purchasePlatform)
   }, [isEdit, existingItem, categories, links])
 
   const loading = !categories || !tags || !links || !presetAssets || (isEdit && !initialized.current)
 
+  /** dirty 判定用的表单快照：任何参与保存的字段都必须在此 */
+  const formSnapshot = () =>
+    JSON.stringify({
+      name: name.trim(),
+      iconAssetId,
+      categoryId,
+      tagIds: [...tagIds].sort(),
+      note: note.trim(),
+      purchaseDate,
+      purchasePriceCents: parsePriceInput(priceText),
+      additionalCostCents: parsePriceInput(additionalCostText),
+      purchasePlatform,
+    })
+
   const initialSnapshot = useRef<string>('')
   useEffect(() => {
     if (loading) return
-    if (!initialSnapshot.current) {
-      initialSnapshot.current = JSON.stringify({
-        name: name.trim(),
-        iconAssetId,
-        categoryId,
-        tagIds: [...tagIds].sort(),
-        note: note.trim(),
-        purchaseDate,
-        purchasePriceCents: parsePriceInput(priceText),
-        purchasePlatform,
-      })
-    }
+    if (!initialSnapshot.current) initialSnapshot.current = formSnapshot()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading])
 
   const dirty = useMemo(() => {
     if (!initialSnapshot.current) return false
-    return (
-      JSON.stringify({
-        name: name.trim(),
-        iconAssetId,
-        categoryId,
-        tagIds: [...tagIds].sort(),
-        note: note.trim(),
-        purchaseDate,
-        purchasePriceCents: parsePriceInput(priceText),
-        purchasePlatform,
-      }) !== initialSnapshot.current
-    )
-  }, [name, iconAssetId, categoryId, tagIds, note, purchaseDate, priceText, purchasePlatform])
+    return formSnapshot() !== initialSnapshot.current
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    name,
+    iconAssetId,
+    categoryId,
+    tagIds,
+    note,
+    purchaseDate,
+    priceText,
+    additionalCostText,
+    purchasePlatform,
+  ])
 
   if (loading) return null
 
@@ -128,17 +138,19 @@ export default function ItemFormPage() {
   const childCategories = rootId ? childrenOf(categories, rootId) : []
   const canSave = name.trim().length > 0 && categoryId !== null && !saving
 
-  // 实时日均成本预览：购买日期 + 购买价格都有值时才显示（信息不全不报错）
-  const previewDailyCents = calculateDailyCostCents(
+  // 实时预览：总投入只要填了价格或附加花费任一即可显示
+  // 日均使用成本额外需要购买日期（缺日期时只显示总投入，不显示日均）
+  const previewTotalCents = calculateTotalCostCents(
     parsePriceInput(priceText),
-    purchaseDate || null,
+    parsePriceInput(additionalCostText),
   )
+  const previewDailyCents = calculateDailyCostCents(previewTotalCents, purchaseDate || null)
   const previewDays = purchaseDate ? calculateOwnershipDays(purchaseDate) : null
   const today = todayString()
 
-  /** 价格输入只接受「整数 / 最多两位小数」，输入过程不产生非法中间态 */
-  const handlePriceChange = (raw: string) => {
-    if (raw === '' || /^\d*(\.\d{0,2})?$/.test(raw)) setPriceText(raw)
+  /** 金额输入只接受「整数 / 最多两位小数」（禁止负数），输入过程不产生非法中间态 */
+  const handleAmountChange = (raw: string, set: (v: string) => void) => {
+    if (raw === '' || /^\d*(\.\d{0,2})?$/.test(raw)) set(raw)
   }
 
   const toggleTag = (tid: string) => {
@@ -168,6 +180,7 @@ export default function ItemFormPage() {
     const purchase = {
       purchaseDate: purchaseDate || null,
       purchasePriceCents: parsePriceInput(priceText),
+      additionalCostCents: parsePriceInput(additionalCostText),
       purchasePlatform,
     }
     try {
@@ -364,12 +377,30 @@ export default function ItemFormPage() {
                 <span className="text-body text-ink-tertiary">¥</span>
                 <input
                   value={priceText}
-                  onChange={(e) => handlePriceChange(e.target.value)}
+                  onChange={(e) => handleAmountChange(e.target.value, setPriceText)}
                   placeholder="0.00"
                   inputMode="decimal"
                   className="min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-neutral-300"
                 />
               </div>
+            </div>
+
+            {/* 附加花费：配件 / 维修 / 升级 / 更换部件等额外投入 */}
+            <div>
+              <p className="mb-1.5 text-caption text-ink-tertiary">附加花费</p>
+              <div className="flex h-11 items-center gap-2 rounded-xl border border-black/[0.06] bg-white px-3 transition-colors focus-within:border-neutral-300">
+                <span className="text-body text-ink-tertiary">¥</span>
+                <input
+                  value={additionalCostText}
+                  onChange={(e) => handleAmountChange(e.target.value, setAdditionalCostText)}
+                  placeholder="0.00"
+                  inputMode="decimal"
+                  className="min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-neutral-300"
+                />
+              </div>
+              <p className="mt-1.5 text-caption text-ink-tertiary">
+                配件、维修、升级等额外支出
+              </p>
             </div>
 
             {/* 购买平台（单选，再点取消） */}
@@ -397,14 +428,22 @@ export default function ItemFormPage() {
               </div>
             </div>
 
-            {/* 实时日均成本预览 */}
-            {previewDailyCents !== null && previewDays !== null && (
+            {/* 实时预览：总投入 / 已持有天数 / 日均使用成本 */}
+            {previewTotalCents !== null && (
               <div className="rounded-xl bg-neutral-50 px-3.5 py-3">
-                <p className="text-caption text-ink-tertiary">日均使用成本</p>
+                <p className="text-caption text-ink-tertiary">总投入</p>
                 <p className="mt-0.5 text-item text-ink-primary">
-                  {formatCents(previewDailyCents)} / 天
+                  {formatCents(previewTotalCents)}
                 </p>
-                <p className="mt-0.5 text-caption text-ink-tertiary">已持有 {previewDays} 天</p>
+                {previewDailyCents !== null && previewDays !== null && (
+                  <>
+                    <p className="mt-2 text-caption text-ink-tertiary">已持有 {previewDays} 天</p>
+                    <p className="mt-0.5 text-caption text-ink-tertiary">日均使用成本</p>
+                    <p className="mt-0.5 text-item text-ink-primary">
+                      {formatCents(previewDailyCents)} / 天
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </div>

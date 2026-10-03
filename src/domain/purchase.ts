@@ -57,20 +57,41 @@ export function calculateOwnershipDays(
 }
 
 /**
+ * 总投入成本（derived value，不落库）= 购买价格 + 附加花费（均为整数分）。
+ *
+ * - 两者都 null → null（信息不足，不显示为 ¥0.00）
+ * - 只填其一 → 取该值（缺的那个按 0 计）
+ * - 两者都有 → 相加
+ * - 任一侧为负数 / 非有限数（脏数据）→ null
+ */
+export function calculateTotalCostCents(
+  purchasePriceCents: number | null,
+  additionalCostCents: number | null,
+): number | null {
+  if (purchasePriceCents === null && additionalCostCents === null) return null
+  const price = purchasePriceCents ?? 0
+  const additional = additionalCostCents ?? 0
+  if (!Number.isFinite(price) || !Number.isFinite(additional)) return null
+  if (price < 0 || additional < 0) return null
+  return price + additional
+}
+
+/**
  * 日均使用成本（单位：分，可为小数，展示时再格式化）。
- * purchaseDate 或 purchasePriceCents 为 null → null。
- * 价格为 0（赠品）→ 0。
+ * 入参是**总投入成本** totalCostCents（= 购买价格 + 附加花费），不是仅购买价格。
+ * purchaseDate 为 null 或 totalCostCents 为 null → null。
+ * 总投入为 0（赠品/0 元购入）→ 0。
  */
 export function calculateDailyCostCents(
-  purchasePriceCents: number | null,
+  totalCostCents: number | null,
   purchaseDate: string | null,
   today: string = todayString(),
 ): number | null {
-  if (purchaseDate === null || purchasePriceCents === null) return null
-  if (!Number.isFinite(purchasePriceCents) || purchasePriceCents < 0) return null
+  if (purchaseDate === null || totalCostCents === null) return null
+  if (!Number.isFinite(totalCostCents) || totalCostCents < 0) return null
   const days = calculateOwnershipDays(purchaseDate, today)
   if (days === null) return null
-  return purchasePriceCents / days
+  return totalCostCents / days
 }
 
 // ---------------------------------------------------------------- 展示格式化

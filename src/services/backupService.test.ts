@@ -16,6 +16,7 @@ function makeSnapshot(): Snapshot {
         sourceType: 'preset',
         purchaseDate: '2026-01-01',
         purchasePriceCents: 149_900,
+        additionalCostCents: 20_000,
         purchasePlatform: 'jd',
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-01T00:00:00.000Z',
@@ -156,28 +157,31 @@ describe('readAndValidateBackup：正常路径', () => {
     const raw = JSON.parse(await zip.file('data.json')!.async('string'))
     expect(raw.items[0].purchaseDate).toBe('2026-01-01')
     expect(raw.items[0].purchasePriceCents).toBe(149_900)
+    expect(raw.items[0].additionalCostCents).toBe(20_000)
     expect(raw.items[0].purchasePlatform).toBe('jd')
   })
 
-  it('schema v2 恢复：购买信息完整还原，版本号为 2', async () => {
+  it('schema v2 恢复：购买信息与附加花费完整还原，版本号为 2', async () => {
     const { zip } = await buildBackupArchive(makeSnapshot())
     const r = await readAndValidateBackup(await zipBytes(zip))
     expect(r.ok).toBe(true)
     if (!r.ok) return
     expect(r.payload.items[0].purchaseDate).toBe('2026-01-01')
     expect(r.payload.items[0].purchasePriceCents).toBe(149_900)
+    expect(r.payload.items[0].additionalCostCents).toBe(20_000)
     expect(r.payload.items[0].purchasePlatform).toBe('jd')
     expect(r.payload.appMeta.schemaVersion).toBe('2')
   })
 
   it('v1 旧备份可导入：购买字段迁移为 null，版本号升级为 2', async () => {
     const { zip, manifest, data } = await buildBackupArchive(makeSnapshot())
-    // 手工降级为 v1 备份：manifest 版本改 1，Item 删除购买字段
+    // 手工降级为 v1 备份：manifest 版本改 1，Item 删除购买信息字段
     const v1Manifest = { ...manifest, schemaVersion: 1 }
     const v1Data = JSON.parse(JSON.stringify(data)) as typeof data
     const v1Items = v1Data.items as unknown as Record<string, unknown>[]
     delete v1Items[0].purchaseDate
     delete v1Items[0].purchasePriceCents
+    delete v1Items[0].additionalCostCents
     delete v1Items[0].purchasePlatform
     zip.file('manifest.json', JSON.stringify(v1Manifest))
     zip.file('data.json', JSON.stringify(v1Data))
@@ -187,6 +191,7 @@ describe('readAndValidateBackup：正常路径', () => {
     if (!r.ok) return
     expect(r.payload.items[0].purchaseDate).toBeNull()
     expect(r.payload.items[0].purchasePriceCents).toBeNull()
+    expect(r.payload.items[0].additionalCostCents).toBeNull()
     expect(r.payload.items[0].purchasePlatform).toBeNull()
     expect(r.payload.appMeta.schemaVersion).toBe('2')
   })
@@ -232,6 +237,7 @@ describe('readAndValidateBackup：失败必须拒绝且不改动数据库', () =
       sourceType: 'preset',
       purchaseDate: null,
       purchasePriceCents: null,
+      additionalCostCents: null,
       purchasePlatform: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',

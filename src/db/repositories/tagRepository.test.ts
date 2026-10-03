@@ -53,6 +53,7 @@ describe('tagRepository', () => {
       tagIds: [tag.id],
       purchaseDate: null,
       purchasePriceCents: null,
+      additionalCostCents: null,
       purchasePlatform: null,
     })
     await tagRepository.delete(tag.id)
@@ -72,6 +73,7 @@ describe('tagRepository', () => {
         tagIds,
         purchaseDate: null,
         purchasePriceCents: null,
+        additionalCostCents: null,
         purchasePlatform: null,
       })
     const i1 = await mk('手机', [apple.id])

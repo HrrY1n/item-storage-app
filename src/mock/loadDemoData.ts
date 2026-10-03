@@ -51,6 +51,7 @@ export async function loadDemoData(): Promise<number> {
         sourceType: 'preset',
         purchaseDate: null,
         purchasePriceCents: null,
+        additionalCostCents: null,
         purchasePlatform: null,
         createdAt,
         updatedAt: createdAt,

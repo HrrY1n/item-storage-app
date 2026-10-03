@@ -29,7 +29,7 @@ export type PurchasePlatform =
   | 'aihuishou'
   | 'other'
 
-/** 当前数据契约版本（v2 = 增加购买信息字段） */
+/** 当前数据契约版本（v2 = 增加购买信息与附加花费字段） */
 export const CURRENT_SCHEMA_VERSION = 2
 
 export interface Item {
@@ -43,6 +43,8 @@ export interface Item {
   purchaseDate: string | null
   /** 购买价格，整数「分」（¥1499.99 = 149999）；null = 未填写；允许 0（赠品） */
   purchasePriceCents: number | null
+  /** 附加花费（配件/维修/升级/更换部件等额外投入），整数「分」；null = 未填写；允许 0 */
+  additionalCostCents: number | null
   /** 购买平台；null = 未填写 */
   purchasePlatform: PurchasePlatform | null
   createdAt: string
