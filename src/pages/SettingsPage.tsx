@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useToast } from '../components/Toast'
+import { APP_VERSION } from '../appInfo'
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -89,7 +90,7 @@ export default function SettingsPage() {
         <SoonRow label="在 iPhone 上安装" hint="Safari 打开 → 共享 → 添加到主屏幕" />
         <RowButton
           label="关于"
-          hint="v0.2.0 · 数据保存在本机"
+          hint={`v${APP_VERSION} · 数据保存在本机`}
           onClick={() => show('私人数字物品库 · Local-first PWA')}
         />
       </Group>
