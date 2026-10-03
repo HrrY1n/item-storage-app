@@ -14,6 +14,9 @@ function makeSnapshot(): Snapshot {
         note: '通勤用',
         iconAssetId: 'preset-earbuds',
         sourceType: 'preset',
+        purchaseDate: '2026-01-01',
+        purchasePriceCents: 149_900,
+        purchasePlatform: 'jd',
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-01T00:00:00.000Z',
         deletedAt: null,
@@ -55,7 +58,7 @@ function makeSnapshot(): Snapshot {
         createdAt: '2026-01-01T00:00:00.000Z',
       },
     ],
-    appMeta: { seeded: '1', schemaVersion: '1' },
+    appMeta: { seeded: '1', schemaVersion: '2' },
   }
 }
 
@@ -147,6 +150,55 @@ describe('readAndValidateBackup：正常路径', () => {
     expect(r.payload.appMeta.seeded).toBe('1')
   })
 
+  it('schema v2 导出：manifest 版本为 2，data.json 含购买信息字段', async () => {
+    const { zip, manifest } = await buildBackupArchive(makeSnapshot())
+    expect(manifest.schemaVersion).toBe(2)
+    const raw = JSON.parse(await zip.file('data.json')!.async('string'))
+    expect(raw.items[0].purchaseDate).toBe('2026-01-01')
+    expect(raw.items[0].purchasePriceCents).toBe(149_900)
+    expect(raw.items[0].purchasePlatform).toBe('jd')
+  })
+
+  it('schema v2 恢复：购买信息完整还原，版本号为 2', async () => {
+    const { zip } = await buildBackupArchive(makeSnapshot())
+    const r = await readAndValidateBackup(await zipBytes(zip))
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.payload.items[0].purchaseDate).toBe('2026-01-01')
+    expect(r.payload.items[0].purchasePriceCents).toBe(149_900)
+    expect(r.payload.items[0].purchasePlatform).toBe('jd')
+    expect(r.payload.appMeta.schemaVersion).toBe('2')
+  })
+
+  it('v1 旧备份可导入：购买字段迁移为 null，版本号升级为 2', async () => {
+    const { zip, manifest, data } = await buildBackupArchive(makeSnapshot())
+    // 手工降级为 v1 备份：manifest 版本改 1，Item 删除购买字段
+    const v1Manifest = { ...manifest, schemaVersion: 1 }
+    const v1Data = JSON.parse(JSON.stringify(data)) as typeof data
+    const v1Items = v1Data.items as unknown as Record<string, unknown>[]
+    delete v1Items[0].purchaseDate
+    delete v1Items[0].purchasePriceCents
+    delete v1Items[0].purchasePlatform
+    zip.file('manifest.json', JSON.stringify(v1Manifest))
+    zip.file('data.json', JSON.stringify(v1Data))
+
+    const r = await readAndValidateBackup(await zipBytes(zip))
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.payload.items[0].purchaseDate).toBeNull()
+    expect(r.payload.items[0].purchasePriceCents).toBeNull()
+    expect(r.payload.items[0].purchasePlatform).toBeNull()
+    expect(r.payload.appMeta.schemaVersion).toBe('2')
+  })
+
+  it('v1 manifest + v2 数据（带购买字段）也能通过校验（向后兼容读取）', async () => {
+    const { zip, manifest } = await buildBackupArchive(makeSnapshot())
+    zip.file('manifest.json', JSON.stringify({ ...manifest, schemaVersion: 1 }))
+    const r = await readAndValidateBackup(await zipBytes(zip))
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.payload.items[0].purchaseDate).toBeNull()
+  })
+
   it('资产元数据缺失对应文件时退化为 blob=null，不整包失败', async () => {
     const { zip } = await buildBackupArchive(makeSnapshot())
     const raw = JSON.parse(await zip.file('data.json')!.async('string'))
@@ -178,6 +230,9 @@ describe('readAndValidateBackup：失败必须拒绝且不改动数据库', () =
       note: '',
       iconAssetId: 'preset-other',
       sourceType: 'preset',
+      purchaseDate: null,
+      purchasePriceCents: null,
+      purchasePlatform: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
       deletedAt: null,

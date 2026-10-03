@@ -217,7 +217,7 @@ export async function readAndValidateBackup(
     return { ok: false, error: (dataRaw as { __error: string }).__error }
   }
 
-  const dataResult = validateBackupData(dataRaw)
+  const dataResult = validateBackupData(dataRaw, manifestResult.value.schemaVersion)
   if (!dataResult.ok) return dataResult
 
   // 读取二进制资产（缺失不报错：退化为 blob=null）

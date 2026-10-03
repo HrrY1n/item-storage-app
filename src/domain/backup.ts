@@ -11,13 +11,17 @@
  * - 任何一项校验失败都返回 ok:false + 原因，**绝不部分写入**。
  */
 
-import type { Asset, AssetKind, Category, Item, ItemTag, Tag } from './types'
+import type { Asset, AssetKind, Category, Item, ItemTag, PurchasePlatform, Tag } from './types'
+import { CURRENT_SCHEMA_VERSION } from './types'
 
-/** 当前写入的备份格式版本 */
-export const BACKUP_SCHEMA_VERSION = 1
+/**
+ * 当前写入的备份格式版本。
+ * v2 = Item 增加购买信息（purchaseDate / purchasePriceCents / purchasePlatform）
+ */
+export const BACKUP_SCHEMA_VERSION = 2
 
-/** 本应用可接受的备份格式版本集合 */
-const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1]
+/** 本应用可接受的备份格式版本集合（v1 旧备份导入时自动迁移） */
+const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2]
 
 /**
  * 需要从备份中迁移的 appMeta 键。
@@ -141,7 +145,16 @@ export function validateManifest(raw: unknown): ValidationResult<BackupManifest>
 
 // ---------------------------------------------------------------- data.json
 
-function validateItem(raw: unknown, i: number): ValidationResult<Item> {
+const PURCHASE_PLATFORM_VALUES: readonly string[] = [
+  'jd',
+  'taobao',
+  'pinduoduo',
+  'zhuanzhuan',
+  'aihuishou',
+  'other',
+]
+
+function validateItem(raw: unknown, i: number, schemaVersion: number): ValidationResult<Item> {
   if (!isRecord(raw)) return { ok: false, error: `items[${i}] 不是合法对象` }
   if (!isString(raw.id) || raw.id === '') return { ok: false, error: `items[${i}].id 无效` }
   if (!isString(raw.name)) return { ok: false, error: `items[${i}].name 无效` }
@@ -153,6 +166,31 @@ function validateItem(raw: unknown, i: number): ValidationResult<Item> {
   if (!isString(raw.updatedAt)) return { ok: false, error: `items[${i}].updatedAt 无效` }
   if (!isNullableString(raw.deletedAt)) return { ok: false, error: `items[${i}].deletedAt 无效` }
 
+  // v2 购买信息字段：v1 旧备份一律迁移为 null；v2 备份必须带类型正确的字段
+  let purchaseDate: string | null = null
+  let purchasePriceCents: number | null = null
+  let purchasePlatform: PurchasePlatform | null = null
+
+  if (schemaVersion >= 2) {
+    if (!isNullableString(raw.purchaseDate)) {
+      return { ok: false, error: `items[${i}].purchaseDate 无效` }
+    }
+    if (!(raw.purchasePriceCents === null || isNumber(raw.purchasePriceCents))) {
+      return { ok: false, error: `items[${i}].purchasePriceCents 无效` }
+    }
+    if (
+      !(
+        raw.purchasePlatform === null ||
+        (isString(raw.purchasePlatform) && PURCHASE_PLATFORM_VALUES.includes(raw.purchasePlatform))
+      )
+    ) {
+      return { ok: false, error: `items[${i}].purchasePlatform 无效` }
+    }
+    purchaseDate = raw.purchaseDate as string | null
+    purchasePriceCents = raw.purchasePriceCents as number | null
+    purchasePlatform = raw.purchasePlatform as PurchasePlatform | null
+  }
+
   return {
     ok: true,
     value: {
@@ -162,6 +200,9 @@ function validateItem(raw: unknown, i: number): ValidationResult<Item> {
       note: raw.note,
       iconAssetId: raw.iconAssetId,
       sourceType: raw.sourceType as Item['sourceType'],
+      purchaseDate,
+      purchasePriceCents,
+      purchasePlatform,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       deletedAt: raw.deletedAt,
@@ -279,10 +320,10 @@ function mapValidated<T, R>(
   return { ok: true, value: out as unknown as T[] }
 }
 
-export function validateBackupData(raw: unknown): ValidationResult<BackupData> {
+export function validateBackupData(raw: unknown, schemaVersion: number): ValidationResult<BackupData> {
   if (!isRecord(raw)) return { ok: false, error: 'data.json 格式错误：不是合法对象' }
 
-  const items = mapValidated<Item, Item>(raw.items, 'items', validateItem)
+  const items = mapValidated<Item, Item>(raw.items, 'items', (v, i) => validateItem(v, i, schemaVersion))
   if (!items.ok) return items
 
   const categories = mapValidated<Category, Category>(raw.categories, 'categories', validateCategory)
@@ -363,6 +404,8 @@ export function toBackupPayload(
     if (isString(v)) appMeta[key] = v
   }
   if (data.appMeta.seeded !== '1') appMeta.seeded = '1'
+  // 恢复后数据已被迁移到当前契约（v1 备份的购买字段已补 null），版本号跟随当前应用
+  appMeta.schemaVersion = String(CURRENT_SCHEMA_VERSION)
 
   return {
     items: data.items,

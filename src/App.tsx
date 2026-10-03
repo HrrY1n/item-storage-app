@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router'
-import { seedIfEmpty } from './db/seed'
+import { seedIfEmpty, upgradeSchemaVersionMeta } from './db/seed'
 import { requestPersistentStorage } from './services/pwa'
 import BottomNav from './components/BottomNav'
 import FAB from './components/FAB'
@@ -61,6 +61,7 @@ function Boot() {
     // 尽力申请持久化存储；不支持或被拒绝都静默跳过，绝不阻塞启动
     void requestPersistentStorage()
     seedIfEmpty()
+      .then(() => upgradeSchemaVersionMeta())
       .then(() => setReady(true))
       .catch(() => setFailed(true))
   }, [])

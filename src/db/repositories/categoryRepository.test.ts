@@ -64,6 +64,9 @@ describe('categoryRepository', () => {
       iconAssetId: 'preset-earbuds',
       note: '',
       tagIds: [],
+      purchaseDate: null,
+      purchasePriceCents: null,
+      purchasePlatform: null,
     })
     await expect(categoryRepository.deleteGuarded(c.id)).rejects.toThrow('该分类下还有 1 件物品')
     await itemRepository.softDelete(item.id)

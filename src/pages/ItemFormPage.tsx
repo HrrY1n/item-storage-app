@@ -3,6 +3,17 @@ import type { ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { childrenOf } from '../domain/categoryTree'
 import { presetSortIndex } from '../data/icons'
+import type { PurchasePlatform } from '../domain/types'
+import {
+  PURCHASE_PLATFORMS,
+  calculateDailyCostCents,
+  calculateOwnershipDays,
+  centsToPriceInput,
+  formatCents,
+  parsePriceInput,
+  platformLabel,
+  todayString,
+} from '../domain/purchase'
 import {
   useCategories,
   useItem,
@@ -49,6 +60,10 @@ export default function ItemFormPage() {
   const [tagIds, setTagIds] = useState<string[]>([])
   const [note, setNote] = useState('')
   const [newTagName, setNewTagName] = useState('')
+  // 购买信息（全部可选）
+  const [purchaseDate, setPurchaseDate] = useState('')
+  const [priceText, setPriceText] = useState('')
+  const [purchasePlatform, setPurchasePlatform] = useState<PurchasePlatform | null>(null)
   const [confirmDiscard, setConfirmDiscard] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -64,6 +79,11 @@ export default function ItemFormPage() {
     setRootId(cat ? (cat.parentId ?? cat.id) : null)
     setNote(existingItem.note)
     setTagIds(links.filter((l) => l.itemId === existingItem.id).map((l) => l.tagId))
+    setPurchaseDate(existingItem.purchaseDate ?? '')
+    setPriceText(
+      existingItem.purchasePriceCents !== null ? centsToPriceInput(existingItem.purchasePriceCents) : '',
+    )
+    setPurchasePlatform(existingItem.purchasePlatform)
   }, [isEdit, existingItem, categories, links])
 
   const loading = !categories || !tags || !links || !presetAssets || (isEdit && !initialized.current)
@@ -78,6 +98,9 @@ export default function ItemFormPage() {
         categoryId,
         tagIds: [...tagIds].sort(),
         note: note.trim(),
+        purchaseDate,
+        purchasePriceCents: parsePriceInput(priceText),
+        purchasePlatform,
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,15 +115,31 @@ export default function ItemFormPage() {
         categoryId,
         tagIds: [...tagIds].sort(),
         note: note.trim(),
+        purchaseDate,
+        purchasePriceCents: parsePriceInput(priceText),
+        purchasePlatform,
       }) !== initialSnapshot.current
     )
-  }, [name, iconAssetId, categoryId, tagIds, note])
+  }, [name, iconAssetId, categoryId, tagIds, note, purchaseDate, priceText, purchasePlatform])
 
   if (loading) return null
 
   const roots = childrenOf(categories, null)
   const childCategories = rootId ? childrenOf(categories, rootId) : []
   const canSave = name.trim().length > 0 && categoryId !== null && !saving
+
+  // 实时日均成本预览：购买日期 + 购买价格都有值时才显示（信息不全不报错）
+  const previewDailyCents = calculateDailyCostCents(
+    parsePriceInput(priceText),
+    purchaseDate || null,
+  )
+  const previewDays = purchaseDate ? calculateOwnershipDays(purchaseDate) : null
+  const today = todayString()
+
+  /** 价格输入只接受「整数 / 最多两位小数」，输入过程不产生非法中间态 */
+  const handlePriceChange = (raw: string) => {
+    if (raw === '' || /^\d*(\.\d{0,2})?$/.test(raw)) setPriceText(raw)
+  }
 
   const toggleTag = (tid: string) => {
     setTagIds((prev) => (prev.includes(tid) ? prev.filter((t) => t !== tid) : [...prev, tid]))
@@ -126,9 +165,21 @@ export default function ItemFormPage() {
   const handleSave = async () => {
     if (!canSave) return
     setSaving(true)
+    const purchase = {
+      purchaseDate: purchaseDate || null,
+      purchasePriceCents: parsePriceInput(priceText),
+      purchasePlatform,
+    }
     try {
       if (isEdit && id) {
-        await itemRepository.update(id, { name, categoryId: categoryId!, iconAssetId, note, tagIds })
+        await itemRepository.update(id, {
+          name,
+          categoryId: categoryId!,
+          iconAssetId,
+          note,
+          tagIds,
+          ...purchase,
+        })
         show('已保存')
         setTimeout(() => navigate(`/items/${id}`, { replace: true }), 300)
       } else {
@@ -138,6 +189,7 @@ export default function ItemFormPage() {
           iconAssetId,
           note,
           tagIds,
+          ...purchase,
         })
         show('已添加')
         setTimeout(() => navigate(`/items/${item.id}`, { replace: true }), 300)
@@ -287,6 +339,74 @@ export default function ItemFormPage() {
             >
               添加
             </button>
+          </div>
+        </Field>
+
+        {/* 购买信息（全部可选） */}
+        <Field label="购买信息" hint="可选">
+          <div className="flex flex-col gap-3 rounded-2xl border border-black/[0.05] bg-white p-4 shadow-card">
+            {/* 购买日期 */}
+            <div>
+              <p className="mb-1.5 text-caption text-ink-tertiary">购买日期</p>
+              <input
+                type="date"
+                value={purchaseDate}
+                max={today}
+                onChange={(e) => setPurchaseDate(e.target.value)}
+                className="h-11 w-full rounded-xl border border-black/[0.06] bg-white px-3 text-body text-ink-primary outline-none transition-colors focus:border-neutral-300"
+              />
+            </div>
+
+            {/* 购买价格 */}
+            <div>
+              <p className="mb-1.5 text-caption text-ink-tertiary">购买价格</p>
+              <div className="flex h-11 items-center gap-2 rounded-xl border border-black/[0.06] bg-white px-3 transition-colors focus-within:border-neutral-300">
+                <span className="text-body text-ink-tertiary">¥</span>
+                <input
+                  value={priceText}
+                  onChange={(e) => handlePriceChange(e.target.value)}
+                  placeholder="0.00"
+                  inputMode="decimal"
+                  className="min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-neutral-300"
+                />
+              </div>
+            </div>
+
+            {/* 购买平台（单选，再点取消） */}
+            <div>
+              <p className="mb-1.5 text-caption text-ink-tertiary">购买平台</p>
+              <div className="flex flex-wrap gap-2">
+                {PURCHASE_PLATFORMS.map((p) => {
+                  const selected = purchasePlatform === p
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPurchasePlatform(selected ? null : p)}
+                      aria-pressed={selected}
+                      className={`flex min-h-[36px] items-center rounded-full px-3.5 text-secondary transition-colors duration-150 active:scale-[0.97] ${
+                        selected
+                          ? 'bg-neutral-900 text-white'
+                          : 'bg-neutral-100 text-ink-secondary'
+                      }`}
+                    >
+                      {platformLabel(p)}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* 实时日均成本预览 */}
+            {previewDailyCents !== null && previewDays !== null && (
+              <div className="rounded-xl bg-neutral-50 px-3.5 py-3">
+                <p className="text-caption text-ink-tertiary">日均使用成本</p>
+                <p className="mt-0.5 text-item text-ink-primary">
+                  {formatCents(previewDailyCents)} / 天
+                </p>
+                <p className="mt-0.5 text-caption text-ink-tertiary">已持有 {previewDays} 天</p>
+              </div>
+            )}
           </div>
         </Field>
 

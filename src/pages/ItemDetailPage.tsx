@@ -2,6 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { categoryPath } from '../domain/categoryTree'
 import {
+  calculateDailyCostCents,
+  calculateOwnershipDays,
+  formatCents,
+  formatPurchaseDate,
+  platformLabel,
+} from '../domain/purchase'
+import {
   useCategories,
   useItem,
   useItemTagLinks,
@@ -48,6 +55,20 @@ export default function ItemDetailPage() {
     .map((l) => tags.find((t) => t.id === l.tagId))
     .filter((t): t is NonNullable<typeof t> => Boolean(t))
   const iconUrl = assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'
+
+  // 购买信息：三个字段全为空则整个区块不显示
+  const hasPurchase =
+    item.purchaseDate !== null ||
+    item.purchasePriceCents !== null ||
+    item.purchasePlatform !== null
+  const dailyCents = calculateDailyCostCents(item.purchasePriceCents, item.purchaseDate)
+  const ownershipDays = item.purchaseDate ? calculateOwnershipDays(item.purchaseDate) : null
+  const purchaseSubline = [
+    item.purchasePlatform ? platformLabel(item.purchasePlatform) : null,
+    item.purchaseDate ? formatPurchaseDate(item.purchaseDate) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   const handleDelete = async () => {
     setConfirmingDelete(false)
@@ -101,6 +122,25 @@ export default function ItemDetailPage() {
             {itemTags.map((tag) => (
               <TagChip key={tag.id} name={tag.name} />
             ))}
+          </div>
+        )}
+
+        {/* 购买信息（有任一字段才显示） */}
+        {hasPurchase && (
+          <div className="mt-5 rounded-2xl border border-black/[0.05] bg-white p-4 shadow-card">
+            <p className="mb-1.5 text-caption font-medium text-ink-tertiary">购买信息</p>
+            {item.purchasePriceCents !== null && (
+              <p className="text-item text-ink-primary">{formatCents(item.purchasePriceCents)}</p>
+            )}
+            {purchaseSubline && (
+              <p className="mt-1 text-secondary text-ink-secondary">{purchaseSubline}</p>
+            )}
+            {dailyCents !== null && ownershipDays !== null && (
+              <p className="mt-1.5 text-secondary text-ink-secondary">
+                已持有 {ownershipDays} 天 · 日均使用成本{' '}
+                <span className="font-medium text-ink-primary">{formatCents(dailyCents)} / 天</span>
+              </p>
+            )}
           </div>
         )}
 

@@ -20,6 +20,18 @@ export type IconKey =
 export type AssetKind = 'preset' | 'ai_generated' | 'from_photo'
 export type ItemSourceType = AssetKind
 
+/** 购买平台（Phase 2E）；UI 显示映射见 domain/purchase.ts */
+export type PurchasePlatform =
+  | 'jd'
+  | 'taobao'
+  | 'pinduoduo'
+  | 'zhuanzhuan'
+  | 'aihuishou'
+  | 'other'
+
+/** 当前数据契约版本（v2 = 增加购买信息字段） */
+export const CURRENT_SCHEMA_VERSION = 2
+
 export interface Item {
   id: string
   name: string
@@ -27,6 +39,12 @@ export interface Item {
   note: string
   iconAssetId: string
   sourceType: ItemSourceType
+  /** 购买日期 YYYY-MM-DD；null = 未填写 */
+  purchaseDate: string | null
+  /** 购买价格，整数「分」（¥1499.99 = 149999）；null = 未填写；允许 0（赠品） */
+  purchasePriceCents: number | null
+  /** 购买平台；null = 未填写 */
+  purchasePlatform: PurchasePlatform | null
   createdAt: string
   updatedAt: string
   /** soft delete；null = 未删除 */

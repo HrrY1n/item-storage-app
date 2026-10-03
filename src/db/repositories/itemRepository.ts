@@ -1,6 +1,6 @@
 import { ulid } from 'ulid'
 import { db } from '../db'
-import type { Item } from '../../domain/types'
+import type { Item, PurchasePlatform } from '../../domain/types'
 
 /**
  * Item repository —— 唯一直接操作 items / itemTags 表的地方。
@@ -13,6 +13,10 @@ export interface ItemInput {
   iconAssetId: string
   note: string
   tagIds: string[]
+  /** 购买信息（全部可选） */
+  purchaseDate: string | null
+  purchasePriceCents: number | null
+  purchasePlatform: PurchasePlatform | null
 }
 
 const notDeleted = (i: Item) => i.deletedAt === null
@@ -58,6 +62,9 @@ export const itemRepository = {
       note: input.note.trim(),
       iconAssetId: input.iconAssetId,
       sourceType: 'preset',
+      purchaseDate: input.purchaseDate,
+      purchasePriceCents: input.purchasePriceCents,
+      purchasePlatform: input.purchasePlatform,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
@@ -83,6 +90,9 @@ export const itemRepository = {
         categoryId: input.categoryId,
         note: input.note.trim(),
         iconAssetId: input.iconAssetId,
+        purchaseDate: input.purchaseDate,
+        purchasePriceCents: input.purchasePriceCents,
+        purchasePlatform: input.purchasePlatform,
         updatedAt: now,
       })
       // 重写关联：先删后插

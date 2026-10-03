@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-Phase 2C 已完成：应用具备完整的数据管理闭环与离线可用能力。
+Phase 2E 已完成：具备完整的数据管理闭环、离线可用能力，以及购买信息与日均使用成本。
 
 | 阶段 | 内容 | 状态 |
 |---|---|---|
@@ -18,9 +18,10 @@ Phase 2C 已完成：应用具备完整的数据管理闭环与离线可用能�
 | Phase 2A | UI 原型 · 11 个页面 + 移动端 HIG 精修 | ✅ 完成 |
 | Phase 2B | 本地数据层 + 核心 CRUD + 单元测试 | ✅ 完成 |
 | Phase 2C | 备份/恢复（ZIP）、PWA 离线安装、CI | ✅ 完成 |
+| Phase 2E | 购买信息（日期 / 价格 / 平台）与日均使用成本 | ✅ 完成 |
 
-**测试**：85 个单元测试全部通过（domain 纯函数 + repository 集成测试）。
-**验证**：备份导出、恢复替换、离线打开、PWA manifest 均已在真实浏览器 + 生产构建上端到端验证。
+**测试**：119 个单元测试全部通过（domain 纯函数 + repository 集成测试）。
+**验证**：备份导出、恢复替换、购买信息录入与恢复、离线打开、PWA manifest 均已在真实浏览器 + 生产构建上端到端验证。
 
 ---
 
@@ -89,6 +90,7 @@ scripts/            # 图标生成、CDP 驱动的截图与端到端验证脚本
 - **搜索**：实时匹配，按名称 / 分类 / 标签加权打分排序，含最近搜索记录
 - **管理页面**：分类管理（移动、排序、删除保护）、标签管理、图标库
 - **删除保护**：分类非空时禁止删除，软删除（`deletedAt`）保留数据
+- **购买信息**：记录购买日期 / 价格 / 平台，自动算出**日均使用成本**（详见下方章节）
 - **备份与恢复**：导出完整 ZIP 备份，从备份原子替换恢复
 - **PWA**：可安装到主屏幕，App Shell 离线可用
 - **存储持久化**：启动时尽力申请 `navigator.storage.persist()`
@@ -119,6 +121,33 @@ assets/          仅真实用户二进制资产（preset 静态图标随包交�
 3. 用户确认后，在**单个 Dexie transaction** 中完整替换
 
 任何一步失败都会**拒绝导入并保持当前数据库完全不变**，不会出现"清空一半后失败"的中间状态。第一版仅实现 **Replace Restore**，不做合并。
+
+---
+
+## 购买信息与日均使用成本
+
+每件物品可记录**购买日期**、**购买价格**与**购买平台**，系统据此自动计算**日均使用成本**——把一次性支出换算成「每天花多少钱」，便于判断长期持有是否划算。
+
+```
+日均使用成本 = 购买价格 ÷ 持有天数
+持有天数     = 今天 - 购买日期 + 1（含购买当天，今天买算持有 1 天）
+```
+
+### 设计约定
+
+| 约定 | 原因 |
+|---|---|
+| 价格用**整数「分」**存储（`purchasePriceCents`） | 避免浮点累积误差：`¥1499.99` 存为 `149999` |
+| 日期统一 `YYYY-MM-DD` | 精度到天，不引入时间与时区语义 |
+| 天数按**日历日**计算 | 先转 UTC 日序号再相减，不受本地时区 / 夏令时影响，**不会差一天** |
+| 价格 `0` 视为赠品 | 允许填写，日均成本为 `0` 而非报错 |
+| 未来日期 / 非法日期返回 `null` | 历史脏数据不会让页面崩溃，UI 静默不显示 |
+
+### 支持的购买平台
+
+京东 · 淘宝 · 拼多多 · 转转 · 爱回收 · 其他
+
+购买信息是**纯记录性**的：不参与搜索排序，不做价格统计分析，也没有任何联网抓取或比价行为。
 
 ---
 
@@ -180,6 +209,12 @@ Phase 2B · UI 原型
 |---|---|---|
 | ![新增](docs/screenshots/06-item-new.png) | ![详情](docs/screenshots/07-item-detail.png) | ![设置](docs/screenshots/08-settings.png) |
 
+Phase 2E · 购买信息与日均使用成本
+
+| 新增表单 | 详情页展示 | 购买信息随备份恢复 |
+|---|---|---|
+| ![表单](docs/screenshots/phase2e/01-form-preview.png) | ![详情](docs/screenshots/phase2e/02-detail.png) | ![恢复后](docs/screenshots/phase2e/04-after-restore.png) |
+
 Phase 2C · 备份恢复与离线验证
 
 | 恢复确认 | 恢复后 | 离线打开 |
@@ -192,10 +227,10 @@ Phase 2C · 备份恢复与离线验证
 
 ## 数据说明
 
-Dexie Schema v1 共 6 张表：
+Dexie Schema 现为 **v2**，共 6 张表：
 
 ```ts
-db.version(1).stores({
+db.version(2).stores({
   items:      'id, categoryId, name, createdAt, updatedAt, deletedAt',
   categories: 'id, parentId, name, sortOrder, deletedAt',
   tags:       'id, &nameNormalized, createdAt',
@@ -204,6 +239,24 @@ db.version(1).stores({
   appMeta:    'key',
 })
 ```
+
+版本演进：
+
+| 版本 | 变更 |
+|---|---|
+| v1 | 初始 6 张表 |
+| v2 | `Item` 增加购买信息字段；均为非索引字段，无需改动 `stores`，由 `upgrade` 把旧记录补为 `null` |
+
+```ts
+export interface Item {
+  // …其余基础字段
+  purchaseDate: string | null              // YYYY-MM-DD
+  purchasePriceCents: number | null        // 整数「分」，允许 0（赠品）
+  purchasePlatform: PurchasePlatform | null
+}
+```
+
+购买信息字段均为 `null` 时表示未填写，UI 会静默隐藏相关区块。备份文件同样包含这些字段，因此购买信息会随备份一起导出与恢复。
 
 数据仅保存在**当前设备当前浏览器**中。应用会在启动时尽力申请持久化存储，但这只是一项偏好请求：浏览器可以拒绝，用户清理浏览数据时依然会被清除。
 

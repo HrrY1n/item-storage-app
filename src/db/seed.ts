@@ -1,6 +1,7 @@
 import { ulid } from 'ulid'
 import { db } from './db'
 import type { Asset, Category, IconKey } from '../domain/types'
+import { CURRENT_SCHEMA_VERSION } from '../domain/types'
 import { PRESET_ICONS } from '../data/icons'
 
 /**
@@ -77,7 +78,19 @@ export async function seedIfEmpty(): Promise<void> {
     await db.assets.bulkPut(buildPresetAssets(now))
     await db.appMeta.bulkPut([
       { key: 'seeded', value: '1' },
-      { key: 'schemaVersion', value: '1' },
+      { key: 'schemaVersion', value: String(CURRENT_SCHEMA_VERSION) },
     ])
   })
+}
+
+/**
+ * 已存在数据库的 schemaVersion 升级（v1 → v2）。
+ * Item 字段补齐由 Dexie version(2).upgrade 完成，这里只同步 appMeta 标记。
+ */
+export async function upgradeSchemaVersionMeta(): Promise<void> {
+  const current = await db.appMeta.get('schemaVersion')
+  const target = String(CURRENT_SCHEMA_VERSION)
+  if (!current || current.value !== target) {
+    await db.appMeta.put({ key: 'schemaVersion', value: target })
+  }
 }

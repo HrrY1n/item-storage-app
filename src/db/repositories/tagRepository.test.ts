@@ -51,6 +51,9 @@ describe('tagRepository', () => {
       iconAssetId: 'preset-phone',
       note: '',
       tagIds: [tag.id],
+      purchaseDate: null,
+      purchasePriceCents: null,
+      purchasePlatform: null,
     })
     await tagRepository.delete(tag.id)
     expect(await tagRepository.list()).toHaveLength(0)
@@ -61,7 +64,16 @@ describe('tagRepository', () => {
     const apple = await tagRepository.create('Apple')
     const fruit = await tagRepository.create('苹果')
     const mk = (name: string, tagIds: string[]) =>
-      itemRepository.create({ name, categoryId: 'c1', iconAssetId: 'preset-other', note: '', tagIds })
+      itemRepository.create({
+        name,
+        categoryId: 'c1',
+        iconAssetId: 'preset-other',
+        note: '',
+        tagIds,
+        purchaseDate: null,
+        purchasePriceCents: null,
+        purchasePlatform: null,
+      })
     const i1 = await mk('手机', [apple.id])
     const i2 = await mk('电脑', [apple.id, fruit.id]) // 两个标签都有 → 合并后应去重
 
