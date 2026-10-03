@@ -8,7 +8,7 @@
     // 构建产物目录，与 vite build 的 outDir 保持一致
     "directory": "./dist",
     // SPA fallback：/search、/items/:id、/categories/:id 等深链一律回落到 index.html
-    // （由 Cloudflare 资产路由处理，不依赖 Pages 的 _redirects）
+    // 完全由 Cloudflare 资产路由负责；dist 中不放置任何 Pages 专属的重写规则文件
     "not_found_handling": "single-page-application"
   }
 }
