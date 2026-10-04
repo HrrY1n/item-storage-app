@@ -2,15 +2,58 @@
 
 一个 **local-first（本地优先）** 的个人物品管理 PWA。所有数据存放在浏览器 IndexedDB 中，**没有后端、没有账号、没有云端同步**——你的物品清单完全属于你自己。
 
-适用于记录数码产品、家电、线缆配件、收藏品等个人物品：通过**分类、标签和搜索**整理与找到自己的物品记录。
+通过**分类、标签、搜索与 73 个内置物品图标**整理与找到自己的物品记录；支持**浅色 / 深色 / 跟随系统**三态主题，可安装到手机主屏并离线使用。
 
 > 本项目**不做位置树**（不涉及 room / shelf / storage location 等存放位置维度），定位不是"找东西放在哪个房间哪个格子"，而是把物品记录本身整理清楚、随时可查。
 
 ---
 
-## 当前状态
+## 界面预览
 
-Phase 2E 已完成：具备完整的数据管理闭环、离线可用能力，以及购买信息与日均使用成本。
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/phase2f/01-home-light.png" alt="首页 · 浅色"></td>
+<td width="50%"><img src="docs/screenshots/phase2f/02-home-dark.png" alt="首页 · 深色"></td>
+</tr>
+<tr>
+<td align="center"><sub>首页 · 浅色</sub></td>
+<td align="center"><sub>首页 · 深色</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/phase2f/03-detail-light.png" alt="物品详情 · 浅色"></td>
+<td><img src="docs/screenshots/phase2f/04-detail-dark.png" alt="物品详情 · 深色"></td>
+</tr>
+<tr>
+<td align="center"><sub>物品详情 · 打光 Hero + 三栏指标 + 价格明细</sub></td>
+<td align="center"><sub>物品详情 · 深色</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/phase2f/05-icon-picker.png" alt="图标选择器"></td>
+<td><img src="docs/screenshots/phase2f/07-settings-appearance.png" alt="设置 · 外观"></td>
+</tr>
+<tr>
+<td align="center"><sub>图标选择器 · 搜索 / 最近使用 / 分类</sub></td>
+<td align="center"><sub>设置 · 外观三态</sub></td>
+</tr>
+<tr>
+<td colspan="2"><img src="docs/screenshots/phase2f/06-icon-library.png" alt="物品图标库"></td>
+</tr>
+<tr>
+<td colspan="2" align="center"><sub>物品图标库 · 73 个内置图标（桌面宽度）</sub></td>
+</tr>
+<tr>
+<td colspan="2"><img src="docs/screenshots/phase2f/08-desktop-dark.png" alt="桌面取景框" width="820"></td>
+</tr>
+<tr>
+<td colspan="2" align="center"><sub>桌面浏览器 · 外壳加宽到 600px，网格升列，底部导航贴取景框边缘</sub></td>
+</tr>
+</table>
+
+> 以上均为**真实浏览器**（无头 Edge + CDP）在生产构建上的截图，未做任何修饰。
+
+---
+
+## 当前状态
 
 | 阶段 | 内容 | 状态 |
 |---|---|---|
@@ -19,9 +62,10 @@ Phase 2E 已完成：具备完整的数据管理闭环、离线可用能力，�
 | Phase 2B | 本地数据层 + 核心 CRUD + 单元测试 | ✅ 完成 |
 | Phase 2C | 备份/恢复（ZIP）、PWA 离线安装、CI | ✅ 完成 |
 | Phase 2E | 购买信息（日期 / 价格 / 附加花费 / 平台）与日均使用成本 | ✅ 完成 |
+| Phase 2F | 物品图标体系（12 → 73）、图标选择器、三态主题、preset 资产幂等同步、整体视觉精修 | ✅ 完成 |
 
-**测试**：131 个单元测试全部通过（domain 纯函数 + repository 集成测试）。
-**验证**：备份导出、恢复替换、购买信息录入与恢复、离线打开、PWA manifest 均已在真实浏览器 + 生产构建上端到端验证。
+**测试**：**189** 个单元测试全部通过（domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据）。
+**验证**：备份导出 / 恢复替换 / 购买信息随备份往返 / 离线打开 / PWA manifest / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **67** 项自动化断言：视觉与交互 50 · 管理页 9 · 生产与离线 8）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
 
 ---
 
@@ -31,7 +75,7 @@ Phase 2E 已完成：具备完整的数据管理闭环、离线可用能力，�
 |---|---|
 | 框架 | React 19 + TypeScript 5.9 |
 | 构建 | Vite 7 |
-| 样式 | Tailwind CSS 3（移动端优先，375 / 390 / 430px 三档自适应） |
+| 样式 | Tailwind CSS 3，颜色/阴影全部指向 CSS 语义变量（`--color-*`） |
 | 本地数据库 | Dexie 4（IndexedDB 封装） + dexie-react-hooks |
 | 路由 | react-router 7（BrowserRouter） |
 | 备份打包 | JSZip（**按需动态加载**，不进入首屏） |
@@ -39,7 +83,7 @@ Phase 2E 已完成：具备完整的数据管理闭环、离线可用能力，�
 | ID | ulid（可排序、URL 安全） |
 | 测试 | Vitest + fake-indexeddb |
 
-刻意**不引入**状态管理库、动画库、图表库与任何后端 SDK——这是一个纯前端、少依赖、可长期维护的项目。
+刻意**不引入**状态管理库、动画库、图表库、UI 组件库与任何后端 SDK——这是一个纯前端、少依赖、可长期维护的项目。
 
 ---
 
@@ -52,49 +96,143 @@ npm run build    # 类型检查 + 生产构建
 npm run preview  # 预览生产构建（PWA 需在此模式下验证）
 npm run test     # 运行测试
 npm run typecheck
+node scripts/gen-item-icons.mjs   # 重新生成全部物品图标（唯一生成入口）
 ```
 
 首次启动会为空数据库写入种子数据：**21 个默认分类 + 73 个内置物品图标**。
-已用过的数据库会在每次启动时幂等补齐新增图标（`syncPresetAssets`），无需重置。
+已用过的数据库会在每次启动时**幂等补齐**新增图标（见下方「物品图标系统」），无需重置。
 
 > Service Worker 仅在**生产构建**中启用（`npm run build && npm run preview`），开发模式下不注册，避免缓存干扰调试。
 
 ---
 
-## 目录结构
+## 主题系统
 
-```
-src/
-├── components/     # 通用组件（BottomNav / ItemCard / Dialogs / Toast 等）
-├── pages/          # 页面（Home / Categories / Search / Settings 等）
-├── features/data/  # useLiveQuery 封装与视图模型
-├── db/             # Dexie 实例与 repositories（唯一数据库调用方）
-├── domain/         # 纯函数与业务逻辑（搜索打分 / 分类树 / 标签标准化 / 备份校验）
-├── services/       # 跨层编排（备份恢复、PWA 能力检测）
-├── data/           # 图标注册表
-├── mock/           # 演示数据（仅开发环境手动调用）
-└── types/
-根目录：main.tsx（入口）、App.tsx（路由）、index.css（全局样式与 token）、appInfo.ts（版本号唯一来源）
-docs/               # 架构设计、竞品调研、各阶段截图
-scripts/            # 图标生成、CDP 驱动的截图与端到端验证脚本
+设置 → 外观 → **外观模式**：`跟随系统` / `浅色` / `深色`（分段控件，非原生下拉）。默认跟随系统，选择持久保存在 `localStorage`。
+
+### 语义色 token
+
+所有颜色定义在 `src/index.css` 的两套变量里，`tailwind.config.js` 的调色板与阴影**全部指向 `var(--color-*)`**：
+
+```css
+:root, [data-theme='light'] { --color-canvas: #fafafa; --color-surface: #fff; /* … */ }
+[data-theme='dark']         { --color-canvas: #0e0e10; --color-surface: #17171a; /* … */ }
 ```
 
-分层原则：`domain` 层是纯函数且**全部有测试覆盖**，`db/repositories` 是**唯一**允许直接操作 Dexie 的地方，页面层不接触数据库细节。
+因此组件只表达意图（`bg-surface` / `text-ink-primary` / `border-line`），**全站没有任何 `dark:` 变体**。深色模式是一套**独立设计的主题**，而不是浅色的颜色反转：
+
+| 分层 | 浅色 | 深色 | 作用 |
+|---|---|---|---|
+| `canvas` | `#FAFAFA` | `#0E0E10` | 页面底 |
+| `surface` | `#FFFFFF` | `#17171A` | 卡片 / 列表行 |
+| `surface-raised` | `#FFFFFF` | `#1F1F23` | 浮层 / 对话框 |
+| `surface-sunken` | `#F4F4F3` | `#232327` | 未选胶囊 / 内嵌表面 |
+| `plate` | `#F5F4F0` | `#232327` | 物品展台底衬 |
+| `ink` primary→faint | `#171717` → `#8C8C8C` | `#F4F4F2` → `#83837F` | 文字四级 |
+| `line` / `line-strong` / `line-inner` | 低对比 hairline | 低对比 hairline | 结构线 |
+
+**语义色只有三个**，刻意不铺彩虹：
+
+| Token | 用途 |
+|---|---|
+| 陶土 `accent` | 品牌与交互：选中态、导航指示 |
+| 琥珀 `money` | 价格 / 总投入 / 日均成本 —— 数据指标不该和"可交互"共用同一种颜色 |
+| 红 `danger` | 删除等危险操作 |
+
+绿 / 紫 / 蓝**故意未预定义**：等真的出现「保修中 / 退役 / 已处置」这类状态时再加，预先铺满就是彩虹 UI。
+
+### 首帧不闪白
+
+深色偏好下启动 PWA 不能先闪一整屏白。`index.html` 里有一段**内联同步脚本**，在 React mount 之前就完成：
+
+```
+localStorage['pil.theme'] + window.matchMedia('(prefers-color-scheme: dark)')
+  → document.documentElement.dataset.theme
+  → <meta name="theme-color"> 同步（iOS / PWA 状态栏随之变深）
+```
+
+该脚本的常量与 `src/theme/theme.ts` 由测试断言保持一致，防止两边脱节。
+
+### 跟随系统是实时的
+
+`matchMedia('(prefers-color-scheme: dark)')` 的 `change` 事件直接驱动重渲染——系统切到夜间模式时网页**当场变化**，不需要刷新。切换瞬间会给可见表面挂上 `html.theme-shift` 做 220ms 颜色过渡（不使用 `*` 选择器，避免上百元素同时 transition 掉帧）。
+
+---
+
+## 物品图标系统
+
+### 73 个内置图标，7 个分类
+
+`数码 27 · 办公 7 · 服饰 11 · 生活 9 · 家居 10 · 兴趣 6 · 其他 3`
+
+`phone`（手机）与 `tablet`（平板电脑）是两个**独立**图标，另设 `ereader`（电子书阅读器）等细分类目。
+
+全部图标由 **`scripts/gen-item-icons.mjs`** 生成——这是唯一入口，改完跑一次即全量重建，**不要手改 `public/icons/items/*.svg`**：
+
+- 统一 96×96 画布、统一描边 `#57534E`、统一调色板
+- **透明背景**；底衬由 CSS 的 `--color-plate` 提供，因此**一套资源深浅主题通用**
+- 整体内缩 0.86：宽扁物体（显示器、路由器、数据线）不会顶到圆角边缘
+- 底部径向渐变接触阴影：实心椭圆在浅底上会读成"一块灰斑"而不是影子
+
+### 图标选择器
+
+`物品图标`元数据为 `key / label / path / category / keywords`，因此**按日常叫法就能搜到**：
+
+| 输入 | 命中 |
+|---|---|
+| `平板` / `iPad` | 平板电脑 |
+| `充电头` | 充电器 |
+| `话筒` | 麦克风 |
+| `电脑` | 笔记本电脑 · 台式电脑 · 平板电脑 |
+
+选择器提供 **搜索 / 最近使用 / 分类 / 完整网格** 四层结构（`src/components/IconPickerSheet.tsx`）。「最近使用」存 `localStorage`，上限 8 个。表单页只显示当前选中的那一个大图标 + 名称 + 「更换图标」，**不会把 70+ 图标铺在表单里**。
+
+### 老数据库如何自动拿到新图标
+
+`seedIfEmpty()` 只在**真正空库**时写入一次——这意味着已用过的设备永远拿不到之后新增的图标。因此启动闸里额外调用 **`syncPresetAssets()`** 做幂等同步：
+
+| 契约 | 实现 |
+|---|---|
+| 不清空用户数据 | 只读 `kind === 'preset'`，其余表不进事务 |
+| 不要求重置数据库 | 每次启动自动执行 |
+| 不删除用户已有 Asset | **只新增与就地更新，从不删除**（已下线图标的资产也保留，历史 `Item.iconAssetId` 可能仍在引用） |
+| 不破坏 `Item.iconAssetId` | **完全不写 `items` 表** |
+| 已存在 preset 不重复创建 | 按 `preset-<key>` 幂等 upsert |
+| path / metadata 可安全更新 | 就地更新但**保留原 `createdAt`** |
+| 非 preset 资产不受影响 | `ai_generated` / `from_photo` 完全不参与 |
+| 备份 / 恢复不损坏 | preset 是包内静态资源，不进 ZIP 的 `assets/`；恢复后下一次启动会再次补齐 |
+
+`src/db/presetSync.test.ts` 为上述每一条都写了断言。
 
 ---
 
 ## 已实现功能
 
-- **物品管理**：新增 / 编辑 / 查看 / 软删除，支持名称、备注、标签与内置图标（**当前仅 preset icon**，尚未支持照片上传）
+- **物品管理**：新增 / 编辑 / 查看 / 软删除，支持名称、备注、标签与 73 个内置图标（**当前仅 preset icon**，尚未支持照片上传）
 - **分类树**：最多两级，展开折叠、数量徽标、祖先链计数
 - **标签系统**：自动标准化去重，支持合并与重命名
 - **搜索**：实时匹配，按名称 / 分类 / 标签加权打分排序，含最近搜索记录
-- **管理页面**：分类管理（移动、排序、删除保护）、标签管理、图标库
+- **图标选择器**：搜索 + 最近使用 + 七分类网格（见上方章节）
+- **外观设置**：跟随系统 / 浅色 / 深色，实时切换并持久化
+- **管理页面**：分类管理（移动、排序、删除保护）、标签管理、物品图标库
 - **删除保护**：分类非空时禁止删除，软删除（`deletedAt`）保留数据
-- **购买信息**：记录购买日期 / 价格 / 附加花费 / 平台，自动算出**总投入**与**日均使用成本**（详见下方章节）
+- **购买信息**：记录购买日期 / 价格 / 附加花费 / 平台，自动算出**总投入**与**日均使用成本**
 - **备份与恢复**：导出完整 ZIP 备份，从备份原子替换恢复
 - **PWA**：可安装到主屏幕，App Shell 离线可用
 - **存储持久化**：启动时尽力申请 `navigator.storage.persist()`
+
+---
+
+## 界面与视觉系统
+
+- **物品展台只有一套打光配方**（`plate-surface` / `plate-surface-lg` + `--plate-*`）：顶光 + 底部微沉，**不是每张卡片随机渐变**，整页光线才一致
+- **详情页是"档案"而不是"表单详情"**：打光 Hero（物品直接落在光盘面上，不套第二层底衬）→ 三栏关键指标 → 价格明细子表面 → 备注
+- **数字不重复出现**：Hero 只给结论（持有天数 / 总投入 / 日均成本），明细表只给构成（购买价格 / 附加花费 / 合计）
+- **字距按文字脚本区分**：CJK 是方块字、自带左右边距，标题用**微开**字距；负字距只留给等宽数字
+- **卡片用等高 grid 而非瀑布流**：等高才能让三栏数字横向对齐比较，也保住"最近添加"的时间顺序可预期性
+- **响应式**：`--shell-max` 单一来源控制外壳宽度（430 / 520 / 600px），配合网格列数与图标库列数逐级升档，而不是把手机界面横向拉长
+- **动效短且有方向感**：`fade-rise 340ms` / `pop-in 280ms` / `sheet-up 320ms` / 抽屉 `340ms`；全部由 `prefers-reduced-motion` 门控
+- **无障碍降级齐备**：`prefers-reduced-transparency`（毛玻璃降级为实色）、`prefers-contrast`、`prefers-reduced-motion`
 
 ---
 
@@ -145,6 +283,7 @@ assets/          仅真实用户二进制资产（preset 静态图标随包交�
 | 价格 `0` 视为赠品 | 允许填写，日均成本为 `0` 而非报错 |
 | 未来日期 / 非法日期返回 `null` | 历史脏数据不会让页面崩溃，UI 静默不显示 |
 | 总投入（`totalCostCents`）是**派生值**，不落库 | 随时可由两个存储字段算出，避免冗余与不一致 |
+| 概览无数据时**整块不显示** | 绝不显示 ¥0.00 这类虚假指标 |
 
 ### 支持的购买平台
 
@@ -166,13 +305,29 @@ assets/          仅真实用户二进制资产（preset 静态图标随包交�
 
 ### Android / 桌面 Chrome
 
-浏览器会自动提示安装，或在地址栏/菜单中选择「安装应用」。
+浏览器会自动提示安装，或在地址栏 / 菜单中选择「安装应用」。
 
 ---
 
 ## 部署
 
 路由使用 **BrowserRouter**（URL 干净，无 `#`）。因此部署平台**必须配置 SPA fallback**，把所有未知路径回落到 `index.html`，否则直接访问 `/items/:id`、`/categories/:id`、`/search` 会得到 404。
+
+本仓库使用 **Cloudflare Workers（Static Assets）** 作为部署目标，`wrangler.jsonc` 已配好：
+
+```jsonc
+{
+  "name": "item-storage-app",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"   // SPA fallback
+  }
+}
+```
+
+> 本项目**没有后端**：没有 Worker 入口（无 `main`、无 `functions`），`dist` 中也不放置任何 Pages 专属重写规则文件。
+
+其他平台：
 
 ```toml
 # Netlify — netlify.toml
@@ -194,37 +349,34 @@ location / {
 }
 ```
 
-> GitHub Pages 不支持服务端 rewrite，需额外提供 `404.html` 拷贝 `index.html` 的方案，或改用 Netlify / Vercel / Cloudflare Pages。
+> GitHub Pages 不支持服务端 rewrite，需额外提供 `404.html` 拷贝 `index.html` 的方案，或改用上述任一平台。
 
 Service Worker 的 `navigateFallback` 已配置为 `/index.html`，因此在**已缓存**的情况下，离线访问任意路由同样可以打开。
 
 ---
 
-## 界面预览
+## 目录结构
 
-Phase 2B · UI 原型
+```
+src/
+├── components/     # 通用组件（BottomNav / ItemCard / IconPickerSheet / Dialogs 等）
+├── pages/          # 页面（Home / Categories / Search / Settings 等）
+├── theme/          # 三态主题：偏好解析（纯逻辑）+ Provider
+├── features/
+│   ├── data/       # useLiveQuery 封装与视图模型
+│   └── ui/         # 视图过渡、最近使用等 UI 逻辑
+├── db/             # Dexie 实例与 repositories（唯一数据库调用方）
+├── domain/         # 纯函数与业务逻辑（搜索打分 / 分类树 / 标签标准化 / 备份校验 / 成本计算）
+├── services/       # 跨层编排（备份恢复、PWA 能力检测）
+├── data/           # 物品图标注册表（元数据唯一来源）
+├── mock/           # 演示数据（仅开发环境手动调用）
+└── types/
+根目录：main.tsx（入口）、App.tsx（路由）、index.css（双主题 token）、tailwind.config.js、appInfo.ts（版本号唯一来源）
+docs/               # 架构设计、产品目标、竞品分析、各阶段截图
+scripts/            # 物品图标生成、PWA 图标生成
+```
 
-| 首页 | 分类 | 搜索 |
-|---|---|---|
-| ![首页](docs/screenshots/01-home.png) | ![分类](docs/screenshots/02-categories.png) | ![搜索](docs/screenshots/04-search.png) |
-
-| 新增物品 | 物品详情 | 设置 |
-|---|---|---|
-| ![新增](docs/screenshots/06-item-new.png) | ![详情](docs/screenshots/07-item-detail.png) | ![设置](docs/screenshots/08-settings.png) |
-
-Phase 2E · 购买信息与日均使用成本
-
-| 新增表单 | 详情页展示 | 购买信息随备份恢复 |
-|---|---|---|
-| ![表单](docs/screenshots/phase2e/01-form-preview.png) | ![详情](docs/screenshots/phase2e/02-detail.png) | ![恢复后](docs/screenshots/phase2e/04-after-restore.png) |
-
-Phase 2C · 备份恢复与离线验证
-
-| 恢复确认 | 恢复后 | 离线打开 |
-|---|---|---|
-| ![恢复确认](docs/screenshots/phase2c/02-restore-confirm.png) | ![恢复后](docs/screenshots/phase2c/03-restored-home.png) | ![离线](docs/screenshots/phase2c/04-offline-home.png) |
-
-更多截图见 [`docs/screenshots/`](docs/screenshots/)（含 Phase 2B 真实数据流程验证）。
+分层原则：`domain` 层是纯函数且**全部有测试覆盖**，`db/repositories` 是**唯一**允许直接操作 Dexie 的地方，页面层不接触数据库细节。
 
 ---
 
@@ -243,6 +395,14 @@ db.version(2).stores({
 })
 ```
 
+| 表 | 说明 |
+|---|---|
+| `items` | 物品主表，`deletedAt` 软删除 |
+| `categories` | 两级分类树，`parentId` 自引用 |
+| `tags` / `itemTags` | 标签与多对多关联，`&nameNormalized` 唯一索引防重复 |
+| `assets` | 物品图标资产。`kind='preset'` 指向包内路径；`ai_generated` / `from_photo` 已保留数据结构但 UI 未开放入口 |
+| `appMeta` | 种子标记与 schema 版本等元信息 |
+
 版本演进：
 
 | 版本 | 变更 |
@@ -255,12 +415,12 @@ export interface Item {
   // …其余基础字段
   purchaseDate: string | null              // YYYY-MM-DD
   purchasePriceCents: number | null        // 整数「分」，允许 0（赠品）
-  additionalCostCents: number | null       // 附加花费，整数「分」（配件/维修/升级等）
+  additionalCostCents: number | null       // 附加花费，整数「分」
   purchasePlatform: PurchasePlatform | null
 }
 ```
 
-购买信息字段均为 `null` 时表示未填写，UI 会静默隐藏相关区块。备份文件同样包含这些字段，因此购买信息会随备份一起导出与恢复。
+`Item.iconAssetId` 指向 `assets.id`（preset 为 `preset-<key>`）。由于 preset 资产 id 稳定且由启动闸幂等补齐，**升级后旧设备的物品图标不会失效**。
 
 数据仅保存在**当前设备当前浏览器**中。应用会在启动时尽力申请持久化存储，但这只是一项偏好请求：浏览器可以拒绝，用户清理浏览数据时依然会被清除。
 
@@ -270,7 +430,36 @@ export interface Item {
 
 ## 持续集成
 
-`.github/workflows/ci.yml` 在每次 push 与 PR 时执行 `npm ci` → `npm run test` → `npm run build`，确保主分支始终处于可构建、测试通过的状态。
+`.github/workflows/ci.yml`（Node 22）在每次 push 与 PR 时执行 `npm ci` → `npm run test` → `npm run build`，确保主分支始终处于可构建、测试通过的状态。
+
+---
+
+## 更多截图
+
+<details>
+<summary>历史阶段截图（点击展开）</summary>
+
+Phase 2E · 购买信息与日均使用成本
+
+| 新增表单 | 详情页展示 | 购买信息随备份恢复 |
+|---|---|---|
+| ![表单](docs/screenshots/phase2e/01-form-preview.png) | ![详情](docs/screenshots/phase2e/02-detail.png) | ![恢复后](docs/screenshots/phase2e/04-after-restore.png) |
+
+Phase 2C · 备份恢复与离线验证
+
+| 恢复确认 | 恢复后 | 离线打开 |
+|---|---|---|
+| ![恢复确认](docs/screenshots/phase2c/02-restore-confirm.png) | ![恢复后](docs/screenshots/phase2c/03-restored-home.png) | ![离线](docs/screenshots/phase2c/04-offline-home.png) |
+
+Phase 2B · UI 原型（界面已迭代，此处仅作存档）
+
+| 首页 | 分类 | 搜索 |
+|---|---|---|
+| ![首页](docs/screenshots/01-home.png) | ![分类](docs/screenshots/02-categories.png) | ![搜索](docs/screenshots/04-search.png) |
+
+</details>
+
+更多截图见 [`docs/screenshots/`](docs/screenshots/)。
 
 ---
 
