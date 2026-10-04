@@ -4,7 +4,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#FAFAFA" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="description" content="本地优先的个人物品管理工具，数据保存在本机浏览器中。" />
+
+    <!--
+      主题引导：必须在任何样式/脚本之前同步执行，保证**首帧**就是正确主题，
+      深色模式下不会先闪一屏白再变黑。
+
+      取值与 src/theme/theme.ts 必须一致（THEME_STORAGE_KEY / CANVAS_COLOR），
+      src/theme/theme.test.ts 会断言这份内联脚本与模块常量保持同步。
+    -->
+    <script>
+      (function () {
+        try {
+          var KEY = 'pil.theme'
+          var stored = localStorage.getItem(KEY)
+          var pref = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' &&
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          var theme = dark ? 'dark' : 'light'
+          document.documentElement.dataset.theme = theme
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', dark ? '#0E0E10' : '#FAFAFA')
+        } catch (e) {
+          /* 隐私模式等场景下静默降级为浅色默认值 */
+        }
+      })()
+    </script>
 
     <!-- iOS：添加到主屏幕 + 全屏运行 -->
     <link rel="apple-touch-icon" href="/icons/pwa/apple-touch-icon-180x180.png" />

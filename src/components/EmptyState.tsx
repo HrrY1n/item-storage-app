@@ -6,6 +6,9 @@ interface Props {
 /**
  * 空状态：原创线描插画 —— 「一处留白的展台」。
  * 虚线圈表示尚未放入的物品位置，台面与投影建立空间感，强调色仅用于那一个位置。
+ *
+ * 颜色全部走语义 token（fill-* / stroke-*），因此深浅两个主题共用同一张插画：
+ * 投影用 ink-primary 的低透明度，深色下自动变成"来自上方的光"而不是黑斑。
  */
 function EmptyPlinth() {
   return (
@@ -18,7 +21,7 @@ function EmptyPlinth() {
       aria-hidden
     >
       {/* 地面投影：单层，减少线条噪音 */}
-      <ellipse cx="70" cy="88" rx="40" ry="5" fill="rgba(23,23,23,0.05)" />
+      <ellipse cx="70" cy="88" rx="40" ry="5" className="fill-ink-primary opacity-[0.06]" />
       {/* 台面与台身 */}
       <path d="M30 76h80" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
       <path
@@ -33,14 +36,13 @@ function EmptyPlinth() {
         cx="70"
         cy="44"
         r="20"
-        stroke="#B4553B"
+        className="stroke-accent"
         strokeWidth="1.3"
         strokeDasharray="3 6"
         strokeLinecap="round"
-        opacity="0.75"
+        opacity="0.8"
       />
-      <circle cx="70" cy="44" r="2.6" fill="#B4553B" opacity="0.9" />
-      {/* 说明：省略两侧的装饰短线与向上引线 —— 保留"台面 + 留位"两个语义元素即可 */}
+      <circle cx="70" cy="44" r="2.6" className="fill-accent" opacity="0.95" />
     </svg>
   )
 }

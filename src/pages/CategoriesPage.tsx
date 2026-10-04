@@ -11,7 +11,7 @@ function Chevron({ open }: { open?: boolean }) {
     <svg
       width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-      className={`shrink-0 text-neutral-300 transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+      className={`shrink-0 text-ink-faint transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
     >
       <path d="m9 6 6 6-6 6" />
     </svg>
@@ -37,7 +37,7 @@ function RootCategoryBlock({
     .join(' · ')
 
   const rowClass =
-    'flex min-h-[68px] w-full items-center gap-3 px-3.5 py-3 text-left transition-colors active:bg-neutral-50'
+    'flex min-h-[68px] w-full items-center gap-3 px-3.5 py-3 text-left transition-colors active:bg-surface-sunken'
   const rowInner = (
     <>
       <CategoryIconTile category={category} size={44} />
@@ -53,7 +53,7 @@ function RootCategoryBlock({
   )
 
   return (
-    <div className="overflow-hidden rounded-surface border border-line bg-white shadow-card">
+    <div className="overflow-hidden rounded-surface border border-line bg-surface shadow-card">
       {children.length > 0 ? (
         <button
           type="button"
@@ -79,7 +79,7 @@ function RootCategoryBlock({
           <div className="border-t border-line-inner py-1">
             <Link
               to={`/categories/${category.id}`}
-              className="flex min-h-[44px] items-center pl-[70px] pr-3.5 text-secondary text-ink-secondary transition-colors active:bg-neutral-50"
+              className="flex min-h-[44px] items-center pl-[70px] pr-3.5 text-secondary text-ink-secondary transition-colors active:bg-surface-sunken"
             >
               全部「{category.name}」
             </Link>
@@ -87,7 +87,7 @@ function RootCategoryBlock({
               <Link
                 key={child.id}
                 to={`/categories/${child.id}`}
-                className="flex min-h-[44px] items-center pl-[70px] pr-3.5 transition-colors active:bg-neutral-50"
+                className="flex min-h-[44px] items-center pl-[70px] pr-3.5 transition-colors active:bg-surface-sunken"
               >
                 <span className="flex-1 truncate text-secondary text-ink-secondary">{child.name}</span>
                 <span className="mr-1.5 text-caption text-ink-tertiary">

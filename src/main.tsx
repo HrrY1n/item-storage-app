@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
+import { ThemeProvider } from './theme/ThemeProvider'
 import { loadDemoData } from './mock/loadDemoData'
 import { db } from './db/db'
 import { exportBackup, readAndValidateBackup, restoreFromPayload } from './services/backupService'
@@ -43,6 +44,8 @@ if (import.meta.env.DEV) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
   </StrictMode>,
 )

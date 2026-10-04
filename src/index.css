@@ -2,9 +2,155 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ==========================================================================
+   语义颜色系统（design tokens）
+
+   组件只表达意图 —— "这是 surface"、"这是 primary text"，
+   永远不写 #FFFFFF / #171717。两套主题各自给同一批变量赋值，
+   因此深色模式是**独立设计的一套主题**，而不是浅色的颜色反转。
+
+   分层逻辑（浅色）：
+     canvas（页面底） → surface（卡片） → plate（物品底衬，暖白、略沉）
+   分层逻辑（深色）：
+     canvas 近黑 → surface 抬升 → surface-raised 更高（浮层） → plate 作为"打光的展台"
+   明度差刻意克制（每级 4~8% L），靠 hairline 与留白而非强对比建立层次。
+   ========================================================================== */
+
+:root,
+[data-theme='light'] {
   color-scheme: light;
+
+  --color-canvas: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f4f4f3;
+  --color-plate: #f5f4f0;
+  /* 物品展台的"打光"：同一套配方，不是每张卡片随机渐变 */
+  --plate-sheen: rgba(255, 255, 255, 0.85);
+  --plate-top: #faf9f6;
+  --plate-bottom: #efeee9;
+  --plate-glow: rgba(255, 255, 255, 0.92);
+
+  --color-ink-primary: #171717;
+  --color-ink-secondary: #525252;
+  --color-ink-tertiary: #737373;
+  --color-ink-faint: #8c8c8c;
+  --color-ink-inverse: #ffffff;
+  --color-ink-solid: #171717;
+
+  --color-line: rgba(23, 23, 23, 0.06);
+  --color-line-strong: rgba(23, 23, 23, 0.1);
+  --color-line-inner: rgba(23, 23, 23, 0.045);
+
+  /* 品牌强调：陶土。只用于选中、导航指示、极少量点缀 */
+  --color-accent: #b4553b;
+  --color-accent-soft: #f7f0eb;
+  --color-accent-line: #e7d9cf;
+
+  /* 金钱语义：价格 / 总投入 / 日均成本 —— 与品牌色区分，避免"到处是强调色" */
+  --color-money: #8a5a16;
+  --color-money-deep: #74490f;
+  --color-money-soft: #faf3e5;
+  --color-money-line: #eadcc0;
+
+  --color-danger: #c0392b;
+  --color-danger-soft: #fbefed;
+
+  --color-overlay: rgba(23, 23, 23, 0.26);
+  --color-focus-ring: rgba(23, 23, 23, 0.55);
+  --color-selection: rgba(180, 85, 59, 0.16);
+  --color-ambient: rgba(23, 23, 23, 0.035);
+
+  /* 控件层材质（导航 / 顶栏）：内容层一律实色，只有 chrome 允许半透明 */
+  --color-chrome: rgba(255, 255, 255, 0.76);
+  --color-chrome-fallback: #ffffff;
+  --color-chrome-edge: rgba(255, 255, 255, 0.55);
+
+  --shadow-card: 0 1px 2px rgba(16, 16, 16, 0.045);
+  --shadow-lift: 0 18px 48px -20px rgba(16, 16, 16, 0.22), 0 4px 12px -6px rgba(16, 16, 16, 0.1);
+  --shadow-sheet: 0 24px 64px -16px rgba(16, 16, 16, 0.28);
+  --shadow-fab: 0 8px 22px -6px rgba(16, 16, 16, 0.32), 0 2px 6px -2px rgba(16, 16, 16, 0.18);
+
+  --grain-opacity: 0.03;
+  --grain-blend: multiply;
 }
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-canvas: #0e0e10;
+  --color-surface: #17171a;
+  --color-surface-raised: #1f1f23;
+  --color-surface-sunken: #232327;
+  --color-plate: #232327;
+  --plate-sheen: rgba(255, 255, 255, 0.055);
+  --plate-top: #2b2b30;
+  --plate-bottom: #1c1c20;
+  --plate-glow: rgba(216, 138, 98, 0.17);
+
+  --color-ink-primary: #f4f4f2;
+  --color-ink-secondary: #b8b8b5;
+  --color-ink-tertiary: #8f8f8c;
+  --color-ink-faint: #83837f;
+  --color-ink-inverse: #0e0e10;
+  --color-ink-solid: #f4f4f2;
+
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-line-strong: rgba(255, 255, 255, 0.15);
+  --color-line-inner: rgba(255, 255, 255, 0.055);
+
+  /* 深色下强调色需要提亮才够对比（#D97455 on #17171A ≈ 6.4:1） */
+  --color-accent: #d97455;
+  --color-accent-soft: #2a1e19;
+  --color-accent-line: #3c2b23;
+
+  --color-money: #e0a855;
+  --color-money-deep: #eec07b;
+  --color-money-soft: #271f14;
+  --color-money-line: #3a3021;
+
+  --color-danger: #e5645a;
+  --color-danger-soft: #2a1a19;
+
+  --color-overlay: rgba(0, 0, 0, 0.62);
+  --color-focus-ring: rgba(244, 244, 242, 0.6);
+  --color-selection: rgba(217, 116, 85, 0.28);
+  --color-ambient: rgba(0, 0, 0, 0.4);
+
+  --color-chrome: rgba(20, 20, 22, 0.72);
+  --color-chrome-fallback: #141416;
+  --color-chrome-edge: rgba(255, 255, 255, 0.07);
+
+  /* 深色下阴影要更重才看得见，但同时降低扩散，避免"发灰" */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-lift: 0 22px 56px -22px rgba(0, 0, 0, 0.75), 0 4px 14px -8px rgba(0, 0, 0, 0.5);
+  --shadow-sheet: 0 28px 72px -18px rgba(0, 0, 0, 0.8);
+  --shadow-fab: 0 10px 26px -8px rgba(0, 0, 0, 0.7), 0 2px 8px -3px rgba(0, 0, 0, 0.5);
+
+  --grain-opacity: 0.045;
+  --grain-blend: screen;
+}
+
+/* ---------------------------------------------------------- 应用外壳宽度
+
+   单一来源：移动优先的窄栏在宽屏上逐步加宽，让网格能用上更多列，
+   而不是把一个"巨大的手机界面"横向拉长。
+   底部导航引用同一个变量，保证它永远与内容外壳对齐。 */
+:root {
+  --shell-max: 430px;
+}
+@media (min-width: 768px) {
+  :root {
+    --shell-max: 520px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --shell-max: 600px;
+  }
+}
+
+/* ---------------------------------------------------------- 基础排版与渲染 */
 
 html,
 body,
@@ -12,7 +158,10 @@ body,
   height: 100%;
 }
 
-/* ---------------------------------------------------------- 基础排版与渲染 */
+html {
+  /* 让 iOS 橡皮筋区域、桌面端画布也跟随主题，避免深色下露出白边 */
+  background-color: var(--color-canvas);
+}
 
 body {
   @apply bg-canvas text-ink-primary antialiased;
@@ -28,8 +177,8 @@ body {
   /* 桌面端：给居中的应用容器一层极轻的环境底色，避免"一根窄柱"悬在白底上 */
   background-image: radial-gradient(
     120% 80% at 50% 0%,
-    rgba(23, 23, 23, 0.035) 0%,
-    rgba(23, 23, 23, 0) 60%
+    var(--color-ambient) 0%,
+    transparent 60%
   );
   background-repeat: no-repeat;
 }
@@ -46,16 +195,33 @@ p {
 }
 
 /* 键盘可达性：统一焦点环。
-   刻意用中性深灰而非强调色 —— 暖色焦点环在表单里会被误读成"校验错误"。 */
-:focus-visible {
-  outline: 2px solid rgba(23, 23, 23, 0.55);
+   刻意用中性色而非强调色 —— 暖色焦点环在表单里会被误读成"校验错误"。
+   用 :where() 把优先级降到 0，方便具体组件（如 .field-shell）用普通工具类接管焦点样式。 */
+:where(:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
   border-radius: 6px;
 }
 
+/**
+ * 带边框的输入容器（搜索框、金额输入等）。
+ *
+ * 焦点环画在**容器**上，而不是嵌在容器内部的 input 上 ——
+ * 否则会出现"容器边框 + input 外圈"两重框，看起来像渲染故障。
+ * 同时保留了 2px 的可见焦点指示，键盘可达性没有降低。
+ */
+.field-shell:focus-within {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.field-shell input:focus-visible,
+.field-shell textarea:focus-visible {
+  outline: none;
+}
+
 /* 选择态与选区：用强调色的极淡底色，替代浏览器默认蓝 */
 ::selection {
-  background: rgba(180, 85, 59, 0.16);
+  background: var(--color-selection);
   color: inherit;
 }
 
@@ -68,20 +234,40 @@ p {
 @layer utilities {
   /* 控件层材质（HIG chrome）：只给导航/工具栏，内容层一律实色 */
   .chrome {
-    background-color: rgba(255, 255, 255, 0.76);
+    background-color: var(--color-chrome);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
   }
-  /* 亮顶边：模拟光线打在材质上 */
+  /* 亮顶边：模拟光线打在材质上（深色下用一条更亮的 hairline） */
   .chrome-edge-top {
-    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    border-top: 1px solid var(--color-chrome-edge);
   }
 
   /* 极细颗粒：为平面底色增加一层几乎不可见的物质感（原创质感，非装饰图案） */
   .grain {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: var(--grain-opacity);
+    mix-blend-mode: var(--grain-blend);
   }
 
+  /* 物品底衬：图标是透明底的展示资产，底衬由主题决定，
+     因此同一套 SVG 在浅色与深色下都成立，无需两套资源。
+
+     展台配方是**全局唯一的一套**（顶光 + 底部微沉），不是每张卡片随机渐变 ——
+     物品因此像被同一盏柔光照着，整页的光线才是一致的。 */
+  .plate-surface {
+    background-color: var(--color-plate);
+    background-image:
+      radial-gradient(115% 85% at 50% 6%, var(--plate-sheen) 0%, transparent 60%),
+      linear-gradient(180deg, var(--plate-top) 0%, var(--plate-bottom) 100%);
+  }
+  /* 大尺寸展台（详情页 Hero）：光晕更集中，暖色更明显，让主体被"点亮" */
+  .plate-surface-lg {
+    background-color: var(--color-plate);
+    background-image:
+      radial-gradient(85% 58% at 50% 14%, var(--plate-glow) 0%, transparent 72%),
+      linear-gradient(180deg, var(--plate-top) 0%, var(--plate-bottom) 100%);
+  }
 }
 
 /* ---------------------------------------------------------- 入场动效（渐进增强）
@@ -95,7 +281,7 @@ p {
    这是"动画必须是渐进增强"的硬性落实。 */
 @keyframes fade-rise {
   from {
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     transform: translateY(0);
@@ -117,6 +303,15 @@ p {
     transform: translateY(0);
   }
 }
+/* 图标选择器：从底部整块升起，比 sheet-up 的位移更大，形成"抽屉"方向感 */
+@keyframes drawer-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
 
 /* 共享元素过渡（Item Card → Item Detail）：只调整默认交叉淡化的时长与曲线，
    位置与尺寸的变化由浏览器自动完成。渐进增强：不支持时以下规则完全不生效。 */
@@ -130,13 +325,47 @@ p {
 
 @media (prefers-reduced-motion: no-preference) {
   .animate-fade-rise {
-    animation: fade-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: fade-rise 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   .animate-pop-in {
     animation: pop-in 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   .animate-sheet-up {
     animation: sheet-up 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-drawer-up {
+    animation: drawer-up 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* 主题切换：只给最外层两层做极短的颜色过渡，
+     避免"全站元素同时 transition"造成的卡顿与画面抖动。 */
+  html,
+  body {
+    transition:
+      background-color 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /**
+   * 卡片 / 表面在主题切换时的颜色过渡。
+   *
+   * 只在切换那一瞬间由 JS 挂上 `html.theme-shift`，240ms 后摘掉 ——
+   * 这样 hover、展开等常规交互不会被常驻 transition 拖慢。
+   *
+   * 刻意**不用 `*`**：那会让上百个元素同时跑 transition，低端手机上直接掉帧。
+   * 这里只覆盖真正看得见的承载面（内容区、卡片、展台、导航）。
+   * 展台的渐变靠 CSS 变量取色、无法过渡，会与卡片一起瞬切 —— 在 220ms 的
+   * 整体变化里这点差异肉眼不可辨，而换来的是零掉帧风险。
+   */
+  html.theme-shift main,
+  html.theme-shift main section,
+  html.theme-shift main div,
+  html.theme-shift nav,
+  html.theme-shift .plate-surface {
+    transition:
+      background-color 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 220ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
@@ -148,6 +377,25 @@ p {
   -ms-overflow-style: none;
 }
 
+/* 桌面端外壳的滚动条：默认系统滚动条会打断取景框的完整性，
+   换成一条贴边的细线（移动端不出现滚动条，无副作用）。 */
+.shell-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+.shell-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.shell-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.shell-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--color-line-strong);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 9999px;
+}
+
 /* 隐藏 search input 原生清除按钮（使用自定义清除按钮） */
 input[type='search']::-webkit-search-cancel-button {
   display: none;
@@ -157,7 +405,7 @@ input[type='search']::-webkit-search-cancel-button {
 
 @media (prefers-reduced-transparency: reduce) {
   .chrome {
-    background-color: #ffffff;
+    background-color: var(--color-chrome-fallback);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -168,8 +416,8 @@ input[type='search']::-webkit-search-cancel-button {
 
 @media (prefers-contrast: more) {
   .chrome {
-    background-color: #ffffff;
-    border-color: rgba(0, 0, 0, 0.2);
+    background-color: var(--color-chrome-fallback);
+    border-color: var(--color-line-strong);
   }
   .grain {
     background-image: none;

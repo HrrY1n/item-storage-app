@@ -2,8 +2,11 @@ import { useRef, useState, type ChangeEvent } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import ConfirmDialog, { AlertDialog } from '../components/Dialogs'
+import SegmentedControl from '../components/SegmentedControl'
+import { useTheme } from '../theme/ThemeProvider'
 import { useToast } from '../components/Toast'
 import { APP_VERSION } from '../appInfo'
+import { PRESET_ICONS } from '../data/icons'
 import {
   downloadBlob,
   exportBackup,
@@ -17,7 +20,7 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="animate-fade-rise mt-7 px-5">
       <p className="mb-2.5 px-1 text-label text-ink-tertiary">{title}</p>
-      <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-white shadow-card">
+      <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-surface shadow-card">
         {children}
       </div>
     </section>
@@ -41,7 +44,7 @@ function RowLink({ to, label, hint }: { to: string; label: string; hint?: string
   return (
     <Link
       to={to}
-      className="flex min-h-[52px] w-full items-center gap-3 px-4 text-left transition-colors active:bg-neutral-50"
+      className="flex min-h-[52px] w-full items-center gap-3 px-4 text-left transition-colors active:bg-surface-sunken"
     >
       <RowLayout
         label={label}
@@ -69,7 +72,7 @@ function RowButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="flex min-h-[52px] w-full items-center gap-3 px-4 text-left transition-colors active:bg-neutral-50 disabled:opacity-50"
+      className="flex min-h-[52px] w-full items-center gap-3 px-4 text-left transition-colors active:bg-surface-sunken disabled:opacity-50"
     >
       <RowLayout label={label} hint={hint} trailing={<Chevron />} />
     </button>
@@ -78,7 +81,7 @@ function RowButton({
 
 function Chevron() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-neutral-200">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-tertiary">
       <path d="m9 6 6 6-6 6" />
     </svg>
   )
@@ -97,6 +100,7 @@ function formatExportedAt(iso: string): string {
 export default function SettingsPage() {
   const { toast, show } = useToast()
   const fileRef = useRef<HTMLInputElement>(null)
+  const { preference, resolved, setPreference } = useTheme()
 
   const [busy, setBusy] = useState<'export' | 'restore' | null>(null)
   const [pending, setPending] = useState<{ summary: BackupSummary; payload: BackupPayload } | null>(
@@ -167,6 +171,34 @@ export default function SettingsPage() {
         <h1 className="text-page-title text-ink-primary">设置</h1>
       </div>
 
+      {/* 外观：三态主题。默认「跟随系统」，跟随期间系统日夜切换会实时生效 */}
+      <Group title="外观">
+        <div className="px-4 py-4">
+          <RowLayout
+            label="外观模式"
+            hint={
+              preference === 'system'
+                ? `跟随系统 · 当前为${resolved === 'dark' ? '深色' : '浅色'}`
+                : preference === 'dark'
+                  ? '始终使用深色'
+                  : '始终使用浅色'
+            }
+          />
+          <div className="mt-3">
+            <SegmentedControl
+              ariaLabel="外观模式"
+              value={preference}
+              onChange={setPreference}
+              options={[
+                { value: 'system', label: '跟随系统' },
+                { value: 'light', label: '浅色' },
+                { value: 'dark', label: '深色' },
+              ]}
+            />
+          </div>
+        </div>
+      </Group>
+
       <Group title="数据管理">
         <RowButton
           label="导出备份"
@@ -185,7 +217,7 @@ export default function SettingsPage() {
       <Group title="内容管理">
         <RowLink to="/settings/categories" label="分类管理" hint="新增、重命名、排序、移动分类" />
         <RowLink to="/settings/tags" label="标签管理" hint="重命名、删除、合并标签" />
-        <RowLink to="/settings/icons" label="图标库" hint="浏览统一风格图标资产" />
+        <RowLink to="/settings/icons" label="物品图标库" hint={`浏览全部内置图标（共 ${PRESET_ICONS.length} 个）`} />
       </Group>
 
       <Group title="应用">

@@ -54,7 +54,8 @@ npm run test     # 运行测试
 npm run typecheck
 ```
 
-首次启动会为空数据库写入种子数据：**21 个默认分类 + 12 个内置图标**。
+首次启动会为空数据库写入种子数据：**21 个默认分类 + 73 个内置物品图标**。
+已用过的数据库会在每次启动时幂等补齐新增图标（`syncPresetAssets`），无需重置。
 
 > Service Worker 仅在**生产构建**中启用（`npm run build && npm run preview`），开发模式下不注册，避免缓存干扰调试。
 

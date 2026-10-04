@@ -44,7 +44,7 @@ export default function CategoryDetailPage() {
         {categoryItems.length === 0 ? (
           <EmptyState title="这个分类还没有物品" subtitle="点击右下角 ＋ 新增一件物品吧" />
         ) : (
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
             {categoryItems.map((item) => (
               <ItemCard
                 key={item.id}

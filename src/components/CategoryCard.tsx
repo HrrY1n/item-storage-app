@@ -1,38 +1,25 @@
 import { Link } from 'react-router'
-import type { Category, IconKey } from '../types'
+import type { Category } from '../types'
 import { getIconPath } from '../data/icons'
 
 /**
- * 分类 tint：只作为极弱背景色。
- * 饱和度与对比度刻意低于 clay accent —— 它只用来区分"类别"，不承担强调；
- * 全部收敛到暖中性色域，避免出现第二个彩色系统。
+ * 分类图标底衬。
+ *
+ * 审计结论：此前每个 key 一个 tint 色（64+ 条目）既难维护，又和"只有一个强调色"的
+ * 设计纪律冲突。改成统一使用物品底衬（plate）—— 图标本身已经带颜色，
+ * 底衬只需要安静地把它托起来；深浅主题靠同一个 token 自动成立。
  */
-export const CATEGORY_TINT: Record<IconKey, string> = {
-  laptop: 'bg-[#F4F4F2]',
-  phone: 'bg-[#F4F4F2]',
-  earbuds: 'bg-[#F4F4F2]',
-  mouse: 'bg-[#F4F4F2]',
-  keyboard: 'bg-[#F4F4F2]',
-  book: 'bg-[#F6F3EF]',
-  notebook: 'bg-[#F6F3EF]',
-  tshirt: 'bg-[#F6F2F1]',
-  shoes: 'bg-[#F6F2F1]',
-  backpack: 'bg-[#F4F3F5]',
-  bottle: 'bg-[#F2F5F3]',
-  other: 'bg-[#F5F4F2]',
-}
-
 export function CategoryIconTile({ category, size = 40 }: { category: Category; size?: number }) {
   const key = category.iconKey ?? 'other'
   return (
     <div
-      className={`shrink-0 overflow-hidden rounded-control ${CATEGORY_TINT[key]}`}
+      className="shrink-0 overflow-hidden rounded-control border border-line-inner bg-plate"
       style={{ width: size, height: size }}
     >
       <img
         src={getIconPath(key)}
         alt=""
-        className="h-full w-full object-contain p-0.5 mix-blend-multiply"
+        className="h-full w-full object-cover"
         draggable={false}
       />
     </div>
@@ -43,7 +30,7 @@ export default function CategoryCard({ category, count }: { category: Category; 
   return (
     <Link
       to={`/categories/${category.id}`}
-      className="group flex items-center gap-3 rounded-card border border-line bg-white p-3.5 shadow-card transition-colors duration-150 ease-out-quint active:bg-neutral-50"
+      className="group flex items-center gap-3 rounded-card border border-line bg-surface p-3.5 shadow-card transition-colors duration-150 ease-out-quint active:bg-surface-sunken sm:hover:border-line-strong"
     >
       <CategoryIconTile category={category} size={42} />
       <div className="min-w-0 flex-1">

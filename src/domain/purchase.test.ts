@@ -5,6 +5,7 @@ import {
   calculateTotalCostCents,
   centsToPriceInput,
   formatCents,
+  formatCentsCompact,
   formatPurchaseDate,
   parseDateToDayNumber,
   parsePriceInput,
@@ -158,6 +159,15 @@ describe('格式化与平台映射', () => {
     expect(formatCents(149_900)).toBe('¥1,499.00')
     expect(formatCents(543)).toBe('¥5.43')
     expect(formatCents(0)).toBe('¥0.00')
+  })
+
+  it('formatCentsCompact：大额省小数，小额保留两位', () => {
+    // 卡片与概览这类空间受限的场景用
+    expect(formatCentsCompact(800_000)).toBe('¥8,000')
+    expect(formatCentsCompact(100_000)).toBe('¥1,000')
+    expect(formatCentsCompact(99_999)).toBe('¥999.99')
+    expect(formatCentsCompact(5_714)).toBe('¥57.14')
+    expect(formatCentsCompact(0)).toBe('¥0.00')
   })
 
   it('formatPurchaseDate', () => {

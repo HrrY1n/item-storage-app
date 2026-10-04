@@ -102,6 +102,21 @@ export function formatCents(cents: number): string {
   return `¥${yuan.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+/**
+ * 分 → 紧凑金额：用于卡片与概览这类空间受限的地方。
+ * ¥1000 以上省掉两位小数（¥8,000），以下保留（¥57.14）—— 日均成本几乎总在小额区间，
+ * 因此这条规则在"价格要短"和"日均要精确"之间取了平衡。
+ */
+export function formatCentsCompact(cents: number): string {
+  const yuan = cents / 100
+  const abs = Math.abs(yuan)
+  const useDecimals = abs < 1000
+  return `¥${yuan.toLocaleString('zh-CN', {
+    minimumFractionDigits: useDecimals ? 2 : 0,
+    maximumFractionDigits: useDecimals ? 2 : 0,
+  })}`
+}
+
 /** YYYY-MM-DD → 2026年1月1日 */
 export function formatPurchaseDate(dateStr: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr)

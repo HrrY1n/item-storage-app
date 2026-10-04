@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { childrenOf } from '../domain/categoryTree'
-import { presetSortIndex } from '../data/icons'
+import { presetIconOfAssetId } from '../data/icons'
 import type { PurchasePlatform } from '../domain/types'
 import {
   PURCHASE_PLATFORMS,
@@ -19,7 +19,7 @@ import {
   useCategories,
   useItem,
   useItemTagLinks,
-  usePresetAssets,
+  usePresetAssetMap,
   useTags,
 } from '../features/data/hooks'
 import { itemRepository } from '../db/repositories/itemRepository'
@@ -28,6 +28,7 @@ import PageHeader from '../components/PageHeader'
 import TagChip from '../components/TagChip'
 import ConfirmDialog from '../components/Dialogs'
 import { useToast } from '../components/Toast'
+import IconPickerSheet from '../components/IconPickerSheet'
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
@@ -41,6 +42,39 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
+/** 输入控件共用的外观：白底实色 + hairline，聚焦时线变强，不做发光 */
+const inputClass =
+  'h-12 w-full rounded-control border border-line bg-surface px-4 text-[16px] text-ink-primary outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong'
+
+/** 胶囊选择项（分类 / 平台）：选中用实心墨色；未选中按层级取「浅底」或「白底 + 描边」 */
+function ChipButton({
+  label,
+  selected,
+  onClick,
+  quiet = false,
+}: {
+  label: string
+  selected: boolean
+  onClick: () => void
+  quiet?: boolean
+}) {
+  const restClass = quiet
+    ? 'border border-line-strong bg-surface text-ink-secondary'
+    : 'bg-surface-sunken text-ink-secondary'
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`flex min-h-[36px] items-center whitespace-nowrap rounded-pill px-3.5 text-secondary transition-colors duration-150 active:scale-[0.97] ${
+        selected ? 'bg-ink-solid text-ink-inverse' : restClass
+      }`}
+    >
+      {label}
+    </button>
+  )
+}
+
 /** 新增（/items/new）与编辑（/items/:id/edit）共用的物品表单 */
 export default function ItemFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -51,10 +85,11 @@ export default function ItemFormPage() {
   const categories = useCategories()
   const tags = useTags()
   const links = useItemTagLinks()
-  const presetAssets = usePresetAssets()
+  const assetMap = usePresetAssetMap()
   const existingItem = useItem(isEdit ? id : undefined)
 
   const [iconAssetId, setIconAssetId] = useState('preset-other')
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [name, setName] = useState('')
   const [rootId, setRootId] = useState<string | null>(null)
   const [categoryId, setCategoryId] = useState<string | null>(null)
@@ -93,7 +128,7 @@ export default function ItemFormPage() {
     setPurchasePlatform(existingItem.purchasePlatform)
   }, [isEdit, existingItem, categories, links])
 
-  const loading = !categories || !tags || !links || !presetAssets || (isEdit && !initialized.current)
+  const loading = !categories || !tags || !links || !assetMap || (isEdit && !initialized.current)
 
   /** dirty 判定用的表单快照：任何参与保存的字段都必须在此 */
   const formSnapshot = () =>
@@ -137,6 +172,10 @@ export default function ItemFormPage() {
   const roots = childrenOf(categories, null)
   const childCategories = rootId ? childrenOf(categories, rootId) : []
   const canSave = name.trim().length > 0 && categoryId !== null && !saving
+  const currentIcon = presetIconOfAssetId(iconAssetId)
+  // 优先用资产表解析（兼容未来的 AI / 拍照资产），缺失时回落到包内 preset 路径
+  const iconUrl =
+    assetMap?.get(iconAssetId) ?? currentIcon?.path ?? '/icons/items/other.svg'
 
   // 实时预览：总投入只要填了价格或附加花费任一即可显示
   // 日均使用成本额外需要购买日期（缺日期时只显示总投入，不显示日均）
@@ -223,10 +262,10 @@ export default function ItemFormPage() {
             type="button"
             onClick={handleSave}
             disabled={!canSave}
-            className={`flex h-8 items-center rounded-full px-3.5 text-secondary transition-colors duration-200 ${
+            className={`flex h-8 items-center rounded-pill px-3.5 text-secondary transition-colors duration-200 ${
               canSave
-                ? 'bg-neutral-900 font-medium text-white active:opacity-70'
-                : 'bg-neutral-100 text-ink-faint'
+                ? 'bg-ink-solid font-medium text-ink-inverse active:opacity-70'
+                : 'bg-surface-sunken text-ink-faint'
             }`}
           >
             保存
@@ -235,28 +274,37 @@ export default function ItemFormPage() {
       />
 
       <div className="flex flex-col gap-7 px-5 pt-5">
-        {/* 图标 */}
-        <Field label="图标" hint="点击选择">
-          <div className="grid grid-cols-4 gap-2.5">
-            {[...presetAssets]
-              .sort((a, b) => presetSortIndex(a.id) - presetSortIndex(b.id))
-              .map((asset) => {
-              const selected = iconAssetId === asset.id
-              return (
-                <button
-                  key={asset.id}
-                  type="button"
-                  onClick={() => setIconAssetId(asset.id)}
-                  aria-pressed={selected}
-                  className={`relative aspect-square overflow-hidden rounded-card border-2 transition-[border-color,transform] duration-200 ease-out-quint active:scale-[0.96] ${
-                    selected ? 'border-neutral-900' : 'border-transparent'
-                  }`}
-                >
-                  <img src={asset.path ?? '/icons/items/other.svg'} alt="" className="h-full w-full object-cover" draggable={false} />
-                </button>
-              )
-            })}
-          </div>
+        {/* 图标：只展示当前选中的那一个，选择交给浮层（避免 70+ 图标撑长页面） */}
+        <Field label="图标">
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            className="group flex w-full items-center gap-4 rounded-surface border border-line bg-surface p-3.5 text-left shadow-card transition-colors duration-150 ease-out-quint active:bg-surface-sunken sm:hover:border-line-strong"
+          >
+            <span className="block h-[62px] w-[62px] shrink-0 overflow-hidden rounded-card border border-line-inner plate-surface">
+              <img
+                src={iconUrl}
+                alt=""
+                className="h-full w-full object-cover"
+                draggable={false}
+              />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-item text-ink-primary">
+                {currentIcon?.label ?? '自定义图片'}
+              </span>
+              <span className="mt-1 block text-caption text-ink-tertiary">
+                点击本行更换图标
+              </span>
+            </span>
+            <svg
+              width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              className="shrink-0 text-ink-faint transition-transform duration-300 ease-out-quint sm:group-hover:translate-x-0.5"
+            >
+              <path d="m9 6 6 6-6 6" />
+            </svg>
+          </button>
         </Field>
 
         {/* 名称 */}
@@ -265,52 +313,37 @@ export default function ItemFormPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="比如：AirPods Pro"
-            className="h-12 w-full rounded-control border border-line bg-white px-4 text-[16px] text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
+            className={inputClass}
           />
         </Field>
 
         {/* 分类（两级 chips） */}
         <Field label="分类" hint={rootId && !categoryId && childCategories.length > 0 ? '请选择子分类' : undefined}>
           <div className="flex flex-wrap gap-2">
-            {roots.map((c) => {
-              const selected = rootId === c.id
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => {
-                    setRootId(c.id)
-                    const children = childrenOf(categories, c.id)
-                    setCategoryId(children.length > 0 ? null : c.id)
-                  }}
-                  className={`flex min-h-[36px] items-center rounded-full px-3.5 text-secondary transition-colors duration-150 active:scale-[0.97] ${
-                    selected ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-ink-secondary'
-                  }`}
-                >
-                  {c.name}
-                </button>
-              )
-            })}
+            {roots.map((c) => (
+              <ChipButton
+                key={c.id}
+                label={c.name}
+                selected={rootId === c.id}
+                onClick={() => {
+                  setRootId(c.id)
+                  const children = childrenOf(categories, c.id)
+                  setCategoryId(children.length > 0 ? null : c.id)
+                }}
+              />
+            ))}
           </div>
           {childCategories.length > 0 && (
             <div className="mt-2.5 flex flex-wrap gap-2">
-              {childCategories.map((c) => {
-                const selected = categoryId === c.id
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setCategoryId(c.id)}
-                    className={`flex min-h-[36px] items-center rounded-full px-3.5 text-secondary transition-colors duration-150 active:scale-[0.97] ${
-                      selected
-                        ? 'bg-neutral-900 text-white'
-                        : 'border border-line-strong bg-white text-ink-secondary'
-                    }`}
-                  >
-                    {c.name}
-                  </button>
-                )
-              })}
+              {childCategories.map((c) => (
+                <ChipButton
+                  key={c.id}
+                  label={c.name}
+                  selected={categoryId === c.id}
+                  quiet
+                  onClick={() => setCategoryId(c.id)}
+                />
+              ))}
             </div>
           )}
         </Field>
@@ -338,7 +371,7 @@ export default function ItemFormPage() {
                 }
               }}
               placeholder="新建标签，如：白色"
-              className="h-11 min-w-0 flex-1 rounded-control border border-line bg-white px-4 text-body text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
+              className="h-11 min-w-0 flex-1 rounded-control border border-line bg-surface px-4 text-body text-ink-primary outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
             />
             <button
               type="button"
@@ -346,8 +379,8 @@ export default function ItemFormPage() {
               disabled={!newTagName.trim()}
               className={`h-11 shrink-0 rounded-control px-4 text-secondary transition-colors ${
                 newTagName.trim()
-                  ? 'bg-neutral-900 font-medium text-white active:opacity-70'
-                  : 'bg-neutral-100 text-ink-faint'
+                  ? 'bg-ink-solid font-medium text-ink-inverse active:opacity-70'
+                  : 'bg-surface-sunken text-ink-faint'
               }`}
             >
               添加
@@ -368,7 +401,7 @@ export default function ItemFormPage() {
                 value={purchaseDate}
                 max={today}
                 onChange={(e) => setPurchaseDate(e.target.value)}
-                className="num h-11 w-full rounded-control border border-line bg-white px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
+                className="num h-11 w-full rounded-control border border-line bg-surface px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
               />
             </div>
 
@@ -376,7 +409,7 @@ export default function ItemFormPage() {
             <div className="grid grid-cols-2 gap-3 py-4">
               <div>
                 <p className="mb-2 text-label text-ink-tertiary">购买价格</p>
-                <div className="flex h-11 items-center gap-2 rounded-control border border-line bg-white px-3 transition-colors focus-within:border-line-strong">
+                <div className="field-shell flex h-11 items-center gap-2 rounded-control border border-line bg-surface px-3 transition-colors focus-within:border-line-strong">
                   <span className="text-body text-ink-tertiary">¥</span>
                   <input
                     value={priceText}
@@ -389,7 +422,7 @@ export default function ItemFormPage() {
               </div>
               <div>
                 <p className="mb-2 text-label text-ink-tertiary">附加花费</p>
-                <div className="flex h-11 items-center gap-2 rounded-control border border-line bg-white px-3 transition-colors focus-within:border-line-strong">
+                <div className="field-shell flex h-11 items-center gap-2 rounded-control border border-line bg-surface px-3 transition-colors focus-within:border-line-strong">
                   <span className="text-body text-ink-tertiary">¥</span>
                   <input
                     value={additionalCostText}
@@ -407,30 +440,20 @@ export default function ItemFormPage() {
             <div className="py-4">
               <p className="mb-2 text-label text-ink-tertiary">购买平台</p>
               <div className="flex flex-wrap gap-2">
-                {PURCHASE_PLATFORMS.map((p) => {
-                  const selected = purchasePlatform === p
-                  return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPurchasePlatform(selected ? null : p)}
-                      aria-pressed={selected}
-                      className={`flex min-h-[36px] items-center rounded-full px-3.5 text-secondary transition-colors duration-150 active:scale-[0.97] ${
-                        selected
-                          ? 'bg-neutral-900 text-white'
-                          : 'bg-neutral-100 text-ink-secondary'
-                      }`}
-                    >
-                      {platformLabel(p)}
-                    </button>
-                  )
-                })}
+                {PURCHASE_PLATFORMS.map((p) => (
+                  <ChipButton
+                    key={p}
+                    label={platformLabel(p)}
+                    selected={purchasePlatform === p}
+                    onClick={() => setPurchasePlatform(purchasePlatform === p ? null : p)}
+                  />
+                ))}
               </div>
             </div>
 
             {/* 实时预览：总投入 / 已持有天数 / 日均使用成本 */}
             {previewTotalCents !== null && (
-              <div className="overflow-hidden rounded-control border border-accent-line bg-accent-soft">
+              <div className="overflow-hidden rounded-control border border-money-line bg-money-soft">
                 <div className="flex items-baseline justify-between px-3.5 py-3">
                   <p className="text-label text-ink-tertiary">总投入</p>
                   <p className="num text-item text-ink-primary">
@@ -438,9 +461,9 @@ export default function ItemFormPage() {
                   </p>
                 </div>
                 {previewDailyCents !== null && previewDays !== null && (
-                  <div className="border-t border-accent-line px-3.5 py-3">
+                  <div className="border-t border-money-line px-3.5 py-3">
                     <div className="flex items-baseline justify-between">
-                      <p className="text-label text-accent-deep">日均使用成本</p>
+                      <p className="text-label text-money-deep">日均使用成本</p>
                       <p className="flex items-baseline gap-1">
                         <span className="num text-metric text-ink-primary">
                           {formatCents(previewDailyCents)}
@@ -465,14 +488,17 @@ export default function ItemFormPage() {
             onChange={(e) => setNote(e.target.value)}
             placeholder="可选，比如购买渠道、使用场景……"
             rows={3}
-            className="w-full resize-none rounded-control border border-line bg-white px-4 py-3 text-body leading-relaxed text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
+            className="w-full resize-none rounded-control border border-line bg-surface px-4 py-3 text-body leading-relaxed text-ink-primary outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
           />
         </Field>
-
-        <p className="pb-2 text-center text-caption text-ink-tertiary">
-          图标为占位素材，后续将统一替换为 AI 生成图标包
-        </p>
       </div>
+
+      <IconPickerSheet
+        open={pickerOpen}
+        value={iconAssetId}
+        onSelect={setIconAssetId}
+        onClose={() => setPickerOpen(false)}
+      />
 
       <ConfirmDialog
         open={confirmDiscard}

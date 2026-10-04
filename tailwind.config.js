@@ -6,55 +6,83 @@ export default {
       /**
        * 字号：映射 iOS Dynamic Type 默认显示档（HIG），并按中文密度做半档下调。
        * 另加一组「展示级」字号用于数据指标与页面标题的视觉锚点。
+       *
+       * 字距按**文字脚本**区分，这是中文排版与英文排版最容易搞错的地方：
+       * - 标题（page-title / title-card / section）在中文界面里几乎全是 CJK 字形。
+       *   CJK 是方块字、自带左右边距，负字距会让字面互相挤压，正确做法是**略微开一点**。
+       * - 指标数字（metric / metric-lg）是纯阿拉伯数字 + 等宽数位，负字距才是正解。
        */
       fontSize: {
-        'page-title': ['28px', { lineHeight: '34px', letterSpacing: '-0.015em', fontWeight: '600' }],
-        'title-card': ['22px', { lineHeight: '28px', letterSpacing: '-0.01em', fontWeight: '600' }],
-        section: ['17px', { lineHeight: '24px', letterSpacing: '-0.005em', fontWeight: '600' }],
+        'page-title': ['28px', { lineHeight: '34px', letterSpacing: '0.01em', fontWeight: '600' }],
+        'title-card': ['22px', { lineHeight: '28px', letterSpacing: '0.01em', fontWeight: '600' }],
+        section: ['17px', { lineHeight: '24px', letterSpacing: '0.02em', fontWeight: '600' }],
         item: ['15px', { lineHeight: '21px', fontWeight: '500' }],
         body: ['16px', { lineHeight: '1.6' }],
         secondary: ['13px', { lineHeight: '19px' }],
         caption: ['12px', { lineHeight: '17px' }],
-        /* 展示级：指标数字（等宽数位，避免跳动） */
+        /* 展示级：指标数字（等宽数位 + 负字距，避免刷新时宽度跳动） */
         metric: ['30px', { lineHeight: '36px', letterSpacing: '-0.02em', fontWeight: '600' }],
         'metric-lg': ['38px', { lineHeight: '44px', letterSpacing: '-0.025em', fontWeight: '600' }],
         /* 眉标：中文短标签，字距微开（中文不宜大间距） */
         label: ['11px', { lineHeight: '14px', letterSpacing: '0.06em', fontWeight: '500' }],
-        /* 拉丁眉标：全大写 + 明显字距，用于英文小标题 */
-        eyebrow: ['10.5px', { lineHeight: '14px', letterSpacing: '0.16em', fontWeight: '600' }],
       },
+      /**
+       * 颜色：**全部指向 CSS 语义变量**（见 src/index.css 的双主题定义）。
+       * 组件写意图（"这是 surface"），主题给值，因此深色模式无需到处写 dark: 变体。
+       * 新增颜色前先问：它是不是某个已有 token 的另一种说法？
+       */
       colors: {
-        canvas: '#FAFAFA',
-        /**
-         * 物体底衬（Object plate）：暖白，比 canvas 略暖、略亮。
-         * 作用：让"物品"像陈列在档案册/产品摄影册的版面里，而不是贴满整张卡片。
-         * 未来换成 1:1 AI 插画（暖白底 + 柔和环境阴影）时可直接融入，无需改布局。
-         */
-        plate: '#FBFBF9',
-        /**
-         * 单一强调色：陶土（clay）。
-         * 只用于「有意义的强调」——指标、选中态点缀、关键分隔线，绝不铺面。
-         * 对比度：#B4553B on #FFF ≈ 4.9:1（AA 达标）
-         */
-        accent: {
-          DEFAULT: '#B4553B',   /* 装饰与描边：白底 4.9:1 */
-          deep: '#96402C',      /* 浅底(accent-soft)上的文字色：6.1:1，保证小字 AA */
-          soft: '#F7F0EB',
-          line: '#E7D9CF',
+        /* 页面底 */
+        canvas: 'var(--color-canvas)',
+        /* 卡片 / 列表行：一「张」内容的载体 */
+        surface: {
+          DEFAULT: 'var(--color-surface)',
+          raised: 'var(--color-surface-raised)',
+          sunken: 'var(--color-surface-sunken)',
         },
-        /* 文字层级（浅色模式）：次级信息必须满足 WCAG AA 4.5:1 */
+        /* 物品底衬：图标陈列其上的"展台"，深浅主题观感不同但语义一致 */
+        plate: 'var(--color-plate)',
+        /* 文字层级 */
         ink: {
-          primary: '#171717',   /* ~17:1 */
-          secondary: '#525252', /* ~7:1 */
-          tertiary: '#737373',  /* ~4.6:1 必须可读的辅助信息 */
-          faint: '#A3A3A3',     /* 仅用于占位符/装饰，不承载语义 */
+          primary: 'var(--color-ink-primary)',
+          secondary: 'var(--color-ink-secondary)',
+          tertiary: 'var(--color-ink-tertiary)',
+          faint: 'var(--color-ink-faint)',
+          /* 写在 ink-solid 之上的文字 / 图标 */
+          inverse: 'var(--color-ink-inverse)',
+          /* 实心墨色块（主按钮、FAB、Toast） */
+          solid: 'var(--color-ink-solid)',
         },
         /* 结构线：hairline 统一由这一族控制 */
         line: {
-          DEFAULT: 'rgba(23,23,23,0.06)',
-          strong: 'rgba(23,23,23,0.10)',
-          inner: 'rgba(23,23,23,0.045)',
+          DEFAULT: 'var(--color-line)',
+          strong: 'var(--color-line-strong)',
+          inner: 'var(--color-line-inner)',
         },
+        /**
+         * 品牌强调色：陶土。只用于「有意义的强调」——
+         * 选中态、导航指示、极少量点缀，绝不铺面。
+         */
+        accent: {
+          DEFAULT: 'var(--color-accent)',
+          soft: 'var(--color-accent-soft)',
+          line: 'var(--color-accent-line)',
+        },
+        /**
+         * 金钱语义色：价格 / 总投入 / 日均成本。
+         * 与品牌色刻意分开 —— 数据指标不该和"可交互"共用同一种颜色。
+         */
+        money: {
+          DEFAULT: 'var(--color-money)',
+          deep: 'var(--color-money-deep)',
+          soft: 'var(--color-money-soft)',
+          line: 'var(--color-money-line)',
+        },
+        danger: {
+          DEFAULT: 'var(--color-danger)',
+          soft: 'var(--color-danger-soft)',
+        },
+        overlay: 'var(--color-overlay)',
       },
       spacing: {
         '4.5': '18px',
@@ -82,15 +110,19 @@ export default {
         app: '28px',
         pill: '9999px',
       },
+      /**
+       * 阴影：同样走语义变量 —— 深色主题需要更重、更收敛的阴影，
+       * 否则浅色下正好用的值在深色里会变成一圈灰雾。
+       */
       boxShadow: {
         /* 卡片：极轻，靠 border 而非阴影建立边界 */
-        card: '0 1px 2px rgba(16,16,16,0.045)',
+        card: 'var(--shadow-card)',
         /* 抬起：悬浮层/桌面端取景 */
-        lift: '0 18px 48px -20px rgba(16,16,16,0.22), 0 4px 12px -6px rgba(16,16,16,0.10)',
+        lift: 'var(--shadow-lift)',
         /* 浮层：对话框 */
-        sheet: '0 24px 64px -16px rgba(16,16,16,0.28)',
+        sheet: 'var(--shadow-sheet)',
         /* FAB */
-        fab: '0 8px 22px -6px rgba(16,16,16,0.32), 0 2px 6px -2px rgba(16,16,16,0.18)',
+        fab: 'var(--shadow-fab)',
       },
       transitionTimingFunction: {
         /* 结构变化：临界阻尼，不回弹 */

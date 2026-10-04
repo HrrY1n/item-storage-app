@@ -106,7 +106,7 @@ export default function SearchPage() {
             rememberQuery(input)
           }}
         >
-          <div className="flex h-12 items-center gap-2.5 rounded-card border border-line bg-white px-4 shadow-card">
+          <div className="field-shell flex h-12 items-center gap-2.5 rounded-card border border-line bg-surface px-4 shadow-card">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-tertiary">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.8-3.8" />
@@ -128,7 +128,7 @@ export default function SearchPage() {
                 type="button"
                 onClick={() => setInput('')}
                 aria-label="清空"
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-100 text-ink-secondary active:opacity-60"
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-sunken text-ink-secondary active:opacity-60"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M18 6 6 18M6 6l12 12" />
@@ -171,7 +171,7 @@ export default function SearchPage() {
                   <button
                     type="button"
                     onClick={clearRecent}
-                    className="text-caption text-neutral-300 transition-opacity active:opacity-50"
+                    className="text-caption text-ink-faint transition-opacity active:opacity-50"
                   >
                     清除
                   </button>
@@ -185,9 +185,9 @@ export default function SearchPage() {
                         setInput(q)
                         setQuery(q)
                       }}
-                      className="flex min-h-[32px] items-center gap-1.5 rounded-full border border-line bg-white px-3 text-caption text-ink-secondary transition-colors active:bg-neutral-50"
+                      className="flex min-h-[32px] items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-caption text-ink-secondary transition-colors active:bg-surface-sunken"
                     >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-300">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ink-faint">
                         <circle cx="12" cy="12" r="9" />
                         <path d="M12 7.5V12l3 2" />
                       </svg>
@@ -247,13 +247,13 @@ function ResultRows({
   onSelect?: () => void
 }) {
   return (
-    <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-white shadow-card">
+    <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-surface shadow-card">
       {rows.map(({ item, matchedVia }) => (
         <Link
           key={item.id}
           to={`/items/${item.id}`}
           onClick={onSelect}
-          className="group flex min-h-[72px] items-center gap-3.5 px-4 py-3 transition-colors active:bg-neutral-50 sm:hover:bg-neutral-50/70"
+          className="group flex min-h-[72px] items-center gap-3.5 px-4 py-3 transition-colors active:bg-surface-sunken sm:hover:bg-surface-sunken"
         >
           <ObjectPlate
             src={iconOf(item)}

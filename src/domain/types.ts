@@ -3,19 +3,15 @@
  * 纯类型定义，无任何依赖 —— db / domain / features / pages 共用。
  */
 
-export type IconKey =
-  | 'laptop'
-  | 'phone'
-  | 'earbuds'
-  | 'mouse'
-  | 'keyboard'
-  | 'book'
-  | 'notebook'
-  | 'tshirt'
-  | 'shoes'
-  | 'backpack'
-  | 'bottle'
-  | 'other'
+/**
+ * 物品图标 key。
+ *
+ * 可选值由 src/data/icons.ts 的 PRESET_ICONS 定义（当前 73 个，含独立的 phone / tablet）。
+ * 这里刻意用 string 而非字面量联合：图标库会持续扩充，超长联合类型既难维护又容易漏改。
+ * 真正的完整性由两点保证 —— 数据层写入时统一走 icons.ts 的辅助函数（带 fallback），
+ * 以及 src/data/icons.test.ts 对"每个 key 都有对应 SVG 资源"的断言。
+ */
+export type IconKey = string
 
 export type AssetKind = 'preset' | 'ai_generated' | 'from_photo'
 export type ItemSourceType = AssetKind

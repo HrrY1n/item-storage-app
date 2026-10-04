@@ -6,6 +6,16 @@ import { VitePWA } from 'vite-plugin-pwa'
 const CANVAS = '#FAFAFA'
 
 export default defineConfig({
+  /**
+   * 文件监听忽略清单。
+   * `.tmp/` 放着本地端到端验证用的浏览器 profile 与截图，Edge 运行时每秒都在写文件；
+   * 不忽略的话 Vite 会不停触发整页 reload，既干扰人工调试，也会让自动化截图拿到半渲染的页面。
+   */
+  server: {
+    watch: {
+      ignored: ['**/.tmp/**', '**/edge-profile/**', '**/dist/**', '**/.wrangler/**'],
+    },
+  },
   plugins: [
     react(),
     VitePWA({

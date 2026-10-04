@@ -101,7 +101,7 @@ export default function CategoryManagePage() {
           disabled={index === 0}
           onClick={() => void handleReorder(c.id, 'up')}
           className={`flex h-7 w-7 items-center justify-center transition-colors ${
-            index === 0 ? 'text-neutral-200' : 'text-ink-tertiary active:text-ink-primary'
+            index === 0 ? 'text-ink-faint' : 'text-ink-tertiary active:text-ink-primary'
           }`}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 15 6-6 6 6" /></svg>
@@ -112,7 +112,7 @@ export default function CategoryManagePage() {
           disabled={index === siblings.length - 1}
           onClick={() => void handleReorder(c.id, 'down')}
           className={`flex h-7 w-7 items-center justify-center transition-colors ${
-            index === siblings.length - 1 ? 'text-neutral-200' : 'text-ink-tertiary active:text-ink-primary'
+            index === siblings.length - 1 ? 'text-ink-faint' : 'text-ink-tertiary active:text-ink-primary'
           }`}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
@@ -134,7 +134,7 @@ export default function CategoryManagePage() {
       <button
         type="button"
         onClick={() => setDeleting(c)}
-        className="flex min-h-[36px] items-center px-2 text-secondary text-[#DC2626]/80 transition-opacity active:opacity-50"
+        className="flex min-h-[36px] items-center px-2 text-secondary text-danger transition-opacity active:opacity-50"
       >
         删除
       </button>
@@ -159,14 +159,14 @@ export default function CategoryManagePage() {
           含子分类或物品的分类不可删除；移动时不能选择自身或其子分类作为父级。
         </p>
 
-        <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-white shadow-card">
+        <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-surface shadow-card">
           {renderTree(null, 0)}
         </div>
 
         <button
           type="button"
           onClick={() => setEditor({ mode: 'create', name: '', parentId: null })}
-          className="flex min-h-[48px] w-full items-center justify-center gap-1.5 rounded-card border border-dashed border-neutral-300 text-secondary text-ink-tertiary transition-colors active:bg-neutral-50"
+          className="flex min-h-[48px] w-full items-center justify-center gap-1.5 rounded-card border border-dashed border-line-strong text-secondary text-ink-tertiary transition-colors active:bg-surface-sunken"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M12 5v14M5 12h14" />
@@ -188,7 +188,7 @@ export default function CategoryManagePage() {
               onChange={(e) => setEditor({ ...editor, name: e.target.value })}
               placeholder="分类名称"
               autoFocus
-              className="h-12 w-full rounded-control border border-line bg-white px-4 text-[16px] text-ink-primary outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
+              className="h-12 w-full rounded-control border border-line bg-surface px-4 text-[16px] text-ink-primary outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
             />
             <p className="mb-2 mt-4 px-1 text-caption text-ink-tertiary">父分类</p>
             <div className="max-h-[220px] overflow-y-auto rounded-control border border-line">
@@ -196,7 +196,7 @@ export default function CategoryManagePage() {
                 type="button"
                 onClick={() => setEditor({ ...editor, parentId: null })}
                 className={`flex min-h-[44px] w-full items-center px-4 text-left text-body transition-colors ${
-                  editor.parentId === null ? 'bg-neutral-900 text-white' : 'text-ink-primary active:bg-neutral-50'
+                  editor.parentId === null ? 'bg-ink-solid text-ink-inverse' : 'text-ink-primary active:bg-surface-sunken'
                 }`}
               >
                 作为一级分类
@@ -207,7 +207,7 @@ export default function CategoryManagePage() {
                   type="button"
                   onClick={() => setEditor({ ...editor, parentId: n.category.id })}
                   className={`flex min-h-[44px] w-full items-center px-4 text-left text-body transition-colors ${
-                    editor.parentId === n.category.id ? 'bg-neutral-900 text-white' : 'text-ink-primary active:bg-neutral-50'
+                    editor.parentId === n.category.id ? 'bg-ink-solid text-ink-inverse' : 'text-ink-primary active:bg-surface-sunken'
                   }`}
                   style={{ paddingLeft: 16 + n.depth * 18 }}
                 >
@@ -221,8 +221,8 @@ export default function CategoryManagePage() {
               disabled={!editor.name.trim() || saving}
               className={`mt-4 flex h-12 w-full items-center justify-center rounded-control text-secondary font-medium transition-colors ${
                 editor.name.trim() && !saving
-                  ? 'bg-neutral-900 text-white active:opacity-70'
-                  : 'bg-neutral-100 text-ink-faint'
+                  ? 'bg-ink-solid text-ink-inverse active:opacity-70'
+                  : 'bg-surface-sunken text-ink-faint'
               }`}
             >
               保存

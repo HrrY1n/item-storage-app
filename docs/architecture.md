@@ -192,7 +192,8 @@ dailyCost = totalCost / ownershipDays
 | `assetRepository` | preset 资产读取 + `iconUrl`（preset → 包内路径，其他 → objectURL） |
 | `backupRepository` | `readSnapshot` 全量快照（含软删记录）/ `replaceAllWithBackup` 单事务原子替换 |
 
-初始化：`seedIfEmpty()` 仅在**真正空库**时写入 6 个一级 + 15 个二级默认分类与 12 个 preset 资产，幂等（`appMeta.seeded`）。
+初始化：`seedIfEmpty()` 仅在**真正空库**时写入 6 个一级 + 15 个二级默认分类与全部 preset 资产，幂等（`appMeta.seeded`）。
+已存在数据库由 `syncPresetAssets()` 在每次启动时**幂等补齐**新增图标（只 upsert preset，绝不删除资产、绝不触碰 items）。
 
 ## 8. 备份与恢复（Phase 2C 已完成）
 
@@ -215,10 +216,23 @@ private-item-library-backup-YYYY-MM-DD.zip
 
 ## 9. Icon Asset Library
 
-- 当前可用：**12 个 preset 线性图标**（`public/icons/items/*.svg`，1:1、浅底、无文字），随应用打包，不进备份 ZIP 的 `assets/`
+- 当前可用：**73 个 preset 物品图标**（`public/icons/items/*.svg`），由 `scripts/gen-item-icons.mjs` 生成：统一 96×96 画布、统一描边与调色板、**透明底衬**、无文字；随应用打包，不进备份 ZIP 的 `assets/`
+- 元数据唯一来源 `src/data/icons.ts`：`key / label / path / category / keywords`，提供分类浏览（数码/办公/服饰/生活/家居/兴趣/其他）与关键词检索
+- `phone` 与 `tablet` 是**两个独立图标**（此前合并为"手机 / 平板"）
+- 底衬由 CSS 语义 token（`--color-plate`）提供，因此同一套 SVG 在浅色与深色主题下都成立，无需两套资源
 - 资产表记录 `kind='preset'`、`path` 指向包内路径；`Item.iconAssetId` 引用（如 `preset-earbuds`）
+- **老库补齐**：`syncPresetAssets()` 在启动闸中幂等 upsert，只新增与就地更新 preset，从不删除（已下线图标的资产保留，历史 Item 引用不失效）
 - 展示顺序按内置编排顺序（`presetSortIndex`），不随数据库返回顺序漂移
-- `ai_generated` / `from_photo` **仅保留数据结构与类型，UI 不开放入口**；后续阶段用统一 Style Contract 的 AI 图标包整体替换 preset，页面无需改动
+- `ai_generated` / `from_photo` **仅保留数据结构与类型，UI 不开放入口**
+
+## 9.1 主题系统（浅色 / 深色 / 跟随系统）
+
+- 三态偏好存 `localStorage['pil.theme']`（`system` | `light` | `dark`），默认 `system`
+- 语义 token 定义在 `src/index.css`：`:root,[data-theme='light']` 与 `[data-theme='dark']` **两套完整变量**（测试断言两套变量名集合完全一致，防止深色漏 token 静默回落）
+- `tailwind.config.js` 的颜色 / 阴影全部指向 `var(--color-*)`，组件只表达意图（`bg-surface` / `text-ink-primary`），全站**零 `dark:` 变体**
+- 首帧不闪白：`index.html` 内联脚本在 React mount 前依据 `localStorage` + `prefers-color-scheme` 写入 `document.documentElement.dataset.theme` 并同步 `<meta name="theme-color">`
+- 跟随系统：`matchMedia('(prefers-color-scheme: dark)')` 的 `change` 事件实时生效，无需刷新
+- `prefers-reduced-transparency` / `prefers-contrast` / `prefers-reduced-motion` 全部有降级路径
 
 ## 10. PWA 与部署（Phase 2C 已完成）
 
