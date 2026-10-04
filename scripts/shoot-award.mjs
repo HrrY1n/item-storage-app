@@ -112,6 +112,15 @@ async function run() {
   await sleep(1200)
   await s.shot('01-home')
 
+  // 卡片 → 详情：验证共享元素过渡路径下的导航仍然正常（不支持时是普通跳转）
+  const clicked = await s.ev(
+    `(() => { const a = document.querySelector('a[href^="/items/"]'); if (!a) return 'no-card'; a.click(); return 'clicked' })()`,
+  )
+  await sleep(1400)
+  const afterClick = String(await s.ev('location.href'))
+  const navOk = /\/items\/.+/.test(afterClick)
+  console.log(`card-click → ${afterClick} | ${navOk ? 'NAV OK' : 'NAV BROKEN'} (${clicked})`)
+
   await s.nav(`${BASE}/categories`, '分类')
   await sleep(900)
   await s.shot('02-categories')

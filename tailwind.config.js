@@ -26,6 +26,12 @@ export default {
       colors: {
         canvas: '#FAFAFA',
         /**
+         * 物体底衬（Object plate）：暖白，比 canvas 略暖、略亮。
+         * 作用：让"物品"像陈列在档案册/产品摄影册的版面里，而不是贴满整张卡片。
+         * 未来换成 1:1 AI 插画（暖白底 + 柔和环境阴影）时可直接融入，无需改布局。
+         */
+        plate: '#FBFBF9',
+        /**
          * 单一强调色：陶土（clay）。
          * 只用于「有意义的强调」——指标、选中态点缀、关键分隔线，绝不铺面。
          * 对比度：#B4553B on #FFF ≈ 4.9:1（AA 达标）
@@ -67,6 +73,7 @@ export default {
        *   app     28px  → 桌面端 App Shell 取景框
        *   pill    full  → 胶囊（chip、FAB、Toast）
        */
+      /* 物体展示容器的统一圆角：与 card 同级，避免"每个组件一个 radius" */
       borderRadius: {
         control: '10px',
         card: '14px',

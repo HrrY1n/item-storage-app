@@ -12,6 +12,7 @@ import {
 } from '../features/data/hooks'
 import { frequentTags, itemsWithTag } from '../features/data/viewModels'
 import TagChip from '../components/TagChip'
+import { ObjectPlate } from '../components/ItemCard'
 import EmptyState from '../components/EmptyState'
 
 const RECENT_KEY = 'pil.recentSearches'
@@ -254,9 +255,11 @@ function ResultRows({
           onClick={onSelect}
           className="group flex min-h-[72px] items-center gap-3.5 px-4 py-3 transition-colors active:bg-neutral-50 sm:hover:bg-neutral-50/70"
         >
-          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-control border border-line-inner bg-neutral-50">
-            <img src={iconOf(item)} alt={item.name} className="h-full w-full object-cover transition-transform duration-300 ease-out-quint group-active:scale-105" draggable={false} />
-          </div>
+          <ObjectPlate
+            src={iconOf(item)}
+            alt={item.name}
+            className="h-12 w-12 shrink-0 rounded-control border border-line-inner"
+          />
           <div className="min-w-0 flex-1">
             <p className="truncate text-item text-ink-primary">{item.name}</p>
             <p className="mt-1 truncate text-caption text-ink-tertiary">{matchedVia}</p>

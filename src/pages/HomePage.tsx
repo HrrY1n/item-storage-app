@@ -14,6 +14,11 @@ import {
   tagNamesOf,
 } from '../features/data/viewModels'
 import ItemCard from '../components/ItemCard'
+import {
+  SHARED_OBJECT_NAME,
+  navigateWithViewTransition,
+  supportsViewTransition,
+} from '../features/ui/viewTransition'
 import CategoryCard from '../components/CategoryCard'
 import SectionHeader from '../components/SectionHeader'
 import TagChip from '../components/TagChip'
@@ -36,10 +41,11 @@ export default function HomePage() {
   const frequent = frequentTags(items, links, tags, 8)
 
   return (
-    <div className="pt-[calc(24px+env(safe-area-inset-top))]">
+    // 整页只保留一层入场位移（此前是 4 个分块各自动画）：动效更少，空间关系仍在
+    <div className="animate-fade-rise pt-[calc(28px+env(safe-area-inset-top))]">
       {/* 页头：标题 + 计数。
           审计结论：删掉英文 eyebrow —— 它是装饰性信息，对私人工具不产生可用性价值。 */}
-      <header className="animate-fade-rise px-5">
+      <header className="px-5">
         <h1 className="text-page-title text-ink-primary">我的物品</h1>
         <p className="mt-2 text-secondary text-ink-tertiary">
           共 <span className="num text-item text-ink-primary">{items.length}</span> 件物品
@@ -47,7 +53,7 @@ export default function HomePage() {
       </header>
 
       {/* 大搜索框（点击进入搜索页） */}
-      <div className="animate-fade-rise mt-6 px-5" style={{ animationDelay: '40ms' }}>
+      <div className="mt-7 px-5">
         <button
           type="button"
           onClick={() => navigate('/search')}
@@ -67,7 +73,7 @@ export default function HomePage() {
 
       {items.length === 0 ? (
         /* 空库：留白展台 + 明确行动点 */
-        <div className="animate-fade-rise px-8 pt-6 text-center" style={{ animationDelay: '80ms' }}>
+        <div className="animate-fade-rise px-8 pt-6 text-center">
           <EmptyPlinthHero />
           <p className="mt-7 text-title-card text-ink-primary">还没有物品</p>
           <p className="mx-auto mt-2.5 max-w-[268px] text-body leading-relaxed text-ink-tertiary">
@@ -86,11 +92,11 @@ export default function HomePage() {
       ) : (
         <>
           {/* 最近添加 */}
-          <section className="animate-fade-rise mt-9" style={{ animationDelay: '80ms' }}>
+          <section className="mt-10">
             <div className="px-5">
               <SectionHeader title="最近添加" />
             </div>
-            <div className="no-scrollbar flex gap-3 overflow-x-auto px-5 pb-1">
+            <div className="no-scrollbar flex gap-3.5 overflow-x-auto px-5 pb-1">
               {items.slice(0, 8).map((item) => (
                 <ItemCard
                   key={item.id}
@@ -99,14 +105,31 @@ export default function HomePage() {
                   iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
                   categoryName={categoryNameOf(categories, item.categoryId)}
                   tagNames={tagNamesOf(item.id, links, tags)}
-                  className="w-[148px] shrink-0"
+                  className="w-[152px] shrink-0"
+                  onNavigate={(e) => {
+                    // 卡片 → 详情：让"这一件物品"的图版连续过渡（不支持时普通跳转）
+                    if (!supportsViewTransition()) return
+                    e.preventDefault()
+                    const plate = (e.currentTarget as HTMLElement).querySelector<HTMLElement>(
+                      '[data-object-plate]',
+                    )
+                    navigateWithViewTransition(
+                      () => navigate(`/items/${item.id}`),
+                      () => {
+                        if (plate) plate.style.viewTransitionName = SHARED_OBJECT_NAME
+                      },
+                      () => {
+                        if (plate) plate.style.viewTransitionName = ''
+                      },
+                    )
+                  }}
                 />
               ))}
             </div>
           </section>
 
           {/* 分类 */}
-          <section className="animate-fade-rise mt-9 px-5" style={{ animationDelay: '140ms' }}>
+          <section className="mt-10 px-5">
             <SectionHeader
               title="分类"
               action={
@@ -130,7 +153,7 @@ export default function HomePage() {
 
           {/* 常用标签 */}
           {frequent.length > 0 && (
-            <section className="animate-fade-rise mt-9 px-5" style={{ animationDelay: '200ms' }}>
+            <section className="mt-10 px-5">
               <SectionHeader title="常用标签" />
               <div className="flex flex-wrap gap-2">
                 {frequent.map((tag) => (

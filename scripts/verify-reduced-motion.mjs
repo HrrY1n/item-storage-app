@@ -62,6 +62,15 @@ async function main() {
   check('reduce-motion 下首页内容完整可见', homeLen > 150 && homeHasCount && homeCards > 0,
     `chars=${homeLen} cards=${homeCards}`)
 
+  // 卡片点击 → 详情：reduce 模式下必须走普通导航（View Transitions 被门控关闭）
+  const clicked = await ev(
+    `(() => { const a = document.querySelector('a[href^="/items/"]'); if (!a) return 'no-card'; a.click(); return 'clicked' })()`,
+  )
+  await sleep(1500)
+  const afterClick = String(await ev('location.href'))
+  check('reduce-motion 下卡片点击仍能正常进入详情（过渡被关闭）',
+    /\/items\/.+/.test(afterClick), `${afterClick.replace(BASE, '')} (${clicked})`)
+
   // 分类页
   await send('Page.navigate', { url: `${BASE}/categories` })
   await sleep(1500)

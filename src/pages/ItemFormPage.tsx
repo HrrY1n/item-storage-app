@@ -357,9 +357,11 @@ export default function ItemFormPage() {
 
         {/* 购买信息（全部可选） */}
         <Field label="购买信息" hint="全部可选">
-          <div className="flex flex-col gap-4 rounded-surface border border-line bg-white p-4 shadow-card">
+          {/* 不用大卡片承载：改为 hairline 分隔 + 留白分组，
+              让"编辑一条档案记录"保持轻盈，而不是填写后台表单 */}
+          <div className="divide-y divide-line-inner border-t border-line">
             {/* 购买日期 */}
-            <div>
+            <div className="py-4">
               <p className="mb-2 text-label text-ink-tertiary">购买日期</p>
               <input
                 type="date"
@@ -371,7 +373,7 @@ export default function ItemFormPage() {
             </div>
 
             {/* 购买价格 + 附加花费：并排布局，缩短表单高度（快速录入优先） */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 py-4">
               <div>
                 <p className="mb-2 text-label text-ink-tertiary">购买价格</p>
                 <div className="flex h-11 items-center gap-2 rounded-control border border-line bg-white px-3 transition-colors focus-within:border-line-strong">
@@ -402,7 +404,7 @@ export default function ItemFormPage() {
             </div>
 
             {/* 购买平台（单选，再点取消） */}
-            <div>
+            <div className="py-4">
               <p className="mb-2 text-label text-ink-tertiary">购买平台</p>
               <div className="flex flex-wrap gap-2">
                 {PURCHASE_PLATFORMS.map((p) => {

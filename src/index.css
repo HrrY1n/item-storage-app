@@ -118,6 +118,16 @@ p {
   }
 }
 
+/* 共享元素过渡（Item Card → Item Detail）：只调整默认交叉淡化的时长与曲线，
+   位置与尺寸的变化由浏览器自动完成。渐进增强：不支持时以下规则完全不生效。 */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(item-hero),
+  ::view-transition-new(item-hero) {
+    animation-duration: 260ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .animate-fade-rise {
     animation: fade-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;

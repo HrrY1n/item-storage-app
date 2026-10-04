@@ -19,6 +19,7 @@ import {
 import { itemRepository } from '../db/repositories/itemRepository'
 import PageHeader from '../components/PageHeader'
 import TagChip from '../components/TagChip'
+import { ObjectPlate } from '../components/ItemCard'
 import EmptyState from '../components/EmptyState'
 import ConfirmDialog from '../components/Dialogs'
 import { useToast } from '../components/Toast'
@@ -110,14 +111,20 @@ export default function ItemDetailPage() {
         }
       />
 
-      <div className="px-5 pt-3">
-        {/* 主图：入场轻微上浮（尺寸收敛，让日均成本指标落在首屏内） */}
-        <div className="animate-fade-rise mx-auto w-[60%] overflow-hidden rounded-surface bg-neutral-50">
-          <img src={iconUrl} alt={item.name} className="aspect-square w-full object-cover" draggable={false} />
+      <div className="animate-fade-rise px-5 pt-3">
+        {/* Object：档案卡的主图版（暖白底衬 + 内留白）。
+            同时作为「列表卡片 → 详情」的共享元素目标（View Transitions 渐进增强，不支持时无副作用） */}
+        <div className="mx-auto w-[64%]">
+          <ObjectPlate
+            src={iconUrl}
+            alt={item.name}
+            className="aspect-square rounded-surface border border-line-inner"
+            plateStyle={{ viewTransitionName: 'item-hero' }}
+          />
         </div>
 
         {/* 名称与分类路径 */}
-        <div className="animate-fade-rise mt-5 text-center" style={{ animationDelay: '60ms' }}>
+        <div className="mt-5 text-center">
           <h1 className="text-title-card text-ink-primary">{item.name}</h1>
           {category && (
             <Link
@@ -134,7 +141,7 @@ export default function ItemDetailPage() {
 
         {/* 标签 */}
         {itemTags.length > 0 && (
-          <div className="animate-fade-rise mt-4 flex flex-wrap justify-center gap-2" style={{ animationDelay: '100ms' }}>
+          <div className="mt-4 flex flex-wrap justify-center gap-2" style={{ animationDelay: '100ms' }}>
             {itemTags.map((tag) => (
               <TagChip key={tag.id} name={tag.name} />
             ))}
@@ -144,7 +151,7 @@ export default function ItemDetailPage() {
         {/* 购买信息（有任一字段才显示） */}
         {hasPurchase && (
           <section
-            className="animate-fade-rise mt-6 overflow-hidden rounded-surface border border-line bg-white shadow-card"
+            className="mt-6 overflow-hidden rounded-surface border border-line bg-white shadow-card"
             style={{ animationDelay: '140ms' }}
           >
             {/* ① 一级信息：日均使用成本 —— 本产品最独特的结论，做视觉锚点 */}
@@ -196,7 +203,7 @@ export default function ItemDetailPage() {
         {/* 备注 */}
         {item.note && (
           <section
-            className="animate-fade-rise mt-3 rounded-surface border border-line bg-white p-4 shadow-card"
+            className="mt-3 rounded-surface border border-line bg-white p-4 shadow-card"
             style={{ animationDelay: '180ms' }}
           >
             <p className="text-label text-ink-tertiary">备注</p>
