@@ -37,10 +37,15 @@ function Layout() {
     (pathname === '/' || pathname.startsWith('/categories') || pathname.startsWith('/search'))
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-canvas sm:border-x sm:border-black/[0.05]">
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-canvas sm:my-6 sm:min-h-[calc(100dvh-48px)] sm:overflow-hidden sm:rounded-[28px] sm:border sm:border-line sm:shadow-lift">
+      {/* 极细颗粒层：为平面底色增加物质感（不拦截交互） */}
+      <div
+        className="grain pointer-events-none absolute inset-0 z-0 opacity-[0.03] mix-blend-multiply"
+        aria-hidden
+      />
       <ScrollToTop />
       <main
-        className={`flex-1 ${
+        className={`relative z-10 flex-1 ${
           showBottomNav ? 'pb-[calc(96px+env(safe-area-inset-bottom))]' : 'pb-6'
         }`}
       >

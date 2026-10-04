@@ -92,26 +92,30 @@ export default function CategoryManagePage() {
   }
 
   const renderNode = ({ category: c, depth }: FlatNode, siblings: FlatNode[], index: number) => (
-    <div key={c.id} className="flex min-h-[52px] items-center gap-1.5 px-3" style={{ paddingLeft: 12 + depth * 22 }}>
-      {/* 排序 */}
-      <div className="flex flex-col">
+    <div key={c.id} className="flex min-h-[60px] items-center gap-2 px-3" style={{ paddingLeft: 10 + depth * 22 }}>
+      {/* 排序：每个方向 ≥28px 高，保证可点按 */}
+      <div className="flex w-7 flex-col items-center">
         <button
           type="button"
           aria-label="上移"
           disabled={index === 0}
           onClick={() => void handleReorder(c.id, 'up')}
-          className={`flex h-5 items-center px-1 ${index === 0 ? 'text-neutral-200' : 'text-ink-tertiary active:opacity-50'}`}
+          className={`flex h-7 w-7 items-center justify-center transition-colors ${
+            index === 0 ? 'text-neutral-200' : 'text-ink-tertiary active:text-ink-primary'
+          }`}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 15 6-6 6 6" /></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 15 6-6 6 6" /></svg>
         </button>
         <button
           type="button"
           aria-label="下移"
           disabled={index === siblings.length - 1}
           onClick={() => void handleReorder(c.id, 'down')}
-          className={`flex h-5 items-center px-1 ${index === siblings.length - 1 ? 'text-neutral-200' : 'text-ink-tertiary active:opacity-50'}`}
+          className={`flex h-7 w-7 items-center justify-center transition-colors ${
+            index === siblings.length - 1 ? 'text-neutral-200' : 'text-ink-tertiary active:text-ink-primary'
+          }`}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
         </button>
       </div>
       {/* 名称与数量 */}
@@ -155,7 +159,7 @@ export default function CategoryManagePage() {
           含子分类或物品的分类不可删除；移动时不能选择自身或其子分类作为父级。
         </p>
 
-        <div className="mt-4 divide-y divide-black/[0.05] overflow-hidden rounded-2xl border border-black/[0.05] bg-white shadow-card">
+        <div className="divide-y divide-line-inner overflow-hidden rounded-[20px] border border-line bg-white shadow-card">
           {renderTree(null, 0)}
         </div>
 
@@ -184,10 +188,10 @@ export default function CategoryManagePage() {
               onChange={(e) => setEditor({ ...editor, name: e.target.value })}
               placeholder="分类名称"
               autoFocus
-              className="h-12 w-full rounded-2xl border border-black/[0.06] bg-white px-4 text-[16px] text-ink-primary outline-none placeholder:text-neutral-300 focus:border-neutral-300"
+              className="h-12 w-full rounded-xl border border-line bg-white px-4 text-[16px] text-ink-primary outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
             />
             <p className="mb-2 mt-4 px-1 text-caption text-ink-tertiary">父分类</p>
-            <div className="max-h-[220px] overflow-y-auto rounded-2xl border border-black/[0.06]">
+            <div className="max-h-[220px] overflow-y-auto rounded-xl border border-line">
               <button
                 type="button"
                 onClick={() => setEditor({ ...editor, parentId: null })}
@@ -218,7 +222,7 @@ export default function CategoryManagePage() {
               className={`mt-4 flex h-12 w-full items-center justify-center rounded-2xl text-secondary font-medium transition-colors ${
                 editor.name.trim() && !saving
                   ? 'bg-neutral-900 text-white active:opacity-70'
-                  : 'bg-neutral-100 text-neutral-300'
+                  : 'bg-neutral-100 text-ink-faint'
               }`}
             >
               保存

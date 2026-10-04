@@ -53,7 +53,7 @@ function RootCategoryBlock({
   )
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-black/[0.05] bg-white shadow-card">
+    <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
       {children.length > 0 ? (
         <button
           type="button"
@@ -76,7 +76,7 @@ function RootCategoryBlock({
         }`}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-black/[0.04] py-1">
+          <div className="border-t border-line-inner py-1">
             <Link
               to={`/categories/${category.id}`}
               className="flex min-h-[44px] items-center pl-[70px] pr-3.5 text-secondary text-ink-secondary transition-colors active:bg-neutral-50"
@@ -116,18 +116,24 @@ export default function CategoriesPage() {
   const counts = computeCategoryCounts(items, categories)
 
   return (
-    <div className="pt-[calc(16px+env(safe-area-inset-top))]">
-      <div className="flex items-baseline justify-between px-5">
-        <h1 className="text-page-title text-ink-primary">分类</h1>
+    <div className="pt-[calc(24px+env(safe-area-inset-top))]">
+      <header className="animate-fade-rise flex items-baseline justify-between px-5">
+        <div>
+          <h1 className="text-page-title text-ink-primary">分类</h1>
+          <p className="mt-2 text-secondary text-ink-tertiary">
+            <span className="num text-item text-ink-primary">{categories.length}</span> 个分类 ·{' '}
+            <span className="num text-item text-ink-primary">{items.length}</span> 件物品
+          </p>
+        </div>
         <Link
           to="/settings/categories"
-          className="min-h-[32px] text-secondary text-ink-tertiary transition-opacity active:opacity-50"
+          className="min-h-[32px] text-secondary text-ink-tertiary transition-colors active:opacity-60 sm:hover:text-ink-primary"
         >
           管理
         </Link>
-      </div>
+      </header>
 
-      <div className="mt-4 flex flex-col gap-3 px-5">
+      <div className="stagger-in mt-5 flex flex-col gap-2.5 px-5">
         {roots.map((c) => (
           <RootCategoryBlock key={c.id} category={c} categories={categories} counts={counts} />
         ))}

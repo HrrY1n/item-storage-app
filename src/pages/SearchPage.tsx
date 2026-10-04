@@ -98,14 +98,14 @@ export default function SearchPage() {
   return (
     <div>
       {/* 搜索框：页面绝对视觉中心 */}
-      <div className="chrome sticky top-0 z-10 border-b border-black/[0.05] px-5 pb-3 pt-[calc(16px+env(safe-area-inset-top))]">
+      <div className="chrome sticky top-0 z-10 border-b border-line px-5 pb-3 pt-[calc(16px+env(safe-area-inset-top))]">
         <form
           onSubmit={(e) => {
             e.preventDefault()
             rememberQuery(input)
           }}
         >
-          <div className="flex h-12 items-center gap-2.5 rounded-2xl border border-black/[0.06] bg-white px-4 shadow-card">
+          <div className="flex h-12 items-center gap-2.5 rounded-2xl border border-line bg-white px-4 shadow-card">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-tertiary">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.8-3.8" />
@@ -160,13 +160,13 @@ export default function SearchPage() {
 
         {/* 初始状态 */}
         {!activeTag && !query.trim() && (
-          <div className="pt-2">
-            <p className="text-caption text-ink-tertiary">试试搜索名称、标签、分类或备注</p>
+          <div className="pt-3">
+            <p className="text-label text-ink-tertiary">试试搜索名称、标签、分类或备注</p>
 
             {recent.length > 0 && (
-              <section className="mt-6">
-                <div className="mb-2.5 flex items-baseline justify-between">
-                  <h2 className="text-secondary font-medium text-ink-secondary">最近搜索</h2>
+              <section className="mt-7">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <h2 className="text-label text-ink-tertiary">最近搜索</h2>
                   <button
                     type="button"
                     onClick={clearRecent}
@@ -184,7 +184,7 @@ export default function SearchPage() {
                         setInput(q)
                         setQuery(q)
                       }}
-                      className="flex min-h-[32px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-white px-3 text-caption text-ink-secondary transition-colors active:bg-neutral-50"
+                      className="flex min-h-[32px] items-center gap-1.5 rounded-full border border-line bg-white px-3 text-caption text-ink-secondary transition-colors active:bg-neutral-50"
                     >
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-300">
                         <circle cx="12" cy="12" r="9" />
@@ -198,8 +198,8 @@ export default function SearchPage() {
             )}
 
             {frequent.length > 0 && (
-              <section className="mt-6">
-                <h2 className="mb-2.5 text-secondary font-medium text-ink-secondary">常用标签</h2>
+              <section className="mt-7">
+                <h2 className="mb-3 text-label text-ink-faint">常用标签</h2>
                 <div className="flex flex-wrap gap-2">
                   {frequent.map((tag) => (
                     <TagChip key={tag.id} name={tag.name} onClick={() => setSearchParams({ tag: tag.id })} />
@@ -212,8 +212,10 @@ export default function SearchPage() {
 
         {/* 有结果 */}
         {!activeTag && query.trim() && results.length > 0 && (
-          <div className="pt-2">
-            <p className="mb-3 text-caption text-ink-tertiary">{results.length} 个结果</p>
+          <div className="pt-3">
+            <p className="mb-3 text-label text-ink-faint">
+              <span className="num">{results.length}</span> 个结果
+            </p>
             <ResultRows
               rows={results}
               iconOf={(item) => assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
@@ -244,22 +246,22 @@ function ResultRows({
   onSelect?: () => void
 }) {
   return (
-    <div className="divide-y divide-black/[0.05] overflow-hidden rounded-2xl border border-black/[0.05] bg-white shadow-card">
+    <div className="stagger-in divide-y divide-line-inner overflow-hidden rounded-[20px] border border-line bg-white shadow-card">
       {rows.map(({ item, matchedVia }) => (
         <Link
           key={item.id}
           to={`/items/${item.id}`}
           onClick={onSelect}
-          className="flex min-h-[68px] items-center gap-3 px-4 py-3 transition-colors active:bg-neutral-50"
+          className="group flex min-h-[72px] items-center gap-3.5 px-4 py-3 transition-colors active:bg-neutral-50 sm:hover:bg-neutral-50/70"
         >
-          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl">
-            <img src={iconOf(item)} alt={item.name} className="h-full w-full object-cover" draggable={false} />
+          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-line-inner">
+            <img src={iconOf(item)} alt={item.name} className="h-full w-full object-cover transition-transform duration-300 ease-out-quint group-active:scale-105" draggable={false} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-item text-ink-primary">{item.name}</p>
             <p className="mt-1 truncate text-caption text-ink-tertiary">{matchedVia}</p>
           </div>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-neutral-200">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-faint transition-transform duration-300 ease-spring group-active:translate-x-0.5 sm:group-hover:translate-x-0.5">
             <path d="m9 6 6 6-6 6" />
           </svg>
         </Link>

@@ -15,9 +15,9 @@ import type { BackupPayload, BackupSummary } from '../domain/backup'
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="mt-6 px-5">
-      <p className="mb-2 px-2 text-caption text-ink-tertiary">{title}</p>
-      <div className="divide-y divide-black/[0.04] overflow-hidden rounded-2xl border border-black/[0.05] bg-white shadow-card">
+    <section className="animate-fade-rise mt-7 px-5">
+      <p className="mb-2.5 px-1 text-label text-ink-tertiary">{title}</p>
+      <div className="divide-y divide-line-inner overflow-hidden rounded-[20px] border border-line bg-white shadow-card">
         {children}
       </div>
     </section>
@@ -203,9 +203,15 @@ export default function SettingsPage() {
         />
       </Group>
 
-      <p className="mt-6 px-7 text-caption leading-relaxed text-ink-tertiary">
-        数据保存在当前设备的浏览器存储中，清理浏览器数据或更换设备会导致丢失。定期使用「导出备份」是保护数据的可靠方式。
-      </p>
+      {/* 脚注：以一条 hairline 与内容区分开，保持安静但可读 */}
+      <div className="mt-8 px-5">
+        <div className="border-t border-line-inner pt-4">
+          <p className="text-caption leading-relaxed text-ink-tertiary">
+            数据保存在当前设备的浏览器存储中，清理浏览器数据或更换设备会导致丢失。
+            定期使用「导出备份」是保护数据的可靠方式。
+          </p>
+        </div>
+      </div>
 
       <input
         ref={fileRef}

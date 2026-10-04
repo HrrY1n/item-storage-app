@@ -33,15 +33,18 @@ export default function CategoryDetailPage() {
   return (
     <div>
       <PageHeader title={category.name} />
-      <div className="px-5 pt-4">
+      <div className="animate-fade-rise px-5 pt-5">
         <p className="text-caption text-ink-tertiary">
-          {categoryPath(categories, category.id)} · {categoryItems.length} 件物品
+          {categoryPath(categories, category.id)}
+        </p>
+        <p className="mt-1.5 text-secondary text-ink-tertiary">
+          <span className="num text-item text-ink-primary">{categoryItems.length}</span> 件物品
         </p>
 
         {categoryItems.length === 0 ? (
           <EmptyState title="这个分类还没有物品" subtitle="点击右下角 ＋ 新增一件物品吧" />
         ) : (
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="stagger-in mt-5 grid grid-cols-2 gap-3">
             {categoryItems.map((item) => (
               <ItemCard
                 key={item.id}

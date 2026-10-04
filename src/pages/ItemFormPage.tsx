@@ -33,7 +33,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   return (
     <section>
       <div className="mb-2 flex items-baseline justify-between px-1">
-        <p className="text-secondary font-medium text-ink-secondary">{label}</p>
+        <p className="text-label text-ink-tertiary">{label}</p>
         {hint && <p className="text-caption text-ink-tertiary">{hint}</p>}
       </div>
       {children}
@@ -226,7 +226,7 @@ export default function ItemFormPage() {
             className={`flex h-8 items-center rounded-full px-3.5 text-secondary transition-colors duration-200 ${
               canSave
                 ? 'bg-neutral-900 font-medium text-white active:opacity-70'
-                : 'bg-neutral-100 text-neutral-300'
+                : 'bg-neutral-100 text-ink-faint'
             }`}
           >
             保存
@@ -248,7 +248,7 @@ export default function ItemFormPage() {
                   type="button"
                   onClick={() => setIconAssetId(asset.id)}
                   aria-pressed={selected}
-                  className={`aspect-square overflow-hidden rounded-2xl border-2 transition-transform duration-100 ease-out-quint active:scale-[0.94] ${
+                  className={`relative aspect-square overflow-hidden rounded-2xl border-2 transition-[transform,border-color] duration-200 ease-spring active:scale-[0.92] ${
                     selected ? 'border-neutral-900' : 'border-transparent'
                   }`}
                 >
@@ -265,7 +265,7 @@ export default function ItemFormPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="比如：AirPods Pro"
-            className="h-12 w-full rounded-2xl border border-black/[0.05] bg-white px-4 text-[16px] text-ink-primary shadow-card outline-none transition-colors placeholder:text-neutral-300 focus:border-neutral-300"
+            className="h-12 w-full rounded-xl border border-line bg-white px-4 text-[16px] text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
           />
         </Field>
 
@@ -304,7 +304,7 @@ export default function ItemFormPage() {
                     className={`flex min-h-[36px] items-center rounded-full px-3.5 text-secondary transition-colors duration-150 active:scale-[0.97] ${
                       selected
                         ? 'bg-neutral-900 text-white'
-                        : 'border border-neutral-200 bg-white text-ink-secondary'
+                        : 'border border-line-strong bg-white text-ink-secondary'
                     }`}
                   >
                     {c.name}
@@ -338,7 +338,7 @@ export default function ItemFormPage() {
                 }
               }}
               placeholder="新建标签，如：白色"
-              className="h-11 min-w-0 flex-1 rounded-2xl border border-black/[0.05] bg-white px-4 text-body text-ink-primary shadow-card outline-none transition-colors placeholder:text-neutral-300 focus:border-neutral-300"
+              className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-white px-4 text-body text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
             />
             <button
               type="button"
@@ -347,7 +347,7 @@ export default function ItemFormPage() {
               className={`h-11 shrink-0 rounded-2xl px-4 text-secondary transition-colors ${
                 newTagName.trim()
                   ? 'bg-neutral-900 font-medium text-white active:opacity-70'
-                  : 'bg-neutral-100 text-neutral-300'
+                  : 'bg-neutral-100 text-ink-faint'
               }`}
             >
               添加
@@ -356,46 +356,46 @@ export default function ItemFormPage() {
         </Field>
 
         {/* 购买信息（全部可选） */}
-        <Field label="购买信息" hint="可选">
-          <div className="flex flex-col gap-3 rounded-2xl border border-black/[0.05] bg-white p-4 shadow-card">
+        <Field label="购买信息" hint="全部可选">
+          <div className="flex flex-col gap-4 rounded-[20px] border border-line bg-white p-4 shadow-card">
             {/* 购买日期 */}
             <div>
-              <p className="mb-1.5 text-caption text-ink-tertiary">购买日期</p>
+              <p className="mb-2 text-label text-ink-faint">购买日期</p>
               <input
                 type="date"
                 value={purchaseDate}
                 max={today}
                 onChange={(e) => setPurchaseDate(e.target.value)}
-                className="h-11 w-full rounded-xl border border-black/[0.06] bg-white px-3 text-body text-ink-primary outline-none transition-colors focus:border-neutral-300"
+                className="num h-11 w-full rounded-xl border border-line bg-white px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
               />
             </div>
 
             {/* 购买价格 */}
             <div>
-              <p className="mb-1.5 text-caption text-ink-tertiary">购买价格</p>
-              <div className="flex h-11 items-center gap-2 rounded-xl border border-black/[0.06] bg-white px-3 transition-colors focus-within:border-neutral-300">
+              <p className="mb-2 text-label text-ink-faint">购买价格</p>
+              <div className="flex h-11 items-center gap-2 rounded-xl border border-line bg-white px-3 transition-colors focus-within:border-line-strong">
                 <span className="text-body text-ink-tertiary">¥</span>
                 <input
                   value={priceText}
                   onChange={(e) => handleAmountChange(e.target.value, setPriceText)}
                   placeholder="0.00"
                   inputMode="decimal"
-                  className="min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-neutral-300"
+                  className="num min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-ink-faint"
                 />
               </div>
             </div>
 
             {/* 附加花费：配件 / 维修 / 升级 / 更换部件等额外投入 */}
             <div>
-              <p className="mb-1.5 text-caption text-ink-tertiary">附加花费</p>
-              <div className="flex h-11 items-center gap-2 rounded-xl border border-black/[0.06] bg-white px-3 transition-colors focus-within:border-neutral-300">
+              <p className="mb-2 text-label text-ink-faint">附加花费</p>
+              <div className="flex h-11 items-center gap-2 rounded-xl border border-line bg-white px-3 transition-colors focus-within:border-line-strong">
                 <span className="text-body text-ink-tertiary">¥</span>
                 <input
                   value={additionalCostText}
                   onChange={(e) => handleAmountChange(e.target.value, setAdditionalCostText)}
                   placeholder="0.00"
                   inputMode="decimal"
-                  className="min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-neutral-300"
+                  className="num min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-ink-faint"
                 />
               </div>
               <p className="mt-1.5 text-caption text-ink-tertiary">
@@ -404,8 +404,8 @@ export default function ItemFormPage() {
             </div>
 
             {/* 购买平台（单选，再点取消） */}
-            <div>
-              <p className="mb-1.5 text-caption text-ink-tertiary">购买平台</p>
+              <div>
+              <p className="mb-2 text-label text-ink-faint">购买平台</p>
               <div className="flex flex-wrap gap-2">
                 {PURCHASE_PLATFORMS.map((p) => {
                   const selected = purchasePlatform === p
@@ -430,19 +430,28 @@ export default function ItemFormPage() {
 
             {/* 实时预览：总投入 / 已持有天数 / 日均使用成本 */}
             {previewTotalCents !== null && (
-              <div className="rounded-xl bg-neutral-50 px-3.5 py-3">
-                <p className="text-caption text-ink-tertiary">总投入</p>
-                <p className="mt-0.5 text-item text-ink-primary">
-                  {formatCents(previewTotalCents)}
-                </p>
+              <div className="overflow-hidden rounded-xl border border-accent-line bg-accent-soft">
+                <div className="flex items-baseline justify-between px-3.5 py-3">
+                  <p className="text-label text-ink-tertiary">总投入</p>
+                  <p className="num text-item text-ink-primary">
+                    {formatCents(previewTotalCents)}
+                  </p>
+                </div>
                 {previewDailyCents !== null && previewDays !== null && (
-                  <>
-                    <p className="mt-2 text-caption text-ink-tertiary">已持有 {previewDays} 天</p>
-                    <p className="mt-0.5 text-caption text-ink-tertiary">日均使用成本</p>
-                    <p className="mt-0.5 text-item text-ink-primary">
-                      {formatCents(previewDailyCents)} / 天
+                  <div className="border-t border-accent-line px-3.5 py-3">
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-label text-accent">日均使用成本</p>
+                      <p className="flex items-baseline gap-1">
+                        <span className="num text-metric text-ink-primary">
+                          {formatCents(previewDailyCents)}
+                        </span>
+                        <span className="text-caption text-ink-secondary">/ 天</span>
+                      </p>
+                    </div>
+                    <p className="num mt-1.5 text-caption text-ink-tertiary">
+                      已持有 {previewDays} 天
                     </p>
-                  </>
+                  </div>
                 )}
               </div>
             )}
@@ -456,7 +465,7 @@ export default function ItemFormPage() {
             onChange={(e) => setNote(e.target.value)}
             placeholder="可选，比如购买渠道、使用场景……"
             rows={3}
-            className="w-full resize-none rounded-2xl border border-black/[0.05] bg-white px-4 py-3 text-body text-ink-primary shadow-card outline-none transition-colors placeholder:text-neutral-300 focus:border-neutral-300"
+            className="w-full resize-none rounded-xl border border-line bg-white px-4 py-3 text-body leading-relaxed text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
           />
         </Field>
 

@@ -39,16 +39,15 @@ export function CategoryIconTile({ category, size = 40 }: { category: Category; 
 }
 
 export default function CategoryCard({ category, count }: { category: Category; count: number }) {
-
   return (
     <Link
       to={`/categories/${category.id}`}
-      className="flex items-center gap-2.5 rounded-2xl border border-black/[0.05] bg-white p-3 shadow-card transition-transform duration-100 ease-out-quint active:scale-[0.97]"
+      className="group flex items-center gap-3 rounded-[18px] border border-line bg-white p-3.5 shadow-card transition-[transform,border-color] duration-200 ease-spring will-change-transform active:scale-[0.975] sm:hover:-translate-y-0.5 sm:hover:border-line-strong"
     >
-      <CategoryIconTile category={category} />
+      <CategoryIconTile category={category} size={42} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-item text-ink-primary">{category.name}</p>
-        <p className="mt-0.5 text-caption text-ink-tertiary">{count} 件</p>
+        <p className="num mt-1 text-caption text-ink-tertiary">{count} 件</p>
       </div>
     </Link>
   )

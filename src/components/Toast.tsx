@@ -1,8 +1,10 @@
 import { useCallback, useRef, useState } from 'react'
 
 /**
- * 轻量 Toast（Prototype 操作反馈）。
+ * 轻量 Toast（操作反馈）。
  * 用法：const { toast, show } = useToast(); show('已保存'); 渲染 {toast}
+ *
+ * 视觉：深色胶囊 + 材质模糊 + 弹簧弹出，位于底部导航之上。
  */
 export function useToast() {
   const [message, setMessage] = useState<string | null>(null)
@@ -16,8 +18,8 @@ export function useToast() {
 
   const toast = message ? (
     <div
-      className="fixed left-1/2 z-30 -translate-x-1/2 rounded-full bg-neutral-900/92 px-4 py-2 text-[13px] text-white shadow-lg"
-      style={{ bottom: 'calc(88px + env(safe-area-inset-bottom))' }}
+      className="animate-pop-in fixed left-1/2 z-30 -translate-x-1/2 rounded-full bg-neutral-900/92 px-5 py-2.5 text-secondary text-white shadow-card backdrop-blur-sm"
+      style={{ bottom: 'calc(92px + env(safe-area-inset-bottom))' }}
       role="status"
     >
       {message}

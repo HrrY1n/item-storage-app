@@ -1,6 +1,22 @@
 import type { ReactNode } from 'react'
 
-interface Props {
+/** 浮层底座：遮罩 + 弹簧入场，所有对话框共用 */
+function Overlay({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center px-8">
+      <div
+        className="animate-[pop-in_200ms_cubic-bezier(0.22,1,0.36,1)_both] absolute inset-0 bg-neutral-900/25 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      {children}
+    </div>
+  )
+}
+
+const btnBase =
+  'flex h-11 flex-1 items-center justify-center rounded-xl text-secondary transition-transform duration-150 ease-spring active:scale-[0.97]'
+
+interface ConfirmProps {
   open: boolean
   title: string
   message?: string
@@ -12,7 +28,7 @@ interface Props {
   onCancel: () => void
 }
 
-/** 简洁确认对话框（放弃修改 / 删除确认等） */
+/** 确认对话框（放弃修改 / 删除确认等） */
 export default function ConfirmDialog({
   open,
   title,
@@ -22,36 +38,35 @@ export default function ConfirmDialog({
   danger = false,
   onConfirm,
   onCancel,
-}: Props) {
+}: ConfirmProps) {
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center px-10">
-      <div className="absolute inset-0 bg-black/30" onClick={onCancel} />
-      <div className="relative w-full max-w-[300px] rounded-2xl bg-white p-5 shadow-xl">
-        <p className="text-center text-item text-ink-primary">{title}</p>
+    <Overlay onClose={onCancel}>
+      <div className="animate-pop-in relative w-full max-w-[312px] rounded-[22px] border border-line bg-white p-6 shadow-sheet">
+        <p className="text-center text-section text-ink-primary">{title}</p>
         {message && (
-          <p className="mt-2 text-center text-caption leading-relaxed text-ink-tertiary">{message}</p>
+          <p className="mt-2.5 text-center text-secondary leading-relaxed text-ink-tertiary">
+            {message}
+          </p>
         )}
-        <div className="mt-4 flex gap-2.5">
+        <div className="mt-5 flex gap-2.5">
           <button
             type="button"
             onClick={onCancel}
-            className="flex h-11 flex-1 items-center justify-center rounded-xl bg-neutral-100 text-secondary text-ink-secondary transition-transform duration-100 active:scale-[0.97]"
+            className={`${btnBase} border border-line bg-white text-ink-secondary`}
           >
             {cancelLabel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={`flex h-11 flex-1 items-center justify-center rounded-xl text-secondary font-medium text-white transition-transform duration-100 active:scale-[0.97] ${
-              danger ? 'bg-[#DC2626]' : 'bg-neutral-900'
-            }`}
+            className={`${btnBase} font-medium text-white ${danger ? 'bg-[#C0392B]' : 'bg-neutral-900'}`}
           >
             {confirmLabel}
           </button>
         </div>
       </div>
-    </div>
+    </Overlay>
   )
 }
 
@@ -71,22 +86,21 @@ export function AlertDialog({
 }) {
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center px-10">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative w-full max-w-[300px] rounded-2xl bg-white p-5 shadow-xl">
-        <p className="text-center text-item text-ink-primary">{title}</p>
-        <p className="mt-2 whitespace-pre-line text-center text-caption leading-relaxed text-ink-tertiary">
+    <Overlay onClose={onClose}>
+      <div className="animate-pop-in relative w-full max-w-[312px] rounded-[22px] border border-line bg-white p-6 shadow-sheet">
+        <p className="text-center text-section text-ink-primary">{title}</p>
+        <p className="mt-2.5 whitespace-pre-line text-center text-secondary leading-relaxed text-ink-tertiary">
           {message}
         </p>
         <button
           type="button"
           onClick={onClose}
-          className="mt-4 flex h-11 w-full items-center justify-center rounded-xl bg-neutral-900 text-secondary font-medium text-white transition-transform duration-100 active:scale-[0.97]"
+          className="mt-5 flex h-11 w-full items-center justify-center rounded-xl bg-neutral-900 text-secondary font-medium text-white transition-transform duration-150 ease-spring active:scale-[0.97]"
         >
           {confirmLabel}
         </button>
       </div>
-    </div>
+    </Overlay>
   )
 }
 
@@ -105,9 +119,14 @@ export function FormDialog({
   if (!open) return null
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative w-full max-w-[360px] rounded-t-3xl bg-white p-5 pb-[calc(20px+env(safe-area-inset-bottom))] shadow-xl sm:rounded-3xl sm:pb-5">
-        <p className="mb-4 text-center text-item text-ink-primary">{title}</p>
+      <div
+        className="animate-[pop-in_200ms_cubic-bezier(0.22,1,0.36,1)_both] absolute inset-0 bg-neutral-900/25 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div className="animate-sheet-up relative w-full max-w-[380px] rounded-t-[26px] border border-line bg-white p-6 pb-[calc(24px+env(safe-area-inset-bottom))] shadow-sheet sm:rounded-[26px] sm:pb-6">
+        {/* 抓取把手：暗示这是一个可关闭的浮层 */}
+        <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-neutral-200" />
+        <p className="mb-4 text-item text-ink-primary">{title}</p>
         {children}
       </div>
     </div>

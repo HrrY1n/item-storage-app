@@ -36,21 +36,28 @@ export default function HomePage() {
   const frequent = frequentTags(items, links, tags, 8)
 
   return (
-    <div className="pt-[calc(16px+env(safe-area-inset-top))]">
-      {/* 顶部标题 */}
-      <div className="px-5">
-        <h1 className="text-page-title text-ink-primary">我的物品</h1>
-        <p className="mt-1 text-caption text-ink-tertiary">{items.length} 件物品</p>
-      </div>
+    <div className="pt-[calc(24px+env(safe-area-inset-top))]">
+      {/* 页头：眉标 + 标题 + 计数（等宽数位） */}
+      <header className="animate-fade-rise px-5">
+        <p className="text-eyebrow text-accent">PRIVATE ITEM LIBRARY</p>
+        <h1 className="mt-2.5 text-page-title text-ink-primary">我的物品</h1>
+        <p className="mt-2 text-secondary text-ink-tertiary">
+          共 <span className="num text-item text-ink-primary">{items.length}</span> 件物品
+        </p>
+      </header>
 
       {/* 大搜索框（点击进入搜索页） */}
-      <div className="mt-4 px-5">
+      <div className="animate-fade-rise mt-6 px-5" style={{ animationDelay: '40ms' }}>
         <button
           type="button"
           onClick={() => navigate('/search')}
-          className="flex h-12 w-full items-center gap-2.5 rounded-2xl border border-black/[0.05] bg-white px-4 text-left shadow-card transition-opacity active:opacity-70"
+          className="group flex h-[52px] w-full items-center gap-3 rounded-2xl border border-line bg-white px-4 text-left shadow-card transition-transform duration-200 ease-out-quint active:scale-[0.99] sm:hover:border-line-strong"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-tertiary">
+          <svg
+            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"
+            strokeLinecap="round" strokeLinejoin="round"
+            className="shrink-0 text-ink-tertiary transition-transform duration-300 ease-spring group-active:scale-110"
+          >
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-3.8-3.8" />
           </svg>
@@ -59,34 +66,31 @@ export default function HomePage() {
       </div>
 
       {items.length === 0 ? (
-        /* 空库 Empty State */
-        <div className="mt-10 flex flex-col items-center px-8 text-center">
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-neutral-100">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400">
-              <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
-              <path d="M3 8l9 5 9-5" />
-              <path d="M12 13v8" />
-            </svg>
-          </div>
-          <p className="text-item text-ink-secondary">还没有物品</p>
-          <p className="mt-1.5 max-w-[240px] text-secondary leading-relaxed text-ink-tertiary">
+        /* 空库：留白展台 + 明确行动点 */
+        <div className="animate-fade-rise px-8 pt-6 text-center" style={{ animationDelay: '80ms' }}>
+          <EmptyPlinthHero />
+          <p className="mt-7 text-title-card text-ink-primary">还没有物品</p>
+          <p className="mx-auto mt-2.5 max-w-[268px] text-body leading-relaxed text-ink-tertiary">
             添加第一件物品，开始建立你的私人物品库。
           </p>
           <Link
             to="/items/new"
-            className="mt-5 flex h-11 items-center rounded-full bg-neutral-900 px-6 text-secondary font-medium text-white transition-transform duration-100 active:scale-[0.97]"
+            className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-neutral-900 px-7 text-body font-medium text-white shadow-fab transition-transform duration-200 ease-spring active:scale-[0.97] sm:hover:-translate-y-0.5"
           >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
             添加物品
           </Link>
         </div>
       ) : (
         <>
           {/* 最近添加 */}
-          <section className="mt-8">
+          <section className="animate-fade-rise mt-9" style={{ animationDelay: '80ms' }}>
             <div className="px-5">
               <SectionHeader title="最近添加" />
             </div>
-            <div className="no-scrollbar flex gap-3 overflow-x-auto px-5 pb-1">
+            <div className="no-scrollbar stagger-in flex gap-3 overflow-x-auto px-5 pb-1">
               {items.slice(0, 8).map((item) => (
                 <ItemCard
                   key={item.id}
@@ -95,23 +99,29 @@ export default function HomePage() {
                   iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
                   categoryName={categoryNameOf(categories, item.categoryId)}
                   tagNames={tagNamesOf(item.id, links, tags)}
-                  className="w-[146px] shrink-0"
+                  className="w-[148px] shrink-0"
                 />
               ))}
             </div>
           </section>
 
           {/* 分类 */}
-          <section className="mt-8 px-5">
+          <section className="animate-fade-rise mt-9 px-5" style={{ animationDelay: '140ms' }}>
             <SectionHeader
               title="分类"
               action={
-                <Link to="/categories" className="text-secondary text-ink-tertiary transition-opacity active:opacity-50">
+                <Link
+                  to="/categories"
+                  className="group inline-flex items-center gap-1 text-secondary text-ink-tertiary transition-colors active:opacity-60 sm:hover:text-ink-primary"
+                >
                   全部
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-spring sm:group-hover:translate-x-0.5">
+                    <path d="m9 6 6 6-6 6" />
+                  </svg>
                 </Link>
               }
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="stagger-in grid grid-cols-2 gap-3">
               {roots.map((c) => (
                 <CategoryCard key={c.id} category={c} count={counts.get(c.id) ?? 0} />
               ))}
@@ -120,7 +130,7 @@ export default function HomePage() {
 
           {/* 常用标签 */}
           {frequent.length > 0 && (
-            <section className="mt-8 px-5">
+            <section className="animate-fade-rise mt-9 px-5" style={{ animationDelay: '200ms' }}>
               <SectionHeader title="常用标签" />
               <div className="flex flex-wrap gap-2">
                 {frequent.map((tag) => (
@@ -132,5 +142,20 @@ export default function HomePage() {
         </>
       )}
     </div>
+  )
+}
+
+/** 首页空状态的原创插画（比通用空状态更大，作为第一印象的视觉锚点） */
+function EmptyPlinthHero() {
+  return (
+    <svg width="188" height="132" viewBox="0 0 188 132" fill="none" className="mx-auto text-ink-faint" aria-hidden>
+      <ellipse cx="94" cy="112" rx="54" ry="7" fill="rgba(23,23,23,0.05)" />
+      <ellipse cx="94" cy="112" rx="30" ry="4" fill="rgba(23,23,23,0.045)" />
+      <path d="M42 96h104" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M50 96v26M138 96v26" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <circle cx="94" cy="54" r="27" stroke="#B4553B" strokeWidth="1.4" strokeDasharray="3 7" strokeLinecap="round" opacity="0.75" />
+      <circle cx="94" cy="54" r="3.4" fill="#B4553B" opacity="0.9" />
+      <path d="M34 54h6M148 54h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.4" />
+    </svg>
   )
 }

@@ -90,7 +90,7 @@ export default function TagManagePage() {
               }
             }}
             placeholder="新增标签，如：冬季"
-            className="h-12 min-w-0 flex-1 rounded-2xl border border-black/[0.05] bg-white px-4 text-[16px] text-ink-primary shadow-card outline-none transition-colors placeholder:text-neutral-300 focus:border-neutral-300"
+            className="h-12 min-w-0 flex-1 rounded-xl border border-line bg-white px-4 text-[16px] text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
           />
           <button
             type="button"
@@ -99,7 +99,7 @@ export default function TagManagePage() {
             className={`h-12 shrink-0 rounded-2xl px-4 text-secondary transition-colors ${
               newName.trim() && !busy
                 ? 'bg-neutral-900 font-medium text-white active:opacity-70'
-                : 'bg-neutral-100 text-neutral-300'
+                : 'bg-neutral-100 text-ink-faint'
             }`}
           >
             添加
@@ -113,7 +113,7 @@ export default function TagManagePage() {
         {tags.length === 0 ? (
           <p className="mt-8 text-center text-secondary text-ink-tertiary">还没有标签</p>
         ) : (
-          <div className="mt-4 divide-y divide-black/[0.05] overflow-hidden rounded-2xl border border-black/[0.05] bg-white shadow-card">
+          <div className="divide-y divide-line-inner overflow-hidden rounded-[20px] border border-line bg-white shadow-card">
             {tags.map((tag) => (
               <div key={tag.id} className="flex min-h-[52px] items-center gap-2 px-4">
                 <span className="min-w-0 flex-1">
@@ -160,14 +160,14 @@ export default function TagManagePage() {
           onChange={(e) => setRenameValue(e.target.value)}
           autoFocus
           placeholder="新名称"
-          className="h-12 w-full rounded-2xl border border-black/[0.06] bg-white px-4 text-[16px] text-ink-primary outline-none placeholder:text-neutral-300 focus:border-neutral-300"
+          className="h-12 w-full rounded-xl border border-line bg-white px-4 text-[16px] text-ink-primary outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
         />
         <button
           type="button"
           onClick={handleRename}
           disabled={!renameValue.trim() || busy}
           className={`mt-4 flex h-12 w-full items-center justify-center rounded-2xl text-secondary font-medium transition-colors ${
-            renameValue.trim() && !busy ? 'bg-neutral-900 text-white active:opacity-70' : 'bg-neutral-100 text-neutral-300'
+            renameValue.trim() && !busy ? 'bg-neutral-900 text-white active:opacity-70' : 'bg-neutral-100 text-ink-faint'
           }`}
         >
           保存
@@ -176,7 +176,7 @@ export default function TagManagePage() {
 
       {/* 合并 */}
       <FormDialog open={merging !== null} title={`把 #${merging?.name} 合并到…`} onClose={() => setMerging(null)}>
-        <div className="max-h-[240px] overflow-y-auto rounded-2xl border border-black/[0.06]">
+        <div className="max-h-[240px] overflow-y-auto rounded-2xl border border-line">
           {tags
             .filter((t) => t.id !== merging?.id)
             .map((t) => (
@@ -200,7 +200,7 @@ export default function TagManagePage() {
           onClick={handleMerge}
           disabled={!mergeTargetId || busy}
           className={`mt-4 flex h-12 w-full items-center justify-center rounded-2xl text-secondary font-medium transition-colors ${
-            mergeTargetId && !busy ? 'bg-neutral-900 text-white active:opacity-70' : 'bg-neutral-100 text-neutral-300'
+            mergeTargetId && !busy ? 'bg-neutral-900 text-white active:opacity-70' : 'bg-neutral-100 text-ink-faint'
           }`}
         >
           合并（源标签将被删除）

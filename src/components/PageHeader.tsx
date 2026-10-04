@@ -14,7 +14,7 @@ export default function PageHeader({ title, right, onBack, backLabel }: Props) {
   const navigate = useNavigate()
 
   return (
-    <header className="chrome sticky top-0 z-10 border-b border-black/[0.06]">
+    <header className="chrome sticky top-0 z-10 border-b border-line">
       <div className="flex min-h-[52px] items-center px-2 pt-[env(safe-area-inset-top)]">
         <button
           type="button"

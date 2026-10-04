@@ -12,6 +12,8 @@ body,
   height: 100%;
 }
 
+/* ---------------------------------------------------------- 基础排版与渲染 */
+
 body {
   @apply bg-canvas text-ink-primary antialiased;
   font-family:
@@ -23,22 +25,125 @@ body {
     'Microsoft YaHei',
     sans-serif;
   -webkit-tap-highlight-color: transparent;
+  /* 桌面端：给居中的应用容器一层极轻的环境底色，避免"一根窄柱"悬在白底上 */
+  background-image: radial-gradient(
+    120% 80% at 50% 0%,
+    rgba(23, 23, 23, 0.035) 0%,
+    rgba(23, 23, 23, 0) 60%
+  );
+  background-repeat: no-repeat;
+}
+
+/* 标题/段落：更好的换行与断行 */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  font-weight: 600;
+}
+p {
+  text-wrap: pretty;
+}
+
+/* 键盘可达性：统一焦点环。
+   刻意用中性深灰而非强调色 —— 暖色焦点环在表单里会被误读成"校验错误"。 */
+:focus-visible {
+  outline: 2px solid rgba(23, 23, 23, 0.55);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* 选择态与选区：用强调色的极淡底色，替代浏览器默认蓝 */
+::selection {
+  background: rgba(180, 85, 59, 0.16);
+  color: inherit;
+}
+
+/* 数字：等宽数位，避免计数/价格刷新时宽度跳动 */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 @layer utilities {
-  /**
-   * 控件层材质（HIG chrome / Liquid Glass 标准材质）
-   * 只用于导航栏、工具栏等控件层；内容层内部一律实色，不再叠 blur。
-   */
+  /* 控件层材质（HIG chrome）：只给导航/工具栏，内容层一律实色 */
   .chrome {
-    background-color: rgba(255, 255, 255, 0.72);
+    background-color: rgba(255, 255, 255, 0.76);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
   }
-  /* 亮顶边：模拟光线打在材质上（标签栏/底部 chrome 通用） */
+  /* 亮顶边：模拟光线打在材质上 */
   .chrome-edge-top {
     border-top: 1px solid rgba(255, 255, 255, 0.5);
   }
+
+  /* 极细颗粒：为平面底色增加一层几乎不可见的物质感（原创质感，非装饰图案） */
+  .grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+}
+
+/* ---------------------------------------------------------- 入场动效（渐进增强）
+
+   关键约定：所有入场动画都写在 prefers-reduced-motion: no-preference 之下。
+   这样在「减少动效」「动画被系统/环境暂停」等情况下，元素保持最终可见状态，
+   而不是停在 keyframe 的 opacity:0 —— 内容可见性永远不依赖动画播放。 */
+
+/* 只动 transform，不动 opacity：
+   即使动画因任何原因被暂停/未播放，内容依然完整可见，只是少了一层空间位移。
+   这是"动画必须是渐进增强"的硬性落实。 */
+@keyframes fade-rise {
+  from {
+    transform: translateY(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes pop-in {
+  from {
+    transform: scale(0.96);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(18px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-fade-rise {
+    animation: fade-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-pop-in {
+    animation: pop-in 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .animate-sheet-up {
+    animation: sheet-up 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .stagger-in > * {
+    animation: fade-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  /* 错落节奏：同组元素依次入场（35ms 步进，最多 12 项） */
+  .stagger-in > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-in > *:nth-child(2) { animation-delay: 35ms; }
+  .stagger-in > *:nth-child(3) { animation-delay: 70ms; }
+  .stagger-in > *:nth-child(4) { animation-delay: 105ms; }
+  .stagger-in > *:nth-child(5) { animation-delay: 140ms; }
+  .stagger-in > *:nth-child(6) { animation-delay: 175ms; }
+  .stagger-in > *:nth-child(7) { animation-delay: 210ms; }
+  .stagger-in > *:nth-child(8) { animation-delay: 245ms; }
+  .stagger-in > *:nth-child(9) { animation-delay: 280ms; }
+  .stagger-in > *:nth-child(10) { animation-delay: 315ms; }
+  .stagger-in > *:nth-child(11) { animation-delay: 350ms; }
+  .stagger-in > *:nth-child(12) { animation-delay: 385ms; }
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -54,12 +159,16 @@ input[type='search']::-webkit-search-cancel-button {
   display: none;
 }
 
-/* 系统无障碍偏好（HIG 必备 media queries） */
+/* ---------------------------------------------------------- 无障碍偏好 */
+
 @media (prefers-reduced-transparency: reduce) {
   .chrome {
     background-color: #ffffff;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+  }
+  .grain {
+    background-image: none;
   }
 }
 
@@ -67,6 +176,9 @@ input[type='search']::-webkit-search-cancel-button {
   .chrome {
     background-color: #ffffff;
     border-color: rgba(0, 0, 0, 0.2);
+  }
+  .grain {
+    background-image: none;
   }
 }
 

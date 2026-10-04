@@ -23,6 +23,31 @@ import EmptyState from '../components/EmptyState'
 import ConfirmDialog from '../components/Dialogs'
 import { useToast } from '../components/Toast'
 
+/** 规格行：左标签右数值，中间以极细引导点连接（表格化但不呆板） */
+function SpecRow({
+  label,
+  value,
+  strong = false,
+}: {
+  label: string
+  value: string
+  strong?: boolean
+}) {
+  return (
+    <div className="flex items-baseline gap-3 py-1.5">
+      <span className="shrink-0 text-secondary text-ink-tertiary">{label}</span>
+      <span className="min-w-0 flex-1 translate-y-[-3px] border-b border-dashed border-line" />
+      <span
+        className={`num shrink-0 text-right text-body ${
+          strong ? 'font-medium text-ink-primary' : 'text-ink-secondary'
+        }`}
+      >
+        {value}
+      </span>
+    </div>
+  )
+}
+
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -36,10 +61,7 @@ export default function ItemDetailPage() {
   const assetMap = usePresetAssetMap()
 
   const loading = !categories || !tags || !links || !assetMap || item === undefined
-  if (loading) {
-    // useLiveQuery 初次返回 undefined；物品被删后回到本页也为 undefined → 统一按不存在处理前给一帧加载
-    return null
-  }
+  if (loading) return null
 
   if (!item) {
     return (
@@ -63,10 +85,7 @@ export default function ItemDetailPage() {
     item.purchasePriceCents !== null ||
     item.additionalCostCents !== null ||
     item.purchasePlatform !== null
-  const totalCents = calculateTotalCostCents(
-    item.purchasePriceCents,
-    item.additionalCostCents,
-  )
+  const totalCents = calculateTotalCostCents(item.purchasePriceCents, item.additionalCostCents)
   const dailyCents = calculateDailyCostCents(totalCents, item.purchaseDate)
   const ownershipDays = item.purchaseDate ? calculateOwnershipDays(item.purchaseDate) : null
   const purchaseSubline = [
@@ -89,42 +108,44 @@ export default function ItemDetailPage() {
 
   return (
     <div>
-      {/* 编辑入口放顶部右侧，保持轻量 */}
+      {/* 编辑入口 */}
       <PageHeader
         title=""
         right={
           <Link
             to={`/items/${item.id}/edit`}
-            className="flex min-h-[36px] items-center px-1 text-item text-ink-primary transition-opacity active:opacity-50"
+            className="flex min-h-[36px] items-center px-1 text-item text-ink-primary transition-opacity active:opacity-50 sm:hover:opacity-60"
           >
             编辑
           </Link>
         }
       />
 
-      <div className="px-5 pt-2">
-        {/* 主图区域 */}
-        <div className="mx-auto w-[76%] overflow-hidden rounded-[26px]">
+      <div className="px-5 pt-3">
+        {/* 主图：入场轻微上浮（尺寸收敛，让日均成本指标落在首屏内） */}
+        <div className="animate-fade-rise mx-auto w-[60%] overflow-hidden rounded-[24px]">
           <img src={iconUrl} alt={item.name} className="aspect-square w-full object-cover" draggable={false} />
         </div>
 
         {/* 名称与分类路径 */}
-        <h1 className="mt-6 text-title-card text-ink-primary">{item.name}</h1>
-        {category && (
-          <Link
-            to={`/categories/${category.id}`}
-            className="mt-1.5 inline-flex items-center gap-1 text-secondary text-ink-tertiary transition-opacity active:opacity-50"
-          >
-            {categoryPath(categories, item.categoryId)}
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m9 6 6 6-6 6" />
-            </svg>
-          </Link>
-        )}
+        <div className="animate-fade-rise mt-5 text-center" style={{ animationDelay: '60ms' }}>
+          <h1 className="text-title-card text-ink-primary">{item.name}</h1>
+          {category && (
+            <Link
+              to={`/categories/${category.id}`}
+              className="group mt-2 inline-flex items-center gap-1 text-secondary text-ink-tertiary transition-colors active:opacity-60 sm:hover:text-ink-secondary"
+            >
+              {categoryPath(categories, item.categoryId)}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-spring sm:group-hover:translate-x-0.5">
+                <path d="m9 6 6 6-6 6" />
+              </svg>
+            </Link>
+          )}
+        </div>
 
         {/* 标签 */}
         {itemTags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="animate-fade-rise mt-4 flex flex-wrap justify-center gap-2" style={{ animationDelay: '100ms' }}>
             {itemTags.map((tag) => (
               <TagChip key={tag.id} name={tag.name} />
             ))}
@@ -133,52 +154,61 @@ export default function ItemDetailPage() {
 
         {/* 购买信息（有任一字段才显示） */}
         {hasPurchase && (
-          <div className="mt-5 rounded-2xl border border-black/[0.05] bg-white p-4 shadow-card">
-            <p className="mb-1.5 text-caption font-medium text-ink-tertiary">购买信息</p>
-            {item.purchasePriceCents !== null && (
-              <p className="text-item text-ink-primary">{formatCents(item.purchasePriceCents)}</p>
-            )}
-            {item.additionalCostCents !== null && (
-              <p className="mt-0.5 text-secondary text-ink-secondary">
-                附加花费 {formatCents(item.additionalCostCents)}
-              </p>
-            )}
-            {totalCents !== null && (
-              <p className="mt-0.5 text-secondary text-ink-secondary">
-                总投入{' '}
-                <span className="font-medium text-ink-primary">{formatCents(totalCents)}</span>
-              </p>
-            )}
-            {purchaseSubline && (
-              <p className="mt-1 text-secondary text-ink-secondary">{purchaseSubline}</p>
-            )}
-            {ownershipDays !== null && (
-              <p className="mt-1 text-secondary text-ink-secondary">
-                已持有 {ownershipDays} 天
-              </p>
-            )}
+          <section
+            className="animate-fade-rise mt-6 overflow-hidden rounded-[22px] border border-line bg-white shadow-card"
+            style={{ animationDelay: '140ms' }}
+          >
+            <div className="px-4 pt-4">
+              <p className="text-label text-ink-tertiary">购买信息</p>
+              <div className="mt-2">
+                {item.purchasePriceCents !== null && (
+                  <SpecRow label="购买价格" value={formatCents(item.purchasePriceCents)} />
+                )}
+                {item.additionalCostCents !== null && (
+                  <SpecRow label="附加花费" value={formatCents(item.additionalCostCents)} />
+                )}
+                {totalCents !== null && (
+                  <SpecRow label="总投入" value={formatCents(totalCents)} strong />
+                )}
+                {purchaseSubline && <SpecRow label="渠道与日期" value={purchaseSubline} />}
+                {ownershipDays !== null && (
+                  <SpecRow label="已持有" value={`${ownershipDays} 天`} />
+                )}
+              </div>
+            </div>
+
+            {/* 指标区：全页视觉锚点 */}
             {dailyCents !== null && (
-              <p className="mt-0.5 text-secondary text-ink-secondary">
-                日均使用成本{' '}
-                <span className="font-medium text-ink-primary">{formatCents(dailyCents)} / 天</span>
-              </p>
+              <div className="mt-3 border-t border-line-inner bg-accent-soft/60 px-4 py-4">
+                <p className="text-label text-accent">日均使用成本</p>
+                <p className="mt-1.5 flex items-baseline gap-1.5">
+                  <span className="num text-metric-lg text-ink-primary">{formatCents(dailyCents)}</span>
+                  <span className="text-secondary text-ink-secondary">/ 天</span>
+                </p>
+                <p className="mt-1 text-caption text-ink-tertiary">
+                  按总投入分摊到持有的每一天
+                </p>
+              </div>
             )}
-          </div>
+          </section>
         )}
 
         {/* 备注 */}
         {item.note && (
-          <div className="mt-5 rounded-2xl border border-black/[0.05] bg-white p-4 shadow-card">
-            <p className="mb-1 text-caption font-medium text-ink-tertiary">备注</p>
-            <p className="text-body text-ink-secondary">{item.note}</p>
-          </div>
+          <section
+            className="animate-fade-rise mt-3 rounded-[22px] border border-line bg-white p-4 shadow-card"
+            style={{ animationDelay: '180ms' }}
+          >
+            <p className="text-label text-ink-tertiary">备注</p>
+            <p className="mt-2 text-body leading-relaxed text-ink-secondary">{item.note}</p>
+          </section>
         )}
 
         {/* 删除：弱视觉权重，放在页面靠下 */}
         <button
           type="button"
           onClick={() => setConfirmingDelete(true)}
-          className="mt-8 flex min-h-[44px] w-full items-center justify-center text-secondary text-[#DC2626] transition-opacity active:opacity-50"
+          className="mt-8 flex min-h-[44px] w-full items-center justify-center text-secondary text-[#C0392B] transition-opacity active:opacity-60 sm:hover:opacity-70"
         >
           删除此物品
         </button>
