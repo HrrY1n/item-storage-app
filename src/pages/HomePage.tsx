@@ -37,10 +37,10 @@ export default function HomePage() {
 
   return (
     <div className="pt-[calc(24px+env(safe-area-inset-top))]">
-      {/* 页头：眉标 + 标题 + 计数（等宽数位） */}
+      {/* 页头：标题 + 计数。
+          审计结论：删掉英文 eyebrow —— 它是装饰性信息，对私人工具不产生可用性价值。 */}
       <header className="animate-fade-rise px-5">
-        <p className="text-eyebrow text-accent">PRIVATE ITEM LIBRARY</p>
-        <h1 className="mt-2.5 text-page-title text-ink-primary">我的物品</h1>
+        <h1 className="text-page-title text-ink-primary">我的物品</h1>
         <p className="mt-2 text-secondary text-ink-tertiary">
           共 <span className="num text-item text-ink-primary">{items.length}</span> 件物品
         </p>
@@ -51,12 +51,12 @@ export default function HomePage() {
         <button
           type="button"
           onClick={() => navigate('/search')}
-          className="group flex h-[52px] w-full items-center gap-3 rounded-2xl border border-line bg-white px-4 text-left shadow-card transition-transform duration-200 ease-out-quint active:scale-[0.99] sm:hover:border-line-strong"
+          className="group flex h-[52px] w-full items-center gap-3 rounded-card border border-line bg-white px-4 text-left shadow-card transition-[border-color] duration-200 ease-out-quint sm:hover:border-line-strong"
         >
           <svg
             width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"
             strokeLinecap="round" strokeLinejoin="round"
-            className="shrink-0 text-ink-tertiary transition-transform duration-300 ease-spring group-active:scale-110"
+            className="shrink-0 text-ink-tertiary"
           >
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-3.8-3.8" />
@@ -75,7 +75,7 @@ export default function HomePage() {
           </p>
           <Link
             to="/items/new"
-            className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-neutral-900 px-7 text-body font-medium text-white shadow-fab transition-transform duration-200 ease-spring active:scale-[0.97] sm:hover:-translate-y-0.5"
+            className="mt-7 inline-flex h-12 items-center gap-2 rounded-pill bg-neutral-900 px-7 text-body font-medium text-white shadow-fab transition-transform duration-200 ease-out-quint active:scale-[0.97] sm:hover:-translate-y-0.5"
           >
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <path d="M12 5v14M5 12h14" />
@@ -90,7 +90,7 @@ export default function HomePage() {
             <div className="px-5">
               <SectionHeader title="最近添加" />
             </div>
-            <div className="no-scrollbar stagger-in flex gap-3 overflow-x-auto px-5 pb-1">
+            <div className="no-scrollbar flex gap-3 overflow-x-auto px-5 pb-1">
               {items.slice(0, 8).map((item) => (
                 <ItemCard
                   key={item.id}
@@ -115,13 +115,13 @@ export default function HomePage() {
                   className="group inline-flex items-center gap-1 text-secondary text-ink-tertiary transition-colors active:opacity-60 sm:hover:text-ink-primary"
                 >
                   全部
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-spring sm:group-hover:translate-x-0.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-out-quint sm:group-hover:translate-x-0.5">
                     <path d="m9 6 6 6-6 6" />
                   </svg>
                 </Link>
               }
             />
-            <div className="stagger-in grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {roots.map((c) => (
                 <CategoryCard key={c.id} category={c} count={counts.get(c.id) ?? 0} />
               ))}

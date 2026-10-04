@@ -48,7 +48,7 @@ const tabs = [
 
 export default function BottomNav() {
   return (
-    <nav className="chrome chrome-edge-top fixed bottom-0 left-1/2 z-20 w-full max-w-[430px] -translate-x-1/2 border-t border-line sm:bottom-6 sm:rounded-b-[28px]">
+    <nav className="chrome chrome-edge-top fixed bottom-0 left-1/2 z-20 w-full max-w-[430px] -translate-x-1/2 border-t border-line sm:bottom-6 sm:rounded-b-app">
       <div className="flex pb-[env(safe-area-inset-bottom)]">
         {tabs.map(({ to, label, Icon, end }) => (
           <NavLink
@@ -61,13 +61,13 @@ export default function BottomNav() {
               <span className="relative flex flex-col items-center gap-1 pb-1 pt-1.5">
                 {/* 选中指示：一枚细小的强调色圆点，弹簧弹出 */}
                 <span
-                  className={`absolute -top-[3px] left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-accent transition-all duration-300 ease-spring ${
-                    isActive ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
+                  className={`absolute -top-[3px] left-1/2 h-1 w-1 -translate-x-1/2 rounded-pill bg-accent transition-opacity duration-200 ease-out-quint ${
+                    isActive ? 'opacity-100' : 'opacity-0'
                   }`}
                 />
                 <span
-                  className={`transition-[color,transform] duration-300 ease-spring ${
-                    isActive ? 'text-ink-primary' : 'text-ink-tertiary group-active:scale-95'
+                  className={`transition-colors duration-200 ease-out-quint ${
+                    isActive ? 'text-ink-primary' : 'text-ink-tertiary'
                   }`}
                 >
                   <Icon active={isActive} />

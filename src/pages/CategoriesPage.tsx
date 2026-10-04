@@ -53,7 +53,7 @@ function RootCategoryBlock({
   )
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
+    <div className="overflow-hidden rounded-surface border border-line bg-white shadow-card">
       {children.length > 0 ? (
         <button
           type="button"
@@ -133,7 +133,7 @@ export default function CategoriesPage() {
         </Link>
       </header>
 
-      <div className="stagger-in mt-5 flex flex-col gap-2.5 px-5">
+      <div className="mt-5 flex flex-col gap-2.5 px-5">
         {roots.map((c) => (
           <RootCategoryBlock key={c.id} category={c} categories={categories} counts={counts} />
         ))}

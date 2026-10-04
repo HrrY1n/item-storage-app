@@ -20,13 +20,14 @@ export default function ItemCard({ to, name, iconUrl, categoryName, tagNames, cl
   return (
     <Link
       to={to}
-      className={`group block rounded-2xl border border-line bg-white p-3 shadow-card transition-transform duration-200 ease-spring will-change-transform active:scale-[0.975] sm:hover:-translate-y-0.5 ${className}`}
+      className={`group block rounded-card border border-line bg-white p-3 shadow-card transition-transform duration-200 ease-out-quint will-change-transform active:scale-[0.98] ${className}`}
     >
-      <div className="mb-3 aspect-square overflow-hidden rounded-xl">
+      {/* 图标容器：中性底衬，保证未来替换为 AI 插画后不会"浮"在卡片上 */}
+      <div className="mb-3 aspect-square overflow-hidden rounded-control bg-neutral-50">
         <img
           src={iconUrl}
           alt={name}
-          className="h-full w-full object-cover transition-transform duration-300 ease-out-quint group-active:scale-[1.04] sm:group-hover:scale-[1.04]"
+          className="h-full w-full object-cover"
           draggable={false}
         />
       </div>

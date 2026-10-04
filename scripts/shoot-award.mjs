@@ -8,7 +8,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 
 const CDP = 'http://127.0.0.1:9222'
 const BASE = 'http://127.0.0.1:5173'
-const OUT = 'docs/screenshots/award'
+const OUT = process.argv[2] ?? 'docs/screenshots/award'
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 

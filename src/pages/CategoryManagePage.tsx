@@ -159,14 +159,14 @@ export default function CategoryManagePage() {
           含子分类或物品的分类不可删除；移动时不能选择自身或其子分类作为父级。
         </p>
 
-        <div className="divide-y divide-line-inner overflow-hidden rounded-[20px] border border-line bg-white shadow-card">
+        <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-white shadow-card">
           {renderTree(null, 0)}
         </div>
 
         <button
           type="button"
           onClick={() => setEditor({ mode: 'create', name: '', parentId: null })}
-          className="mt-3 flex min-h-[48px] w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-neutral-300 text-secondary text-ink-tertiary transition-colors active:bg-neutral-50"
+          className="flex min-h-[48px] w-full items-center justify-center gap-1.5 rounded-card border border-dashed border-neutral-300 text-secondary text-ink-tertiary transition-colors active:bg-neutral-50"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M12 5v14M5 12h14" />
@@ -188,10 +188,10 @@ export default function CategoryManagePage() {
               onChange={(e) => setEditor({ ...editor, name: e.target.value })}
               placeholder="分类名称"
               autoFocus
-              className="h-12 w-full rounded-xl border border-line bg-white px-4 text-[16px] text-ink-primary outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
+              className="h-12 w-full rounded-control border border-line bg-white px-4 text-[16px] text-ink-primary outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
             />
             <p className="mb-2 mt-4 px-1 text-caption text-ink-tertiary">父分类</p>
-            <div className="max-h-[220px] overflow-y-auto rounded-xl border border-line">
+            <div className="max-h-[220px] overflow-y-auto rounded-control border border-line">
               <button
                 type="button"
                 onClick={() => setEditor({ ...editor, parentId: null })}
@@ -219,7 +219,7 @@ export default function CategoryManagePage() {
               type="button"
               onClick={() => void handleSaveEditor()}
               disabled={!editor.name.trim() || saving}
-              className={`mt-4 flex h-12 w-full items-center justify-center rounded-2xl text-secondary font-medium transition-colors ${
+              className={`mt-4 flex h-12 w-full items-center justify-center rounded-control text-secondary font-medium transition-colors ${
                 editor.name.trim() && !saving
                   ? 'bg-neutral-900 text-white active:opacity-70'
                   : 'bg-neutral-100 text-ink-faint'

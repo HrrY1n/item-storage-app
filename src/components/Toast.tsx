@@ -18,7 +18,7 @@ export function useToast() {
 
   const toast = message ? (
     <div
-      className="animate-pop-in fixed left-1/2 z-30 -translate-x-1/2 rounded-full bg-neutral-900/92 px-5 py-2.5 text-secondary text-white shadow-card backdrop-blur-sm"
+      className="animate-pop-in fixed left-1/2 z-30 -translate-x-1/2 rounded-pill bg-neutral-900/92 px-5 py-2.5 text-secondary text-white shadow-card backdrop-blur-sm"
       style={{ bottom: 'calc(92px + env(safe-area-inset-bottom))' }}
       role="status"
     >

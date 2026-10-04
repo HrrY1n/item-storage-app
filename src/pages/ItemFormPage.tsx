@@ -248,7 +248,7 @@ export default function ItemFormPage() {
                   type="button"
                   onClick={() => setIconAssetId(asset.id)}
                   aria-pressed={selected}
-                  className={`relative aspect-square overflow-hidden rounded-2xl border-2 transition-[transform,border-color] duration-200 ease-spring active:scale-[0.92] ${
+                  className={`relative aspect-square overflow-hidden rounded-card border-2 transition-[border-color,transform] duration-200 ease-out-quint active:scale-[0.96] ${
                     selected ? 'border-neutral-900' : 'border-transparent'
                   }`}
                 >
@@ -265,7 +265,7 @@ export default function ItemFormPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="比如：AirPods Pro"
-            className="h-12 w-full rounded-xl border border-line bg-white px-4 text-[16px] text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
+            className="h-12 w-full rounded-control border border-line bg-white px-4 text-[16px] text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
           />
         </Field>
 
@@ -338,13 +338,13 @@ export default function ItemFormPage() {
                 }
               }}
               placeholder="新建标签，如：白色"
-              className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-white px-4 text-body text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
+              className="h-11 min-w-0 flex-1 rounded-control border border-line bg-white px-4 text-body text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
             />
             <button
               type="button"
               onClick={() => void handleAddTag()}
               disabled={!newTagName.trim()}
-              className={`h-11 shrink-0 rounded-2xl px-4 text-secondary transition-colors ${
+              className={`h-11 shrink-0 rounded-control px-4 text-secondary transition-colors ${
                 newTagName.trim()
                   ? 'bg-neutral-900 font-medium text-white active:opacity-70'
                   : 'bg-neutral-100 text-ink-faint'
@@ -357,55 +357,53 @@ export default function ItemFormPage() {
 
         {/* 购买信息（全部可选） */}
         <Field label="购买信息" hint="全部可选">
-          <div className="flex flex-col gap-4 rounded-[20px] border border-line bg-white p-4 shadow-card">
+          <div className="flex flex-col gap-4 rounded-surface border border-line bg-white p-4 shadow-card">
             {/* 购买日期 */}
             <div>
-              <p className="mb-2 text-label text-ink-faint">购买日期</p>
+              <p className="mb-2 text-label text-ink-tertiary">购买日期</p>
               <input
                 type="date"
                 value={purchaseDate}
                 max={today}
                 onChange={(e) => setPurchaseDate(e.target.value)}
-                className="num h-11 w-full rounded-xl border border-line bg-white px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
+                className="num h-11 w-full rounded-control border border-line bg-white px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
               />
             </div>
 
-            {/* 购买价格 */}
-            <div>
-              <p className="mb-2 text-label text-ink-faint">购买价格</p>
-              <div className="flex h-11 items-center gap-2 rounded-xl border border-line bg-white px-3 transition-colors focus-within:border-line-strong">
-                <span className="text-body text-ink-tertiary">¥</span>
-                <input
-                  value={priceText}
-                  onChange={(e) => handleAmountChange(e.target.value, setPriceText)}
-                  placeholder="0.00"
-                  inputMode="decimal"
-                  className="num min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-ink-faint"
-                />
+            {/* 购买价格 + 附加花费：并排布局，缩短表单高度（快速录入优先） */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="mb-2 text-label text-ink-tertiary">购买价格</p>
+                <div className="flex h-11 items-center gap-2 rounded-control border border-line bg-white px-3 transition-colors focus-within:border-line-strong">
+                  <span className="text-body text-ink-tertiary">¥</span>
+                  <input
+                    value={priceText}
+                    onChange={(e) => handleAmountChange(e.target.value, setPriceText)}
+                    placeholder="0.00"
+                    inputMode="decimal"
+                    className="num min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-ink-faint"
+                  />
+                </div>
               </div>
-            </div>
-
-            {/* 附加花费：配件 / 维修 / 升级 / 更换部件等额外投入 */}
-            <div>
-              <p className="mb-2 text-label text-ink-faint">附加花费</p>
-              <div className="flex h-11 items-center gap-2 rounded-xl border border-line bg-white px-3 transition-colors focus-within:border-line-strong">
-                <span className="text-body text-ink-tertiary">¥</span>
-                <input
-                  value={additionalCostText}
-                  onChange={(e) => handleAmountChange(e.target.value, setAdditionalCostText)}
-                  placeholder="0.00"
-                  inputMode="decimal"
-                  className="num min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-ink-faint"
-                />
+              <div>
+                <p className="mb-2 text-label text-ink-tertiary">附加花费</p>
+                <div className="flex h-11 items-center gap-2 rounded-control border border-line bg-white px-3 transition-colors focus-within:border-line-strong">
+                  <span className="text-body text-ink-tertiary">¥</span>
+                  <input
+                    value={additionalCostText}
+                    onChange={(e) => handleAmountChange(e.target.value, setAdditionalCostText)}
+                    placeholder="0.00"
+                    inputMode="decimal"
+                    className="num min-w-0 flex-1 bg-transparent text-body text-ink-primary outline-none placeholder:text-ink-faint"
+                  />
+                </div>
+                <p className="mt-1.5 text-caption text-ink-tertiary">配件 / 维修 / 升级</p>
               </div>
-              <p className="mt-1.5 text-caption text-ink-tertiary">
-                配件、维修、升级等额外支出
-              </p>
             </div>
 
             {/* 购买平台（单选，再点取消） */}
-              <div>
-              <p className="mb-2 text-label text-ink-faint">购买平台</p>
+            <div>
+              <p className="mb-2 text-label text-ink-tertiary">购买平台</p>
               <div className="flex flex-wrap gap-2">
                 {PURCHASE_PLATFORMS.map((p) => {
                   const selected = purchasePlatform === p
@@ -430,7 +428,7 @@ export default function ItemFormPage() {
 
             {/* 实时预览：总投入 / 已持有天数 / 日均使用成本 */}
             {previewTotalCents !== null && (
-              <div className="overflow-hidden rounded-xl border border-accent-line bg-accent-soft">
+              <div className="overflow-hidden rounded-control border border-accent-line bg-accent-soft">
                 <div className="flex items-baseline justify-between px-3.5 py-3">
                   <p className="text-label text-ink-tertiary">总投入</p>
                   <p className="num text-item text-ink-primary">
@@ -440,7 +438,7 @@ export default function ItemFormPage() {
                 {previewDailyCents !== null && previewDays !== null && (
                   <div className="border-t border-accent-line px-3.5 py-3">
                     <div className="flex items-baseline justify-between">
-                      <p className="text-label text-accent">日均使用成本</p>
+                      <p className="text-label text-accent-deep">日均使用成本</p>
                       <p className="flex items-baseline gap-1">
                         <span className="num text-metric text-ink-primary">
                           {formatCents(previewDailyCents)}
@@ -465,7 +463,7 @@ export default function ItemFormPage() {
             onChange={(e) => setNote(e.target.value)}
             placeholder="可选，比如购买渠道、使用场景……"
             rows={3}
-            className="w-full resize-none rounded-xl border border-line bg-white px-4 py-3 text-body leading-relaxed text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
+            className="w-full resize-none rounded-control border border-line bg-white px-4 py-3 text-body leading-relaxed text-ink-primary shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-line-strong"
           />
         </Field>
 

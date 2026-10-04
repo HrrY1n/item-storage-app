@@ -25,7 +25,7 @@ export function CategoryIconTile({ category, size = 40 }: { category: Category; 
   const key = category.iconKey ?? 'other'
   return (
     <div
-      className={`shrink-0 overflow-hidden rounded-xl ${CATEGORY_TINT[key]}`}
+      className={`shrink-0 overflow-hidden rounded-control ${CATEGORY_TINT[key]}`}
       style={{ width: size, height: size }}
     >
       <img
@@ -42,7 +42,7 @@ export default function CategoryCard({ category, count }: { category: Category; 
   return (
     <Link
       to={`/categories/${category.id}`}
-      className="group flex items-center gap-3 rounded-[18px] border border-line bg-white p-3.5 shadow-card transition-[transform,border-color] duration-200 ease-spring will-change-transform active:scale-[0.975] sm:hover:-translate-y-0.5 sm:hover:border-line-strong"
+      className="group flex items-center gap-3 rounded-card border border-line bg-white p-3.5 shadow-card transition-[border-color,background-color] duration-200 ease-out-quint active:bg-neutral-50"
     >
       <CategoryIconTile category={category} size={42} />
       <div className="min-w-0 flex-1">

@@ -23,27 +23,16 @@ import EmptyState from '../components/EmptyState'
 import ConfirmDialog from '../components/Dialogs'
 import { useToast } from '../components/Toast'
 
-/** 规格行：左标签右数值，中间以极细引导点连接（表格化但不呆板） */
-function SpecRow({
-  label,
-  value,
-  strong = false,
-}: {
-  label: string
-  value: string
-  strong?: boolean
-}) {
+/**
+ * 三级信息行：左标签右数值，中间以极细虚线引导。
+ * 只用于「购买价格 / 附加花费 / 渠道与日期」这类补充事实，字号与对比度都刻意压低。
+ */
+function SpecRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline gap-3 py-1.5">
-      <span className="shrink-0 text-secondary text-ink-tertiary">{label}</span>
+    <div className="flex items-baseline gap-3 py-1">
+      <span className="shrink-0 text-caption text-ink-tertiary">{label}</span>
       <span className="min-w-0 flex-1 translate-y-[-3px] border-b border-dashed border-line" />
-      <span
-        className={`num shrink-0 text-right text-body ${
-          strong ? 'font-medium text-ink-primary' : 'text-ink-secondary'
-        }`}
-      >
-        {value}
-      </span>
+      <span className="num shrink-0 text-right text-caption text-ink-secondary">{value}</span>
     </div>
   )
 }
@@ -123,7 +112,7 @@ export default function ItemDetailPage() {
 
       <div className="px-5 pt-3">
         {/* 主图：入场轻微上浮（尺寸收敛，让日均成本指标落在首屏内） */}
-        <div className="animate-fade-rise mx-auto w-[60%] overflow-hidden rounded-[24px]">
+        <div className="animate-fade-rise mx-auto w-[60%] overflow-hidden rounded-surface bg-neutral-50">
           <img src={iconUrl} alt={item.name} className="aspect-square w-full object-cover" draggable={false} />
         </div>
 
@@ -136,7 +125,7 @@ export default function ItemDetailPage() {
               className="group mt-2 inline-flex items-center gap-1 text-secondary text-ink-tertiary transition-colors active:opacity-60 sm:hover:text-ink-secondary"
             >
               {categoryPath(categories, item.categoryId)}
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-spring sm:group-hover:translate-x-0.5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-out-quint sm:group-hover:translate-x-0.5">
                 <path d="m9 6 6 6-6 6" />
               </svg>
             </Link>
@@ -155,48 +144,59 @@ export default function ItemDetailPage() {
         {/* 购买信息（有任一字段才显示） */}
         {hasPurchase && (
           <section
-            className="animate-fade-rise mt-6 overflow-hidden rounded-[22px] border border-line bg-white shadow-card"
+            className="animate-fade-rise mt-6 overflow-hidden rounded-surface border border-line bg-white shadow-card"
             style={{ animationDelay: '140ms' }}
           >
-            <div className="px-4 pt-4">
-              <p className="text-label text-ink-tertiary">购买信息</p>
-              <div className="mt-2">
-                {item.purchasePriceCents !== null && (
-                  <SpecRow label="购买价格" value={formatCents(item.purchasePriceCents)} />
-                )}
-                {item.additionalCostCents !== null && (
-                  <SpecRow label="附加花费" value={formatCents(item.additionalCostCents)} />
-                )}
-                {totalCents !== null && (
-                  <SpecRow label="总投入" value={formatCents(totalCents)} strong />
-                )}
-                {purchaseSubline && <SpecRow label="渠道与日期" value={purchaseSubline} />}
-                {ownershipDays !== null && (
-                  <SpecRow label="已持有" value={`${ownershipDays} 天`} />
-                )}
-              </div>
-            </div>
-
-            {/* 指标区：全页视觉锚点 */}
+            {/* ① 一级信息：日均使用成本 —— 本产品最独特的结论，做视觉锚点 */}
             {dailyCents !== null && (
-              <div className="mt-3 border-t border-line-inner bg-accent-soft/60 px-4 py-4">
-                <p className="text-label text-accent">日均使用成本</p>
+              <div className="border-b border-accent-line bg-accent-soft px-4 py-4">
+                <p className="text-label text-accent-deep">日均使用成本</p>
                 <p className="mt-1.5 flex items-baseline gap-1.5">
                   <span className="num text-metric-lg text-ink-primary">{formatCents(dailyCents)}</span>
                   <span className="text-secondary text-ink-secondary">/ 天</span>
                 </p>
-                <p className="mt-1 text-caption text-ink-tertiary">
-                  按总投入分摊到持有的每一天
+                <p className="num mt-1 text-caption text-ink-tertiary">
+                  已持有 {ownershipDays} 天 · 按总投入分摊
                 </p>
               </div>
             )}
+
+            <div className="px-4 py-3.5">
+              {/* ② 二级信息：总投入 */}
+              {totalCents !== null && (
+                <div className="flex items-baseline justify-between">
+                  <span className="text-secondary text-ink-secondary">总投入</span>
+                  <span className="num text-body font-medium text-ink-primary">
+                    {formatCents(totalCents)}
+                  </span>
+                </div>
+              )}
+
+              {/* ③ 三级信息：构成总投入的补充事实 */}
+              {(item.purchasePriceCents !== null ||
+                item.additionalCostCents !== null ||
+                purchaseSubline) && (
+                <div className="mt-2 border-t border-line-inner pt-2">
+                  {item.purchasePriceCents !== null && (
+                    <SpecRow label="购买价格" value={formatCents(item.purchasePriceCents)} />
+                  )}
+                  {item.additionalCostCents !== null && (
+                    <SpecRow label="附加花费" value={formatCents(item.additionalCostCents)} />
+                  )}
+                  {purchaseSubline && <SpecRow label="渠道与日期" value={purchaseSubline} />}
+                  {dailyCents === null && ownershipDays !== null && (
+                    <SpecRow label="已持有" value={`${ownershipDays} 天`} />
+                  )}
+                </div>
+              )}
+            </div>
           </section>
         )}
 
         {/* 备注 */}
         {item.note && (
           <section
-            className="animate-fade-rise mt-3 rounded-[22px] border border-line bg-white p-4 shadow-card"
+            className="animate-fade-rise mt-3 rounded-surface border border-line bg-white p-4 shadow-card"
             style={{ animationDelay: '180ms' }}
           >
             <p className="text-label text-ink-tertiary">备注</p>

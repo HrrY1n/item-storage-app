@@ -15,16 +15,16 @@ export default function IconLibraryPage() {
           当前为占位图标（<span className="num">{assets.length}</span> 个）。资源以独立资产形式管理，
           后续将整体替换为统一风格的 AI 生成图标包，页面无需改动。
         </p>
-        <div className="stagger-in mt-5 grid grid-cols-3 gap-2.5">
+        <div className="mt-5 grid grid-cols-3 gap-2.5">
           {ordered.map((asset) => (
             <div
               key={asset.id}
-              className="overflow-hidden rounded-[18px] border border-line bg-white p-2 shadow-card"
+              className="overflow-hidden rounded-card border border-line bg-white p-2 shadow-card"
             >
               <img
                 src={asset.path ?? '/icons/items/other.svg'}
                 alt=""
-                className="aspect-square w-full rounded-xl object-cover"
+                className="aspect-square w-full rounded-control bg-neutral-50 object-cover"
                 draggable={false}
               />
               <p className="mt-2 truncate text-center text-caption text-ink-tertiary">

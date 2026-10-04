@@ -36,8 +36,10 @@ function Layout() {
     showBottomNav &&
     (pathname === '/' || pathname.startsWith('/categories') || pathname.startsWith('/search'))
 
+  // 桌面端取景：外壳固定为「视口高度 − 上下留白」并在内部滚动，
+  // 这样底部导航与浮动按钮始终贴合取景框边缘，而不是浮在长页面上。
   return (
-    <div className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-canvas sm:my-6 sm:min-h-[calc(100dvh-48px)] sm:overflow-hidden sm:rounded-[28px] sm:border sm:border-line sm:shadow-lift">
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-canvas sm:my-6 sm:h-[calc(100dvh-48px)] sm:min-h-0 sm:overflow-y-auto sm:rounded-app sm:border sm:border-line sm:shadow-lift">
       {/* 极细颗粒层：为平面底色增加物质感（不拦截交互） */}
       <div
         className="grain pointer-events-none absolute inset-0 z-0 opacity-[0.03] mix-blend-multiply"

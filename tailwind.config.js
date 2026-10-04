@@ -31,7 +31,8 @@ export default {
          * 对比度：#B4553B on #FFF ≈ 4.9:1（AA 达标）
          */
         accent: {
-          DEFAULT: '#B4553B',
+          DEFAULT: '#B4553B',   /* 装饰与描边：白底 4.9:1 */
+          deep: '#96402C',      /* 浅底(accent-soft)上的文字色：6.1:1，保证小字 AA */
           soft: '#F7F0EB',
           line: '#E7D9CF',
         },
@@ -55,6 +56,24 @@ export default {
         '14': '56px',
         '18': '72px',
         '22': '88px',
+      },
+      /**
+       * 圆角体系：用"半径大小"表达层级，而不是每个组件各定一个值。
+       *
+       *   control 10px  → 输入控件、按钮、小缩略图（最小单位）
+       *   card    14px  → 独立内容卡片（物品卡、分类卡）
+       *   surface 18px  → 承载多块内容的表面（分组列表、信息卡、大图容器）
+       *   sheet   22px  → 浮层（对话框、底部面板）
+       *   app     28px  → 桌面端 App Shell 取景框
+       *   pill    full  → 胶囊（chip、FAB、Toast）
+       */
+      borderRadius: {
+        control: '10px',
+        card: '14px',
+        surface: '18px',
+        sheet: '22px',
+        app: '28px',
+        pill: '9999px',
       },
       boxShadow: {
         /* 卡片：极轻，靠 border 而非阴影建立边界 */

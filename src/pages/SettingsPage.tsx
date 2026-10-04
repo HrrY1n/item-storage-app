@@ -17,7 +17,7 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="animate-fade-rise mt-7 px-5">
       <p className="mb-2.5 px-1 text-label text-ink-tertiary">{title}</p>
-      <div className="divide-y divide-line-inner overflow-hidden rounded-[20px] border border-line bg-white shadow-card">
+      <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-white shadow-card">
         {children}
       </div>
     </section>

@@ -105,7 +105,7 @@ export default function SearchPage() {
             rememberQuery(input)
           }}
         >
-          <div className="flex h-12 items-center gap-2.5 rounded-2xl border border-line bg-white px-4 shadow-card">
+          <div className="flex h-12 items-center gap-2.5 rounded-card border border-line bg-white px-4 shadow-card">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-tertiary">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.8-3.8" />
@@ -246,7 +246,7 @@ function ResultRows({
   onSelect?: () => void
 }) {
   return (
-    <div className="stagger-in divide-y divide-line-inner overflow-hidden rounded-[20px] border border-line bg-white shadow-card">
+    <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-white shadow-card">
       {rows.map(({ item, matchedVia }) => (
         <Link
           key={item.id}
@@ -254,14 +254,14 @@ function ResultRows({
           onClick={onSelect}
           className="group flex min-h-[72px] items-center gap-3.5 px-4 py-3 transition-colors active:bg-neutral-50 sm:hover:bg-neutral-50/70"
         >
-          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-line-inner">
+          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-control border border-line-inner bg-neutral-50">
             <img src={iconOf(item)} alt={item.name} className="h-full w-full object-cover transition-transform duration-300 ease-out-quint group-active:scale-105" draggable={false} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-item text-ink-primary">{item.name}</p>
             <p className="mt-1 truncate text-caption text-ink-tertiary">{matchedVia}</p>
           </div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-faint transition-transform duration-300 ease-spring group-active:translate-x-0.5 sm:group-hover:translate-x-0.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-faint transition-transform duration-300 ease-out-quint group-active:translate-x-0.5 sm:group-hover:translate-x-0.5">
             <path d="m9 6 6 6-6 6" />
           </svg>
         </Link>
