@@ -4,6 +4,7 @@ import { seedIfEmpty, syncPresetAssets, upgradeSchemaVersionMeta } from './db/se
 import { requestPersistentStorage } from './services/pwa'
 import BottomNav from './components/BottomNav'
 import HomePage from './pages/HomePage'
+import ItemsListPage from './pages/ItemsListPage'
 import CategoriesPage from './pages/CategoriesPage'
 import CategoryDetailPage from './pages/CategoryDetailPage'
 import SearchPage from './pages/SearchPage'
@@ -82,6 +83,7 @@ function Boot() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
+        <Route path="items" element={<ItemsListPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="categories/:id" element={<CategoryDetailPage />} />
         <Route path="search" element={<SearchPage />} />

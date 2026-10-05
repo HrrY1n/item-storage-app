@@ -78,6 +78,10 @@ export default {
           soft: 'var(--color-money-soft)',
           line: 'var(--color-money-line)',
         },
+        success: {
+          DEFAULT: 'var(--color-success)',
+          soft: 'var(--color-success-soft)',
+        },
         danger: {
           DEFAULT: 'var(--color-danger)',
           soft: 'var(--color-danger-soft)',

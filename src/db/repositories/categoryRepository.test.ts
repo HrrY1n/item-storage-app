@@ -68,6 +68,12 @@ describe('categoryRepository', () => {
       purchasePriceCents: null,
       additionalCostCents: null,
       purchasePlatform: null,
+      status: 'owned',
+      warrantyExpiresAt: null,
+      disposedAt: null,
+      disposalMethod: null,
+      salePriceCents: null,
+      disposalNote: null,
     })
     await expect(categoryRepository.deleteGuarded(c.id)).rejects.toThrow('该分类下还有 1 件物品')
     await itemRepository.softDelete(item.id)

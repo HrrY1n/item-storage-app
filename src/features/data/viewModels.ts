@@ -1,10 +1,14 @@
-import type { Category, Item, ItemTag, Tag } from '../../domain/types'
+import type { Category, Item, ItemStatus, ItemTag, Tag } from '../../domain/types'
+import { calculateTotalCostCents, formatCentsCompact, todayString } from '../../domain/purchase'
+import { collectSubtreeIds } from '../../domain/categoryTree'
 import {
-  calculateDailyCostCents,
-  calculateOwnershipDays,
-  calculateTotalCostCents,
-  formatCentsCompact,
-} from '../../domain/purchase'
+  dailyCostOf,
+  effectiveCostCents,
+  isDisposed,
+  isOwned,
+  ownershipDaysOf,
+  statusOf,
+} from '../../domain/lifecycle'
 
 /**
  * 视图模型辅助：把多张表 join 成页面需要的形状。
@@ -58,34 +62,43 @@ export function itemsWithTag(items: Item[], links: ItemTag[], tagId: string): It
 
 // ---------------------------------------------------------------- 指标
 
-/** 一条物品的成本指标（用于卡片与详情的数字层级） */
+/**
+ * 一条物品的成本指标（用于卡片与详情的数字层级）。
+ *
+ * 全部委托给 domain/lifecycle，因此卡片与详情页**用的是同一套口径**：
+ * - 已处置物品的持有天数冻结在处置日
+ * - 已出售物品的「总投入」是**净成本**（总投入 − 出售金额，可为负）
+ */
 export interface ItemMetric {
-  /** 持有天数（无购买日期时为 null） */
+  /** 持有天数（已处置则冻结在处置日） */
   days: number | null
-  /** 总投入（购买价格 + 附加花费），无数据时为 null */
+  /** 总投入；已出售时为净成本（总投入 − 出售金额，可为负） */
   totalCents: number | null
-  /** 日均使用成本 */
+  /** 日均成本（可为负） */
   dailyCents: number | null
-  /** 紧凑展示文本，交由 UI 直接渲染 */
   daysText: string | null
   totalText: string | null
   dailyText: string | null
 }
 
 /**
- * 计算一条物品的成本指标；四个购买字段全空时返回 null
- * （卡片据此决定是否渲染指标行 —— 没有数据就不占位，避免出现一排 ¥0.00）。
+ * 计算一条物品的成本指标。
+ *
+ * 心愿物品、或四项数据全空时返回 null —— 卡片据此决定是否渲染指标行，
+ * 没有数据就不占位，更不会显示一排 ¥0.00。
  */
 export function itemMetric(item: Item, today?: string): ItemMetric | null {
+  if (!isOwned(item) && !isDisposed(item)) return null
+
   const hasAny =
     item.purchaseDate !== null ||
     item.purchasePriceCents !== null ||
     item.additionalCostCents !== null
   if (!hasAny) return null
 
-  const totalCents = calculateTotalCostCents(item.purchasePriceCents, item.additionalCostCents)
-  const days = item.purchaseDate ? calculateOwnershipDays(item.purchaseDate, today) : null
-  const dailyCents = calculateDailyCostCents(totalCents, item.purchaseDate, today)
+  const totalCents = effectiveCostCents(item)
+  const days = ownershipDaysOf(item, today)
+  const dailyCents = dailyCostOf(item, today)
 
   return {
     days,
@@ -97,16 +110,21 @@ export function itemMetric(item: Item, today?: string): ItemMetric | null {
   }
 }
 
+/** 毛投入（购买价格 + 附加花费），不受出售回收影响 —— 明细表用这个 */
+export function grossCostCents(item: Item): number | null {
+  return calculateTotalCostCents(item.purchasePriceCents, item.additionalCostCents)
+}
+
 /** 物品库概览：全部由真实数据推导，无数据时对应字段为 null（UI 不渲染该块） */
 export interface LibraryOverview {
   itemCount: number
   categoryCount: number
   tagCount: number
-  /** 已记录价格的物品数 */
+  /** 已记录价格的持有中物品数 */
   pricedCount: number
-  /** 总投入（仅统计有价格/附加花费的物品） */
+  /** 总投入（仅统计有价格/附加花费的持有中物品） */
   totalCents: number | null
-  /** 日均总价（仅统计能算出日均成本的物品之和） */
+  /** 日均总价（仅统计能算出日均成本的持有中物品之和） */
   dailyCents: number | null
   totalText: string | null
   dailyText: string | null
@@ -123,6 +141,7 @@ export function libraryOverview(
   let pricedCount = 0
 
   for (const item of items) {
+    if (!isOwned(item)) continue
     const m = itemMetric(item, today)
     if (!m || m.totalCents === null) continue
     pricedCount++
@@ -140,4 +159,58 @@ export function libraryOverview(
     totalText: pricedCount > 0 ? formatCentsCompact(totalCents) : null,
     dailyText: pricedCount > 0 ? formatCentsCompact(dailySum) : null,
   }
+}
+
+// ---------------------------------------------------------------- 列表筛选与排序
+
+export type ItemSortKey = 'recent' | 'name' | 'cost' | 'daily'
+
+export interface ListQuery {
+  /** 生命周期筛选 */
+  status: ItemStatus
+  /** 关键词（名称 / 分类 / 标签，大小写无关） */
+  query?: string
+  /** 分类 id；含其子分类 */
+  categoryId?: string | null
+  sort?: ItemSortKey
+  today?: string
+}
+
+/**
+ * 物品列表的筛选 + 排序（纯函数）。
+ *
+ * 抽出来而不是留在组件里，是为了让"状态筛选 / 搜索 / 排序"这三件最容易被改坏的行为
+ * 有直接的回归保护。
+ */
+export function filterAndSortItems(
+  items: Item[],
+  categories: Category[],
+  links: ItemTag[],
+  tags: Tag[],
+  q: ListQuery,
+): Item[] {
+  const today = q.today ?? todayString()
+  const keyword = (q.query ?? '').trim().toLowerCase()
+  const catIds = q.categoryId ? collectSubtreeIds(categories, q.categoryId) : null
+
+  const filtered = items.filter((i) => {
+    if (statusOf(i) !== q.status) return false
+    if (catIds && !catIds.has(i.categoryId)) return false
+    if (keyword === '') return true
+    const tagText = tagNamesOf(i.id, links, tags).join(' ').toLowerCase()
+    return (
+      i.name.toLowerCase().includes(keyword) ||
+      categoryNameOf(categories, i.categoryId).toLowerCase().includes(keyword) ||
+      tagText.includes(keyword)
+    )
+  })
+
+  const sort = q.sort ?? 'recent'
+  const cmp: Record<ItemSortKey, (a: Item, b: Item) => number> = {
+    recent: (a, b) => b.createdAt.localeCompare(a.createdAt),
+    name: (a, b) => a.name.localeCompare(b.name, 'zh-CN'),
+    cost: (a, b) => (effectiveCostCents(b) ?? -Infinity) - (effectiveCostCents(a) ?? -Infinity),
+    daily: (a, b) => (dailyCostOf(b, today) ?? -Infinity) - (dailyCostOf(a, today) ?? -Infinity),
+  }
+  return [...filtered].sort(cmp[sort])
 }

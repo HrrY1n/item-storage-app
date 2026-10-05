@@ -55,6 +55,12 @@ describe('tagRepository', () => {
       purchasePriceCents: null,
       additionalCostCents: null,
       purchasePlatform: null,
+      status: 'owned',
+      warrantyExpiresAt: null,
+      disposedAt: null,
+      disposalMethod: null,
+      salePriceCents: null,
+      disposalNote: null,
     })
     await tagRepository.delete(tag.id)
     expect(await tagRepository.list()).toHaveLength(0)
@@ -75,6 +81,12 @@ describe('tagRepository', () => {
         purchasePriceCents: null,
         additionalCostCents: null,
         purchasePlatform: null,
+        status: 'owned',
+        warrantyExpiresAt: null,
+        disposedAt: null,
+        disposalMethod: null,
+        salePriceCents: null,
+        disposalNote: null,
       })
     const i1 = await mk('手机', [apple.id])
     const i2 = await mk('电脑', [apple.id, fruit.id]) // 两个标签都有 → 合并后应去重

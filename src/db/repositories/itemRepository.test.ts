@@ -24,6 +24,12 @@ const baseInput = {
   purchasePriceCents: null as number | null,
   additionalCostCents: null as number | null,
   purchasePlatform: null as 'jd' | 'taobao' | null,
+  status: 'owned' as const,
+  warrantyExpiresAt: null,
+  disposedAt: null,
+  disposalMethod: null,
+  salePriceCents: null,
+  disposalNote: null,
 }
 
 describe('itemRepository', () => {

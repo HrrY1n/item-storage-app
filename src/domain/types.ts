@@ -25,8 +25,21 @@ export type PurchasePlatform =
   | 'aihuishou'
   | 'other'
 
-/** 当前数据契约版本（v2 = 增加购买信息与附加花费字段） */
-export const CURRENT_SCHEMA_VERSION = 2
+/**
+ * 物品生命周期（Phase 2G）。
+ *
+ * 这三个值对应真实的数据模型，而不是纯 UI 筛选：
+ * - wishlist  想要但尚未拥有（可以完全没有购买信息）
+ * - owned     正在持有
+ * - disposed  已处置（出售 / 丢弃 / 其他），持有天数在此冻结
+ */
+export type ItemStatus = 'wishlist' | 'owned' | 'disposed'
+
+/** 处置方式。刻意只有三种，不擅自扩充。 */
+export type DisposalMethod = 'sold' | 'discarded' | 'other'
+
+/** 当前数据契约版本（v3 = 增加生命周期与保修字段） */
+export const CURRENT_SCHEMA_VERSION = 3
 
 export interface Item {
   id: string
@@ -35,6 +48,8 @@ export interface Item {
   note: string
   iconAssetId: string
   sourceType: ItemSourceType
+  /** 生命周期状态；v2 及更早的数据迁移后一律为 'owned' */
+  status: ItemStatus
   /** 购买日期 YYYY-MM-DD；null = 未填写 */
   purchaseDate: string | null
   /** 购买价格，整数「分」（¥1499.99 = 149999）；null = 未填写；允许 0（赠品） */
@@ -43,6 +58,16 @@ export interface Item {
   additionalCostCents: number | null
   /** 购买平台；null = 未填写 */
   purchasePlatform: PurchasePlatform | null
+  /** 保修到期日 YYYY-MM-DD；null = 未填写 / 不适用 */
+  warrantyExpiresAt: string | null
+  /** 处置日期 YYYY-MM-DD；仅 status='disposed' 时有值 */
+  disposedAt: string | null
+  /** 处置方式；仅 status='disposed' 时有值 */
+  disposalMethod: DisposalMethod | null
+  /** 出售金额，整数「分」；仅 disposalMethod='sold' 时可非 null；允许 0 */
+  salePriceCents: number | null
+  /** 处置备注（赠送朋友 / 损坏报废 / 回收…）；可空 */
+  disposalNote: string | null
   createdAt: string
   updatedAt: string
   /** soft delete；null = 未删除 */

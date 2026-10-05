@@ -2,7 +2,9 @@
 
 一个 **local-first（本地优先）** 的个人物品管理 PWA。所有数据存放在浏览器 IndexedDB 中，**没有后端、没有账号、没有云端同步**——你的物品清单完全属于你自己。
 
-通过**分类、标签、搜索与 73 个内置物品图标**整理与找到自己的物品记录；支持**浅色 / 深色 / 跟随系统**三态主题，可安装到手机主屏并离线使用。
+通过**分类、标签、搜索与 156 个内置物品图标**整理与找到自己的物品记录；支持**浅色 / 深色 / 跟随系统**三态主题，可安装到手机主屏并离线使用。
+
+物品有完整的**心愿 → 持有 → 处置**生命周期：心愿可转为持有并补齐购买信息；持有的物品可出售 / 丢弃 / 赠送；出售后自动算出**实际持有成本**（可为负，代表卖出时实际赚了钱）。
 
 > 本项目**不做位置树**（不涉及 room / shelf / storage location 等存放位置维度），定位不是"找东西放在哪个房间哪个格子"，而是把物品记录本身整理清楚、随时可查。
 
@@ -12,40 +14,44 @@
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/phase2f/01-home-light.png" alt="首页 · 浅色"></td>
-<td width="50%"><img src="docs/screenshots/phase2f/02-home-dark.png" alt="首页 · 深色"></td>
+<td width="50%"><img src="docs/screenshots/phase2g/01-dashboard-light.png" alt="概览 · 浅色"></td>
+<td width="50%"><img src="docs/screenshots/phase2g/02-dashboard-dark.png" alt="概览 · 深色"></td>
 </tr>
 <tr>
-<td align="center"><sub>首页 · 浅色</sub></td>
-<td align="center"><sub>首页 · 深色</sub></td>
+<td align="center"><sub>概览 Dashboard · 总投入 / 保修提醒 / 分类分布 / 最近添加</sub></td>
+<td align="center"><sub>概览 Dashboard · 深色</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/phase2f/03-detail-light.png" alt="物品详情 · 浅色"></td>
-<td><img src="docs/screenshots/phase2f/04-detail-dark.png" alt="物品详情 · 深色"></td>
+<td><img src="docs/screenshots/phase2g/03-items-owned.png" alt="物品列表 · 持有"></td>
+<td><img src="docs/screenshots/phase2g/04-items-disposed.png" alt="物品列表 · 处置"></td>
 </tr>
 <tr>
-<td align="center"><sub>物品详情 · 打光 Hero + 三栏指标 + 价格明细</sub></td>
-<td align="center"><sub>物品详情 · 深色</sub></td>
+<td align="center"><sub>物品列表 · 持有（两列网格 + 三栏指标）</sub></td>
+<td align="center"><sub>物品列表 · 处置（冻结天数 / 出售金额）</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/phase2f/05-icon-picker.png" alt="图标选择器"></td>
-<td><img src="docs/screenshots/phase2f/07-settings-appearance.png" alt="设置 · 外观"></td>
+<td><img src="docs/screenshots/phase2g/06-detail-owned.png" alt="物品档案 · 持有"></td>
+<td><img src="docs/screenshots/phase2g/07-detail-sold-dark.png" alt="物品档案 · 已出售"></td>
 </tr>
 <tr>
-<td align="center"><sub>图标选择器 · 搜索 / 最近使用 / 分类</sub></td>
-<td align="center"><sub>设置 · 外观三态</sub></td>
+<td align="center"><sub>物品档案 · 持有中（Hero + 购买明细 + 保修追踪）</sub></td>
+<td align="center"><sub>物品档案 · 已出售（实际持有成本口径）· 深色</sub></td>
 </tr>
 <tr>
-<td colspan="2"><img src="docs/screenshots/phase2f/06-icon-library.png" alt="物品图标库"></td>
+<td><img src="docs/screenshots/phase2g/08-disposal-sheet.png" alt="处置物品"></td>
+<td><img src="docs/screenshots/phase2g/09-form-wishlist.png" alt="心愿物品表单"></td>
 </tr>
 <tr>
-<td colspan="2" align="center"><sub>物品图标库 · 73 个内置图标（桌面宽度）</sub></td>
+<td align="center"><sub>处置物品 · 出售 / 丢弃 / 其他</sub></td>
+<td align="center"><sub>心愿物品 · 无购买信息也可保存</sub></td>
 </tr>
 <tr>
-<td colspan="2"><img src="docs/screenshots/phase2f/08-desktop-dark.png" alt="桌面取景框" width="820"></td>
+<td><img src="docs/screenshots/phase2g/05-items-listview.png" alt="列表视图"></td>
+<td><img src="docs/screenshots/phase2g/10-items-desktop.png" alt="桌面取景框"></td>
 </tr>
 <tr>
-<td colspan="2" align="center"><sub>桌面浏览器 · 外壳加宽到 600px，网格升列，底部导航贴取景框边缘</sub></td>
+<td align="center"><sub>列表视图 · 适合长名称与横向比较</sub></td>
+<td align="center"><sub>桌面浏览器 · 外壳加宽，网格升列</sub></td>
 </tr>
 </table>
 
@@ -63,9 +69,10 @@
 | Phase 2C | 备份/恢复（ZIP）、PWA 离线安装、CI | ✅ 完成 |
 | Phase 2E | 购买信息（日期 / 价格 / 附加花费 / 平台）与日均使用成本 | ✅ 完成 |
 | Phase 2F | 物品图标体系（12 → 73）、图标选择器、三态主题、preset 资产幂等同步、整体视觉精修 | ✅ 完成 |
+| Phase 2G | 导航重构（4 Tab + 独立 +）、概览 Dashboard、完整物品列表、**心愿→持有→处置生命周期**、出售金额与实际持有成本、保修追踪、图标 73 → 156 | ✅ 完成 |
 
-**测试**：**189** 个单元测试全部通过（domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据）。
-**验证**：备份导出 / 恢复替换 / 购买信息随备份往返 / 离线打开 / PWA manifest / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **67** 项自动化断言：视觉与交互 50 · 管理页 9 · 生产与离线 8）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
+**测试**：**256** 个单元测试全部通过（domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + **生命周期与成本口径** + 数据库迁移 + 备份兼容）。
+**验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **103** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8 —— Phase 2F 的 50 项在 2G 改动后复跑仍全绿）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
 
 ---
 
@@ -99,7 +106,7 @@ npm run typecheck
 node scripts/gen-item-icons.mjs   # 重新生成全部物品图标（唯一生成入口）
 ```
 
-首次启动会为空数据库写入种子数据：**21 个默认分类 + 73 个内置物品图标**。
+首次启动会为空数据库写入种子数据：**21 个默认分类 + 156 个内置物品图标**。
 已用过的数据库会在每次启动时**幂等补齐**新增图标（见下方「物品图标系统」），无需重置。
 
 > Service Worker 仅在**生产构建**中启用（`npm run build && npm run preview`），开发模式下不注册，避免缓存干扰调试。
@@ -159,11 +166,40 @@ localStorage['pil.theme'] + window.matchMedia('(prefers-color-scheme: dark)')
 
 ---
 
+## 主导航
+
+底部只有 **4 个 Tab + 1 个独立的「+」**，设置**不在 Tab 里**：
+
+```
+┌──────────────────────────────────────┐
+│  概览   列表   分类   搜索     (+)    │   ← + 圆钮独立在右端，不占 Tab 位
+└──────────────────────────────────────┘
+```
+
+| 路由 | 页面 | 说明 |
+|---|---|---|
+| `/` | **概览 Dashboard** | 总投入、保修提醒、分类分布、最近添加；**右上角齿轮**进入设置 |
+| `/items` | **物品列表** | 持有 / 心愿 / 处置分段 + 搜索 + 筛选 + 排序 + 双视图 |
+| `/categories` | 分类 | 两级分类树 |
+| `/search` | 搜索 | 实时加权搜索 |
+| `/items/new` | 新增物品 | 由「+」进入 |
+| `/items/:id` `/items/:id/edit` | 详情 / 编辑 | — |
+| `/settings` | 设置 | **从概览页右上角齿轮进入**，路由不变 |
+| `/settings/categories` `/settings/tags` `/settings/icons` | 管理页 | — |
+
+「+」是**比普通 Tab 更醒目的圆形按钮**，嵌在导航条右端（不是浮在上方的独立 FAB）。四个普通 Tab 均分左侧剩余宽度。安全区（`env(safe-area-inset-bottom)`）、半透明 chrome、`prefers-reduced-transparency` 降级、桌面取景框对齐全部保留。
+
+> 本项目**刻意不做「容器」Tab，也不做「日历」Tab**：容器会与"不维护位置树"的产品定位冲突；日历在保修/时间功能足够复杂之前不值得占一个主导航位。
+
+---
+
 ## 物品图标系统
 
-### 73 个内置图标，7 个分类
+### 156 个内置图标，9 个分类
 
-`数码 27 · 办公 7 · 服饰 11 · 生活 9 · 家居 10 · 兴趣 6 · 其他 3`
+`数码 54 · 服饰 19 · 兴趣 19 · 生活 16 · 厨房 14 · 家居 12 · 护理 10 · 办公 9 · 其他 3`
+
+Phase 2G 新增 **83** 个，并开出「护理」「厨房」两个新分类，聚焦真实个人物品场景：电动牙刷 / 空气炸锅 / 吹风机 / 帐篷 / 哑铃 / 插线板 / 螺丝刀 / 移动 SSD / 拓展坞 ……
 
 `phone`（手机）与 `tablet`（平板电脑）是两个**独立**图标，另设 `ereader`（电子书阅读器）等细分类目。
 
@@ -180,12 +216,14 @@ localStorage['pil.theme'] + window.matchMedia('(prefers-color-scheme: dark)')
 
 | 输入 | 命中 |
 |---|---|
-| `平板` / `iPad` | 平板电脑 |
+| `平板` / `iPad` / `iPad Pro` | 平板电脑 |
+| `电动牙刷` | 电动牙刷 |
+| `插线板` | 插线板 |
 | `充电头` | 充电器 |
 | `话筒` | 麦克风 |
 | `电脑` | 笔记本电脑 · 台式电脑 · 平板电脑 |
 
-选择器提供 **搜索 / 最近使用 / 分类 / 完整网格** 四层结构（`src/components/IconPickerSheet.tsx`）。「最近使用」存 `localStorage`，上限 8 个。表单页只显示当前选中的那一个大图标 + 名称 + 「更换图标」，**不会把 70+ 图标铺在表单里**。
+选择器提供 **搜索 / 最近使用 / 分类 / 完整网格** 四层结构（`src/components/IconPickerSheet.tsx`）。「最近使用」存 `localStorage`，上限 8 个。表单页只显示当前选中的那一个大图标 + 名称 + 「更换图标」，**不会把 150+ 图标铺在表单里**。
 
 ### 老数据库如何自动拿到新图标
 
@@ -208,15 +246,20 @@ localStorage['pil.theme'] + window.matchMedia('(prefers-color-scheme: dark)')
 
 ## 已实现功能
 
-- **物品管理**：新增 / 编辑 / 查看 / 软删除，支持名称、备注、标签与 73 个内置图标（**当前仅 preset icon**，尚未支持照片上传）
+- **物品管理**：新增 / 编辑 / 查看 / 软删除，支持名称、备注、标签与 156 个内置图标（**当前仅 preset icon**，尚未支持照片上传）
+- **生命周期**：心愿 → 持有 → 处置三态，含「转为持有」「处置物品」「恢复为持有」
+- **完整物品列表** `/items`：持有 / 心愿 / 处置分段 + 搜索 + 分类筛选 + 四种排序 + 网格/列表双视图
+- **概览 Dashboard**：持有中总投入、三项关键指标、30 天内过保提醒、分类分布、最近添加、累计出售回收
+- **保修追踪**：记录保修到期日，自动判定「保修中 / 即将到期（30 天内）/ 已过保」
 - **分类树**：最多两级，展开折叠、数量徽标、祖先链计数
 - **标签系统**：自动标准化去重，支持合并与重命名
 - **搜索**：实时匹配，按名称 / 分类 / 标签加权打分排序，含最近搜索记录
-- **图标选择器**：搜索 + 最近使用 + 七分类网格（见上方章节）
+- **图标选择器**：搜索 + 最近使用 + 九分类网格（见上方章节）
 - **外观设置**：跟随系统 / 浅色 / 深色，实时切换并持久化
 - **管理页面**：分类管理（移动、排序、删除保护）、标签管理、物品图标库
 - **删除保护**：分类非空时禁止删除，软删除（`deletedAt`）保留数据
 - **购买信息**：记录购买日期 / 价格 / 附加花费 / 平台，自动算出**总投入**与**日均使用成本**
+- **出售与净成本**：出售 / 丢弃 / 其他三种处置方式；出售后按「总投入 − 出售金额」计算**实际持有成本**
 - **备份与恢复**：导出完整 ZIP 备份，从备份原子替换恢复
 - **PWA**：可安装到主屏幕，App Shell 离线可用
 - **存储持久化**：启动时尽力申请 `navigator.storage.persist()`
@@ -226,10 +269,13 @@ localStorage['pil.theme'] + window.matchMedia('(prefers-color-scheme: dark)')
 ## 界面与视觉系统
 
 - **物品展台只有一套打光配方**（`plate-surface` / `plate-surface-lg` + `--plate-*`）：顶光 + 底部微沉，**不是每张卡片随机渐变**，整页光线才一致
-- **详情页是"档案"而不是"表单详情"**：打光 Hero（物品直接落在光盘面上，不套第二层底衬）→ 三栏关键指标 → 价格明细子表面 → 备注
+- **详情页是"档案"而不是"表单详情"**：打光 Hero（物品直接落在光盘面上，不套第二层底衬）→ 三栏关键指标 → 价格明细子表面 → 保修追踪 → 处置信息 → 备注
+- **Hero 措辞按状态切换**：持有中是「持有天数 / 总投入 / 日均成本」；已出售才用「**实际**持有天数 / **实际**持有成本 / **实际**日均成本」。不该给还在用的物品扣上「实际」二字
 - **数字不重复出现**：Hero 只给结论（持有天数 / 总投入 / 日均成本），明细表只给构成（购买价格 / 附加花费 / 合计）
 - **字距按文字脚本区分**：CJK 是方块字、自带左右边距，标题用**微开**字距；负字距只留给等宽数字
 - **卡片用等高 grid 而非瀑布流**：等高才能让三栏数字横向对齐比较，也保住"最近添加"的时间顺序可预期性
+- **语义色只有四个在用**：陶土 accent（品牌/选中）、琥珀 money（价格/成本）、红 danger（删除）、绿 success（保修中）。其余色刻意不铺——没有语义的状态上色就是彩虹 UI
+- **概览是 Dashboard 而非企业后台**：一个主数字锚点（持有中总投入）+ 三格指标 + 提醒 + 分类分布 + 最近添加，全部由真实数据推导，无数据整块消失
 - **响应式**：`--shell-max` 单一来源控制外壳宽度（430 / 520 / 600px），配合网格列数与图标库列数逐级升档，而不是把手机界面横向拉长
 - **动效短且有方向感**：`fade-rise 340ms` / `pop-in 280ms` / `sheet-up 320ms` / 抽屉 `340ms`；全部由 `prefers-reduced-motion` 门控
 - **无障碍降级齐备**：`prefers-reduced-transparency`（毛玻璃降级为实色）、`prefers-contrast`、`prefers-reduced-motion`
@@ -263,33 +309,99 @@ assets/          仅真实用户二进制资产（preset 静态图标随包交�
 
 ---
 
-## 购买信息与日均使用成本
+## 物品生命周期
 
-每件物品可记录**购买日期**、**购买价格**、**附加花费**（配件 / 维修 / 升级 / 更换部件等额外投入）与**购买平台**，系统据此自动计算**总投入**与**日均使用成本**——把一次性支出换算成「每天花多少钱」，便于判断长期持有是否划算。
+每件物品有三种状态，对应真实数据模型而不是纯 UI 筛选：
 
 ```
-总投入       = 购买价格 + 附加花费（缺省的一侧按 0 计；两者都未填则不显示）
-日均使用成本 = 总投入 ÷ 持有天数
-持有天数     = 今天 - 购买日期 + 1（含购买当天，今天买算持有 1 天）
+wishlist（心愿）──「转为持有」──▶ owned（持有）──「处置物品」──▶ disposed（处置）
+      ▲                                                              │
+      └────────────────────「恢复为持有」────────────────────────────┘
 ```
+
+### 状态与可用操作
+
+| 状态 | 详情页可做什么 | 数据要求 |
+|---|---|---|
+| **心愿** `wishlist` | 转为持有 · 编辑 · 删除 | **不要求**购买日期 / 价格（想买的可能就是没想好价） |
+| **持有** `owned` | 处置物品 · 编辑 · 删除 | 购买信息全部可选 |
+| **处置** `disposed` | 编辑处置信息 · 恢复为持有 · 删除 | 需要 `disposedAt`；`sold` 才需要出售金额 |
+
+### 处置物品
+
+详情页「处置物品」打开浮层，**处置方式只有三种**（刻意不加枚举）：
+
+| 方式 | 含义 | 出售金额 | 备注 |
+|---|---|---|---|
+| `sold` 出售 | 卖掉了 | 可填，允许 `0`（白送） | — |
+| `discarded` 丢弃 | 扔了 / 坏了 | **强制清空为 `null`** | — |
+| `other` 其他 | 赠送 / 回收 / 报废 | **强制清空为 `null`** | 可填，如「赠送给朋友」 |
+
+处置日期默认今天，可修改。**处置日期不能早于购买日期**。
+
+### 恢复为持有
+
+把 `status` 改回 `owned`，并清空 `disposedAt` / `disposalMethod` / `salePriceCents` / `disposalNote`。**购买数据一律保留**，持有天数重新从购买日算到今天。
+
+---
+
+## 成本口径：总投入、实际持有成本与日均成本
+
+这是 Phase 2G 的核心：**物品卖掉之后，它真实的代价才算得清**。
+
+### 持有中
+
+```
+总投入     = 购买价格 + 附加花费
+持有天数   = 今天 − 购买日期 + 1（含购买当天）
+日均成本   = 总投入 ÷ 持有天数
+```
+
+### 已出售（净成本口径）
+
+```
+实际持有成本 = 总投入 − 出售金额
+实际持有天数 = 处置日期 − 购买日期 + 1   ← 冻结，不再增长
+实际日均成本 = 实际持有成本 ÷ 实际持有天数
+```
+
+举例：投入 ¥8,000，700 天后以 ¥4,500 卖掉 → 实际持有成本 **¥3,500**，实际日均 **¥5.00/天**。
+
+> ⚠️ **刻意不对结果做 `Math.max(0)`**。如果卖价高于投入（例如买入 ¥8,000、卖出 ¥9,500），实际持有成本为 **−¥1,500** —— 这代表持有期间**实际赚到钱**。UI 会正确格式化为负数，而不是把它悄悄抹成 ¥0（抹掉就丢失了「卖得比买得贵」这个事实）。
+
+### 丢弃 / 其他
+
+没有出售金额，因此**实际持有成本 = 总投入**，但**持有天数仍冻结在处置日期**。
+
+### 保修状态
+
+`warrantyExpiresAt`（`YYYY-MM-DD`，可空）按今天自动判定：
+
+| 状态 | 判定 | 展示 |
+|---|---|---|
+| 保修中 | 到期日 > 今天 + 30 天 | 绿色 chip「保修中」 |
+| 即将到期 | 到期日在今天 ~ 今天+30 天内 | 红色 chip「即将到期 · 还有 N 天」 |
+| 已过保 | 到期日 < 今天 | 中性 chip「已过保 N 天」 |
+
+概览页的到期提醒**只统计 `status === 'owned'`** 的物品——已处置的物品不再参与提醒。未填写保修到期日时，整个保修模块不显示（不占位、不显示「无保修」）。
 
 ### 设计约定
 
 | 约定 | 原因 |
 |---|---|
-| 价格用**整数「分」**存储（`purchasePriceCents` / `additionalCostCents`） | 避免浮点累积误差：`¥1499.99` 存为 `149999` |
+| 金额一律用**整数「分」**（`purchasePriceCents` / `additionalCostCents` / `salePriceCents`） | 避免浮点累积误差：`¥1499.99` 存为 `149999` |
 | 日期统一 `YYYY-MM-DD` | 精度到天，不引入时间与时区语义 |
 | 天数按**日历日**计算 | 先转 UTC 日序号再相减，不受本地时区 / 夏令时影响，**不会差一天** |
-| 价格 `0` 视为赠品 | 允许填写，日均成本为 `0` 而非报错 |
-| 未来日期 / 非法日期返回 `null` | 历史脏数据不会让页面崩溃，UI 静默不显示 |
-| 总投入（`totalCostCents`）是**派生值**，不落库 | 随时可由两个存储字段算出，避免冗余与不一致 |
-| 概览无数据时**整块不显示** | 绝不显示 ¥0.00 这类虚假指标 |
+| 生命周期字段**全部可空**，且读取侧一律走兜底 | 任何缺失字段都优雅降级，页面不崩溃 |
+| 成本是**派生值**，不落库 | 随时可由存储字段算出，避免冗余与不一致 |
+| 无数据时整块不显示 | 绝不显示 ¥0.00 这类虚假指标 |
+| 心愿物品不携带购买信息 | 购入时再补齐，避免为「还没买」编造数据 |
 
 ### 支持的购买平台
 
 京东 · 淘宝 · 拼多多 · 转转 · 爱回收 · 其他
 
-购买信息是**纯记录性**的：不参与搜索排序，不做价格统计分析，也没有任何联网抓取或比价行为。
+购买与处置信息是**纯记录性**的：不参与搜索排序，不做价格统计分析，也没有任何联网抓取或比价行为。
 
 ---
 
@@ -360,13 +472,13 @@ Service Worker 的 `navigateFallback` 已配置为 `/index.html`，因此在**�
 ```
 src/
 ├── components/     # 通用组件（BottomNav / ItemCard / IconPickerSheet / Dialogs 等）
-├── pages/          # 页面（Home / Categories / Search / Settings 等）
+├── pages/          # 页面（概览 Dashboard / 物品列表 / 分类 / 搜索 / 设置 等）
 ├── theme/          # 三态主题：偏好解析（纯逻辑）+ Provider
 ├── features/
 │   ├── data/       # useLiveQuery 封装与视图模型
 │   └── ui/         # 视图过渡、最近使用等 UI 逻辑
 ├── db/             # Dexie 实例与 repositories（唯一数据库调用方）
-├── domain/         # 纯函数与业务逻辑（搜索打分 / 分类树 / 标签标准化 / 备份校验 / 成本计算）
+├── domain/         # 纯函数与业务逻辑（生命周期 / 成本口径 / 保修 / 搜索打分 / 分类树 / 备份校验）
 ├── services/       # 跨层编排（备份恢复、PWA 能力检测）
 ├── data/           # 物品图标注册表（元数据唯一来源）
 ├── mock/           # 演示数据（仅开发环境手动调用）
@@ -382,10 +494,10 @@ scripts/            # 物品图标生成、PWA 图标生成
 
 ## 数据说明
 
-Dexie Schema 现为 **v2**，共 6 张表：
+Dexie Schema 现为 **v3**，共 6 张表：
 
 ```ts
-db.version(2).stores({
+db.version(3).stores({
   items:      'id, categoryId, name, createdAt, updatedAt, deletedAt',
   categories: 'id, parentId, name, sortOrder, deletedAt',
   tags:       'id, &nameNormalized, createdAt',
@@ -409,6 +521,9 @@ db.version(2).stores({
 |---|---|
 | v1 | 初始 6 张表 |
 | v2 | `Item` 增加购买信息字段（含附加花费）；均为非索引字段，无需改动 `stores`，由 `upgrade` 把旧记录补为 `null` |
+| v3 | `Item` 增加生命周期与保修字段（见下）；同样是非索引字段，`upgrade` 把既有记录一律补为 `status='owned'` + 其余 `null` |
+
+**v2 → v3 的迁移是加法式的**：`upgrade` 只往旧记录上补字段，**不读、不改、不删任何已有值**（`id` / `categoryId` / `iconAssetId` / `name` / `note` / 购买信息 / `createdAt` / `updatedAt` 全部原样保留）。**不需要清库、不需要重置。** `src/db/migration.test.ts` 用一个真实的 v2 旧库升级到 v3 并逐字段断言。
 
 ```ts
 export interface Item {
@@ -417,8 +532,18 @@ export interface Item {
   purchasePriceCents: number | null        // 整数「分」，允许 0（赠品）
   additionalCostCents: number | null       // 附加花费，整数「分」
   purchasePlatform: PurchasePlatform | null
+
+  // ---- Phase 2G 生命周期 ----
+  status: ItemStatus                       // 'wishlist' | 'owned' | 'disposed'
+  disposedAt: string | null                // 处置日期 YYYY-MM-DD
+  disposalMethod: DisposalMethod | null    // 'sold' | 'discarded' | 'other'
+  salePriceCents: number | null            // 出售金额，整数「分」，仅 sold 使用
+  disposalNote: string | null              // 处置备注（赠送给朋友 / 损坏报废…）
+  warrantyExpiresAt: string | null         // 保修到期日 YYYY-MM-DD
 }
 ```
+
+六个生命周期字段**全部可空**（`status` 除外），且读取侧一律走 `statusOf()` / `warrantyInfo()` 的兜底分支——因此**未迁移的历史数据、缺失字段的脏数据都不会让页面崩溃**，最坏情况是某个指标不显示。
 
 `Item.iconAssetId` 指向 `assets.id`（preset 为 `preset-<key>`）。由于 preset 资产 id 稳定且由启动闸幂等补齐，**升级后旧设备的物品图标不会失效**。
 
@@ -438,6 +563,17 @@ export interface Item {
 
 <details>
 <summary>历史阶段截图（点击展开）</summary>
+
+Phase 2F · 图标体系与三态主题
+
+| 首页 · 浅色 | 首页 · 深色 | 详情 · 打光 Hero |
+|---|---|---|
+| ![首页浅色](docs/screenshots/phase2f/01-home-light.png) | ![首页深色](docs/screenshots/phase2f/02-home-dark.png) | ![详情](docs/screenshots/phase2f/03-detail-light.png) |
+
+| 图标选择器 | 设置 · 外观 | 图标库（73 个） |
+|---|---|---|
+| ![选择器](docs/screenshots/phase2f/05-icon-picker.png) | ![设置](docs/screenshots/phase2f/07-settings-appearance.png) | ![图标库](docs/screenshots/phase2f/06-icon-library.png) |
+
 
 Phase 2E · 购买信息与日均使用成本
 

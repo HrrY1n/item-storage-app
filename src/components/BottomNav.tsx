@@ -1,11 +1,21 @@
 import { Link, NavLink } from 'react-router'
 
-function HomeIcon({ active }: { active: boolean }) {
+/** 概览：仪表盘式图形（一条趋势线 + 坐标基线），形状与其他三个 tab 明显不同 */
+function OverviewIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.1 : 1.7} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 10.5 12 3l9 7.5" />
-      <path d="M5 9.5V21h14V9.5" />
-      <path d="M9.5 21v-6h5v6" />
+      <path d="M4 19V5" />
+      <path d="M4 19h16" />
+      <path d="m7.5 15 3.5-4 3 2.5L20 7" />
+    </svg>
+  )
+}
+
+function ListIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.1 : 1.7} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.5" y="4.5" width="17" height="15" rx="3" />
+      <path d="M7.5 9.5h9M7.5 14.5h6" />
     </svg>
   )
 }
@@ -30,31 +40,24 @@ function SearchIcon({ active }: { active: boolean }) {
   )
 }
 
-function GearIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.1 : 1.7} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3.2" />
-      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.11A1.7 1.7 0 0 0 10.11 3V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1 1.55.61.26 1.32.1 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.11c.26.6.88 1 1.55 1H21a2 2 0 1 1 0 4h-.09c-.67 0-1.29.4-1.51 1z" />
-    </svg>
-  )
-}
-
 const tabs = [
-  { to: '/', label: '首页', Icon: HomeIcon, end: true },
+  { to: '/', label: '概览', Icon: OverviewIcon, end: true },
+  { to: '/items', label: '列表', Icon: ListIcon, end: false },
   { to: '/categories', label: '分类', Icon: GridIcon, end: false },
   { to: '/search', label: '搜索', Icon: SearchIcon, end: false },
-  { to: '/settings', label: '设置', Icon: GearIcon, end: false },
 ]
 
 /**
- * 底部导航：一层克制的半透明 chrome（blur 只用在导航/顶栏，内容层一律实色）。
+ * 底部主导航：**概览 / 列表 / 分类 / 搜索** + 独立的「+」。
  *
- * 结构上把「新增」做成**导航条自己的一部分** —— 一枚与条同高的实心圆钮，
- * 而不是浮在条上方的一个孤立方块。这样它永远贴着条、永远不会被内容遮住，
- * 也不会在滚动时与底栏产生两层阴影打架。
+ * 「设置」刻意**不在**主导航里 —— 它是低频入口，放在概览页右上角的齿轮更合适，
+ * 于是底栏四个位置全部对应"每天真的会用的动作"。
  *
- * 选中态 = 一枚极淡的强调色胶囊 + 强调色图标，比"小圆点"更清楚，
- * 也不至于像标签栏那样厚重。prefers-reduced-transparency 时自动降级为实色。
+ * 「+」是导航条自己的一部分（与条同高的实心圆钮），而不是浮在条上方的孤立方块：
+ * 这样它永远贴条、永远不会被内容遮住，也不会与底栏产生两层阴影打架。
+ *
+ * 材质层：一层克制的半透明 chrome（blur 只用在导航/顶栏，内容层一律实色）。
+ * prefers-reduced-transparency 时自动降级为实色。
  */
 export default function BottomNav() {
   return (
@@ -71,7 +74,7 @@ export default function BottomNav() {
               {({ isActive }) => (
                 <span className="flex flex-col items-center gap-0.5">
                   <span
-                    className={`flex h-[30px] w-[46px] items-center justify-center rounded-pill transition-colors duration-200 ease-out-quint ${
+                    className={`flex h-[30px] w-[44px] items-center justify-center rounded-pill transition-colors duration-200 ease-out-quint ${
                       isActive ? 'bg-accent-soft text-accent' : 'text-ink-tertiary'
                     }`}
                   >

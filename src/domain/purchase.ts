@@ -96,10 +96,18 @@ export function calculateDailyCostCents(
 
 // ---------------------------------------------------------------- 展示格式化
 
-/** 分 → ¥1,499.00 */
+/**
+ * 分 → ¥1,499.00
+ * 负数（出售回本有余 = 实际收益）渲染为 `-¥5.00` 而不是 `¥-5.00`。
+ */
 export function formatCents(cents: number): string {
   const yuan = cents / 100
-  return `¥${yuan.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const abs = Math.abs(yuan)
+  const body = abs.toLocaleString('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  return `${cents < 0 ? '-' : ''}¥${body}`
 }
 
 /**
@@ -111,10 +119,11 @@ export function formatCentsCompact(cents: number): string {
   const yuan = cents / 100
   const abs = Math.abs(yuan)
   const useDecimals = abs < 1000
-  return `¥${yuan.toLocaleString('zh-CN', {
+  const body = abs.toLocaleString('zh-CN', {
     minimumFractionDigits: useDecimals ? 2 : 0,
     maximumFractionDigits: useDecimals ? 2 : 0,
-  })}`
+  })
+  return `${cents < 0 ? '-' : ''}¥${body}`
 }
 
 /** YYYY-MM-DD → 2026年1月1日 */

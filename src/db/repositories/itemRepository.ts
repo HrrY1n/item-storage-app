@@ -1,6 +1,7 @@
 import { ulid } from 'ulid'
 import { db } from '../db'
-import type { Item, PurchasePlatform } from '../../domain/types'
+import type { DisposalMethod, Item, ItemStatus, PurchasePlatform } from '../../domain/types'
+import { restoreToOwnedFields, sanitizeLifecycle } from '../../domain/lifecycle'
 
 /**
  * Item repository —— 唯一直接操作 items / itemTags 表的地方。
@@ -13,14 +14,34 @@ export interface ItemInput {
   iconAssetId: string
   note: string
   tagIds: string[]
+  /** 生命周期状态；旧调用方不传时按 'owned' 处理 */
+  status: ItemStatus
   /** 购买信息（全部可选） */
   purchaseDate: string | null
   purchasePriceCents: number | null
   additionalCostCents: number | null
   purchasePlatform: PurchasePlatform | null
+  /** 保修到期日 YYYY-MM-DD；null = 未填写 */
+  warrantyExpiresAt: string | null
+  /** 处置信息（仅 status='disposed' 有效，写入前会被规范化） */
+  disposedAt: string | null
+  disposalMethod: DisposalMethod | null
+  salePriceCents: number | null
+  disposalNote: string | null
 }
 
 const notDeleted = (i: Item) => i.deletedAt === null
+
+/** 生命周期字段的写入一律经过规范化，保证不变量在数据层就被强制 */
+function lifeFields(input: ItemInput) {
+  return sanitizeLifecycle({
+    status: input.status,
+    disposedAt: input.disposedAt,
+    disposalMethod: input.disposalMethod,
+    salePriceCents: input.salePriceCents,
+    disposalNote: input.disposalNote,
+  })
+}
 
 export const itemRepository = {
   async listActive(): Promise<Item[]> {
@@ -56,6 +77,7 @@ export const itemRepository = {
     const name = input.name.trim()
     if (!name) throw new Error('名称不能为空')
     const now = new Date().toISOString()
+    const life = lifeFields(input)
     const item: Item = {
       id: ulid(),
       name,
@@ -63,10 +85,16 @@ export const itemRepository = {
       note: input.note.trim(),
       iconAssetId: input.iconAssetId,
       sourceType: 'preset',
+      status: life.status,
       purchaseDate: input.purchaseDate,
       purchasePriceCents: input.purchasePriceCents,
       additionalCostCents: input.additionalCostCents,
       purchasePlatform: input.purchasePlatform,
+      warrantyExpiresAt: input.warrantyExpiresAt,
+      disposedAt: life.disposedAt,
+      disposalMethod: life.disposalMethod,
+      salePriceCents: life.salePriceCents,
+      disposalNote: life.disposalNote,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
@@ -84,6 +112,7 @@ export const itemRepository = {
     const name = input.name.trim()
     if (!name) throw new Error('名称不能为空')
     const now = new Date().toISOString()
+    const life = lifeFields(input)
     await db.transaction('rw', [db.items, db.itemTags], async () => {
       const existing = await db.items.get(id)
       if (!existing || existing.deletedAt) throw new Error('物品不存在')
@@ -92,10 +121,16 @@ export const itemRepository = {
         categoryId: input.categoryId,
         note: input.note.trim(),
         iconAssetId: input.iconAssetId,
+        status: life.status,
         purchaseDate: input.purchaseDate,
         purchasePriceCents: input.purchasePriceCents,
         additionalCostCents: input.additionalCostCents,
         purchasePlatform: input.purchasePlatform,
+        warrantyExpiresAt: input.warrantyExpiresAt,
+        disposedAt: life.disposedAt,
+        disposalMethod: life.disposalMethod,
+        salePriceCents: life.salePriceCents,
+        disposalNote: life.disposalNote,
         updatedAt: now,
       })
       // 重写关联：先删后插
@@ -103,6 +138,55 @@ export const itemRepository = {
       if (input.tagIds.length > 0) {
         await db.itemTags.bulkAdd(input.tagIds.map((tagId) => ({ itemId: id, tagId })))
       }
+    })
+  },
+
+  /** 读取某物品当前的标签 id 集合（供只改部分字段的操作复用，避免误清空标签） */
+  async tagIdsOf(id: string): Promise<string[]> {
+    const links = await db.itemTags.where('itemId').equals(id).toArray()
+    return links.map((l) => l.tagId)
+  },
+
+  /**
+   * 心愿 → 持有：只改状态与购买信息，**保留原有标签**。
+   * 不删除任何已有字段。
+   */
+  async convertToOwned(id: string, purchase: {
+    purchaseDate: string | null
+    purchasePriceCents: number | null
+    additionalCostCents: number | null
+    purchasePlatform: PurchasePlatform | null
+    warrantyExpiresAt: string | null
+  }): Promise<void> {
+    const item = await this.getActive(id)
+    if (!item) throw new Error('物品不存在')
+    await this.update(id, {
+      name: item.name,
+      categoryId: item.categoryId,
+      iconAssetId: item.iconAssetId,
+      note: item.note,
+      tagIds: await this.tagIdsOf(id),
+      status: 'owned',
+      ...purchase,
+      disposedAt: null,
+      disposalMethod: null,
+      salePriceCents: null,
+      disposalNote: null,
+    })
+  },
+
+  /** 恢复为持有：清空全部处置字段，**保留**购买数据；持有天数重新按今天计算 */
+  async restoreToOwned(id: string): Promise<void> {
+    const item = await this.getActive(id)
+    if (!item) throw new Error('物品不存在')
+    const life = restoreToOwnedFields()
+    await db.items.update(id, {
+      status: life.status,
+      disposedAt: life.disposedAt,
+      disposalMethod: life.disposalMethod,
+      salePriceCents: life.salePriceCents,
+      disposalNote: life.disposalNote,
+      updatedAt: new Date().toISOString(),
     })
   },
 

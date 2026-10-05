@@ -26,6 +26,12 @@ function validData(): BackupData {
         purchasePriceCents: 1_499_900,
         additionalCostCents: 20_000,
         purchasePlatform: 'jd',
+        status: 'owned',
+        warrantyExpiresAt: null,
+        disposedAt: null,
+        disposalMethod: null,
+        salePriceCents: null,
+        disposalNote: null,
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-02T00:00:00.000Z',
         deletedAt: null,
@@ -199,7 +205,7 @@ describe('toBackupPayload', () => {
     d.appMeta = { seeded: '1', schemaVersion: '1', someUiPref: 'keep-out' }
     const payload = toBackupPayload(d)
     expect(payload.appMeta.seeded).toBe('1')
-    expect(payload.appMeta.schemaVersion).toBe('2')
+    expect(payload.appMeta.schemaVersion).toBe('3')
     expect(payload.appMeta.someUiPref).toBeUndefined()
   })
 
@@ -241,12 +247,12 @@ describe('v1 旧备份迁移（schemaVersion = 1）', () => {
     }
   })
 
-  it('v1 备份恢复后 appMeta.schemaVersion 升级为 2', () => {
+  it('v1 备份恢复后 appMeta.schemaVersion 升级为当前契约（3）', () => {
     const r = validateBackupData(v1Data(), 1)
     expect(r.ok).toBe(true)
     if (r.ok) {
       const payload = toBackupPayload(r.value)
-      expect(payload.appMeta.schemaVersion).toBe('2')
+      expect(payload.appMeta.schemaVersion).toBe('3')
     }
   })
 })

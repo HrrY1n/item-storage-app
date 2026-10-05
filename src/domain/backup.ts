@@ -11,18 +11,35 @@
  * - 任何一项校验失败都返回 ok:false + 原因，**绝不部分写入**。
  */
 
-import type { Asset, AssetKind, Category, Item, ItemTag, PurchasePlatform, Tag } from './types'
+import type {
+  Asset,
+  AssetKind,
+  Category,
+  DisposalMethod,
+  Item,
+  ItemStatus,
+  ItemTag,
+  PurchasePlatform,
+  Tag,
+} from './types'
 import { CURRENT_SCHEMA_VERSION } from './types'
+import { sanitizeLifecycle } from './lifecycle'
 
 /**
  * 当前写入的备份格式版本。
  * v2 = Item 增加购买信息与附加花费
  *      （purchaseDate / purchasePriceCents / additionalCostCents / purchasePlatform）
+ * v3 = Item 增加生命周期与保修字段
+ *      （status / warrantyExpiresAt / disposedAt / disposalMethod /
+ *        salePriceCents / disposalNote）
  */
-export const BACKUP_SCHEMA_VERSION = 2
+export const BACKUP_SCHEMA_VERSION = 3
 
-/** 本应用可接受的备份格式版本集合（v1 旧备份导入时自动迁移） */
-const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2]
+/**
+ * 本应用可接受的备份格式版本集合。
+ * v1（无购买信息）与 v2（无生命周期）导入时都会自动补默认值，**不丢任何字段**。
+ */
+const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3]
 
 /**
  * 需要从备份中迁移的 appMeta 键。
@@ -155,6 +172,11 @@ const PURCHASE_PLATFORM_VALUES: readonly string[] = [
   'other',
 ]
 
+const ITEM_STATUS_VALUES: readonly string[] = ['wishlist', 'owned', 'disposed']
+const DISPOSAL_METHOD_VALUES: readonly string[] = ['sold', 'discarded', 'other']
+
+const isNullableNumber = (v: unknown): v is number | null => v === null || isNumber(v)
+
 function validateItem(raw: unknown, i: number, schemaVersion: number): ValidationResult<Item> {
   if (!isRecord(raw)) return { ok: false, error: `items[${i}] 不是合法对象` }
   if (!isString(raw.id) || raw.id === '') return { ok: false, error: `items[${i}].id 无效` }
@@ -197,6 +219,59 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
     purchasePlatform = raw.purchasePlatform as PurchasePlatform | null
   }
 
+  // v3 生命周期与保修字段：v1 / v2 旧备份一律迁移为「持有中 + 全 null」。
+  // 这与 db.ts 的 v2→v3 upgrade 使用同一套默认值，两条路径行为一致。
+  let status: ItemStatus = 'owned'
+  let warrantyExpiresAt: string | null = null
+  let disposedAt: string | null = null
+  let disposalMethod: DisposalMethod | null = null
+  let salePriceCents: number | null = null
+  let disposalNote: string | null = null
+
+  if (schemaVersion >= 3) {
+    if (!isString(raw.status) || !ITEM_STATUS_VALUES.includes(raw.status)) {
+      return { ok: false, error: `items[${i}].status 无效` }
+    }
+    if (!isNullableString(raw.warrantyExpiresAt)) {
+      return { ok: false, error: `items[${i}].warrantyExpiresAt 无效` }
+    }
+    if (!isNullableString(raw.disposedAt)) {
+      return { ok: false, error: `items[${i}].disposedAt 无效` }
+    }
+    if (
+      !(
+        raw.disposalMethod === null ||
+        (isString(raw.disposalMethod) &&
+          DISPOSAL_METHOD_VALUES.includes(raw.disposalMethod))
+      )
+    ) {
+      return { ok: false, error: `items[${i}].disposalMethod 无效` }
+    }
+    if (!isNullableNumber(raw.salePriceCents)) {
+      return { ok: false, error: `items[${i}].salePriceCents 无效` }
+    }
+    if (!isNullableString(raw.disposalNote)) {
+      return { ok: false, error: `items[${i}].disposalNote 无效` }
+    }
+
+    status = raw.status as ItemStatus
+    warrantyExpiresAt = raw.warrantyExpiresAt as string | null
+    disposedAt = raw.disposedAt as string | null
+    disposalMethod = raw.disposalMethod as DisposalMethod | null
+    salePriceCents = raw.salePriceCents as number | null
+    disposalNote = raw.disposalNote as string | null
+  }
+
+  // 导入即规范化：非出售方式强制清空出售金额、非处置状态强制清空处置字段。
+  // 这样即使备份来源是手改过的 JSON，落到库里也一定满足业务不变量。
+  const life = sanitizeLifecycle({
+    status,
+    disposedAt,
+    disposalMethod,
+    salePriceCents,
+    disposalNote,
+  })
+
   return {
     ok: true,
     value: {
@@ -206,10 +281,16 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
       note: raw.note,
       iconAssetId: raw.iconAssetId,
       sourceType: raw.sourceType as Item['sourceType'],
+      status: life.status,
       purchaseDate,
       purchasePriceCents,
       additionalCostCents,
       purchasePlatform,
+      warrantyExpiresAt,
+      disposedAt: life.disposedAt,
+      disposalMethod: life.disposalMethod,
+      salePriceCents: life.salePriceCents,
+      disposalNote: life.disposalNote,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       deletedAt: raw.deletedAt,

@@ -3,7 +3,8 @@ import type { ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { childrenOf } from '../domain/categoryTree'
 import { presetIconOfAssetId } from '../data/icons'
-import type { PurchasePlatform } from '../domain/types'
+import type { ItemStatus, PurchasePlatform } from '../domain/types'
+import { ITEM_STATUS_LABELS, statusOf } from '../domain/lifecycle'
 import {
   PURCHASE_PLATFORMS,
   calculateDailyCostCents,
@@ -101,6 +102,8 @@ export default function ItemFormPage() {
   const [priceText, setPriceText] = useState('')
   const [additionalCostText, setAdditionalCostText] = useState('')
   const [purchasePlatform, setPurchasePlatform] = useState<PurchasePlatform | null>(null)
+  const [status, setStatus] = useState<ItemStatus>('owned')
+  const [warrantyExpiresAt, setWarrantyExpiresAt] = useState('')
   const [confirmDiscard, setConfirmDiscard] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -126,6 +129,8 @@ export default function ItemFormPage() {
         : '',
     )
     setPurchasePlatform(existingItem.purchasePlatform)
+    setStatus(statusOf(existingItem))
+    setWarrantyExpiresAt(existingItem.warrantyExpiresAt ?? '')
   }, [isEdit, existingItem, categories, links])
 
   const loading = !categories || !tags || !links || !assetMap || (isEdit && !initialized.current)
@@ -138,10 +143,12 @@ export default function ItemFormPage() {
       categoryId,
       tagIds: [...tagIds].sort(),
       note: note.trim(),
+      status,
       purchaseDate,
       purchasePriceCents: parsePriceInput(priceText),
       additionalCostCents: parsePriceInput(additionalCostText),
       purchasePlatform,
+      warrantyExpiresAt,
     })
 
   const initialSnapshot = useRef<string>('')
@@ -161,10 +168,12 @@ export default function ItemFormPage() {
     categoryId,
     tagIds,
     note,
+    status,
     purchaseDate,
     priceText,
     additionalCostText,
     purchasePlatform,
+    warrantyExpiresAt,
   ])
 
   if (loading) return null
@@ -216,11 +225,19 @@ export default function ItemFormPage() {
   const handleSave = async () => {
     if (!canSave) return
     setSaving(true)
+    // 心愿物品不携带购买/保修信息（可以之后再转为持有时补齐）
+    const isWish = status === 'wishlist'
     const purchase = {
-      purchaseDate: purchaseDate || null,
-      purchasePriceCents: parsePriceInput(priceText),
-      additionalCostCents: parsePriceInput(additionalCostText),
-      purchasePlatform,
+      status,
+      purchaseDate: isWish ? null : purchaseDate || null,
+      purchasePriceCents: isWish ? null : parsePriceInput(priceText),
+      additionalCostCents: isWish ? null : parsePriceInput(additionalCostText),
+      purchasePlatform: isWish ? null : purchasePlatform,
+      warrantyExpiresAt: isWish ? null : warrantyExpiresAt || null,
+      disposedAt: existingItem?.disposedAt ?? null,
+      disposalMethod: existingItem?.disposalMethod ?? null,
+      salePriceCents: existingItem?.salePriceCents ?? null,
+      disposalNote: existingItem?.disposalNote ?? null,
     }
     try {
       if (isEdit && id) {
@@ -274,7 +291,29 @@ export default function ItemFormPage() {
       />
 
       <div className="flex flex-col gap-7 px-5 pt-5">
-        {/* 图标：只展示当前选中的那一个，选择交给浮层（避免 70+ 图标撑长页面） */}
+        {/* 生命周期：只在新增时选。之后的状态变更走详情页的「转为持有 / 处置 / 恢复为持有」，
+            避免两处入口互相覆盖。 */}
+        {!isEdit && (
+          <Field label="状态">
+            <div className="flex gap-2">
+              {(['owned', 'wishlist'] as ItemStatus[]).map((s) => (
+                <ChipButton
+                  key={s}
+                  label={ITEM_STATUS_LABELS[s]}
+                  selected={status === s}
+                  onClick={() => setStatus(s)}
+                />
+              ))}
+            </div>
+            <p className="mt-2 px-1 text-caption text-ink-tertiary">
+              {status === 'wishlist'
+                ? '心愿物品可以完全没有购买信息，购入后再转为持有并补齐。'
+                : '持有中的物品会参与总投入、日均成本与保修提醒。'}
+            </p>
+          </Field>
+        )}
+
+        {/* 图标：只展示当前选中的那一个，选择交给浮层（避免 150+ 图标撑长页面） */}
         <Field label="图标">
           <button
             type="button"
@@ -388,7 +427,16 @@ export default function ItemFormPage() {
           </div>
         </Field>
 
-        {/* 购买信息（全部可选） */}
+        {/* 购买信息：心愿物品不展示（可以完全没有购买信息） */}
+        {status === 'wishlist' ? (
+          <Field label="购买信息">
+            <div className="rounded-control border border-line bg-surface-sunken px-4 py-3.5">
+              <p className="text-body text-ink-tertiary">
+                心愿物品不需要购买信息。购入之后，在详情页点「转为持有」再补齐价格、日期与保修。
+              </p>
+            </div>
+          </Field>
+        ) : (
         <Field label="购买信息" hint="全部可选">
           {/* 不用大卡片承载：改为 hairline 分隔 + 留白分组，
               让"编辑一条档案记录"保持轻盈，而不是填写后台表单 */}
@@ -403,6 +451,21 @@ export default function ItemFormPage() {
                 onChange={(e) => setPurchaseDate(e.target.value)}
                 className="num h-11 w-full rounded-control border border-line bg-surface px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
               />
+            </div>
+
+            {/* 保修到期日 */}
+            <div className="py-4">
+              <p className="mb-2 text-label text-ink-tertiary">保修到期日</p>
+              <input
+                type="date"
+                value={warrantyExpiresAt}
+                min={purchaseDate || undefined}
+                onChange={(e) => setWarrantyExpiresAt(e.target.value)}
+                className="num h-11 w-full rounded-control border border-line bg-surface px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
+              />
+              <p className="mt-1.5 text-caption text-ink-tertiary">
+                填写后会在概览页进入「30 天内过保」提醒。
+              </p>
             </div>
 
             {/* 购买价格 + 附加花费：并排布局，缩短表单高度（快速录入优先） */}
@@ -480,6 +543,7 @@ export default function ItemFormPage() {
             )}
           </div>
         </Field>
+        )}
 
         {/* 备注 */}
         <Field label="备注">

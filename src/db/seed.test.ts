@@ -23,7 +23,7 @@ describe('seedIfEmpty', () => {
     const assets = await db.assets.toArray()
     expect(assets.length).toBe(PRESET_ICONS.length)
     expect(assets.every((a) => a.kind === 'preset')).toBe(true)
-    expect((await db.appMeta.get('schemaVersion'))?.value).toBe('2')
+    expect((await db.appMeta.get('schemaVersion'))?.value).toBe('3')
   })
 
   it('幂等：重复执行不会重复插入', async () => {
