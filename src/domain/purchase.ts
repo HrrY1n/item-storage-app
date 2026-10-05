@@ -126,6 +126,21 @@ export function formatCentsCompact(cents: number): string {
   return `${cents < 0 ? '-' : ''}¥${body}`
 }
 
+/**
+ * 卡片用金额：整元省略两位小数，非整元照旧保留。
+ *
+ * 网格卡一栏只有 ~40px 宽，`¥399.00` 会被截成 `¥399....`（数字被截断比模糊更糟）。
+ * 这里**只省略本来就存在的零**，绝不做四舍五入 —— `¥57.14` 仍然显示 `¥57.14`，
+ * 精确值始终能在详情页看到。负数（卖得比买得多）照常带负号。
+ */
+export function formatCentsCard(cents: number): string {
+  const yuan = cents / 100
+  if (Number.isInteger(yuan)) {
+    return `${cents < 0 ? '-' : ''}¥${Math.abs(yuan).toLocaleString('zh-CN')}`
+  }
+  return formatCentsCompact(cents)
+}
+
 /** YYYY-MM-DD → 2026年1月1日 */
 export function formatPurchaseDate(dateStr: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr)

@@ -5,6 +5,7 @@ import {
   calculateTotalCostCents,
   centsToPriceInput,
   formatCents,
+  formatCentsCard,
   formatCentsCompact,
   formatPurchaseDate,
   parseDateToDayNumber,
@@ -187,5 +188,29 @@ describe('格式化与平台映射', () => {
 
   it('todayString 用本地年月日拼接', () => {
     expect(todayString(new Date(2026, 9, 3))).toBe('2026-10-03')
+  })
+})
+
+// ---------------------------------------------------------------- 卡片金额（Phase 2H）
+
+describe('formatCentsCard', () => {
+  it('整元省略两位小数（¥399.00 → ¥399）', () => {
+    expect(formatCentsCard(39900)).toBe('¥399')
+    expect(formatCentsCard(26900)).toBe('¥269')
+    expect(formatCentsCard(0)).toBe('¥0')
+  })
+
+  it('千分位保留，够短不截断（¥14,999）', () => {
+    expect(formatCentsCard(1499900)).toBe('¥14,999')
+    expect(formatCentsCard(189900)).toBe('¥1,899')
+  })
+
+  it('非整元绝不做四舍五入，仍显示两位小数', () => {
+    expect(formatCentsCard(5714)).toBe('¥57.14')
+  })
+
+  it('负数（卖得比买得多）保留负号', () => {
+    expect(formatCentsCard(-150000)).toBe('-¥1,500')
+    expect(formatCentsCard(-5714)).toBe('-¥57.14')
   })
 })

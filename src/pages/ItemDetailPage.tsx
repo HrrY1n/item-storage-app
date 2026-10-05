@@ -100,25 +100,27 @@ function formatTimestamp(iso: string): string {
   })
 }
 
-/** Hero 指标格：数字是结论，标签只是单位说明 */
+/** Hero 指标格：数字是结论，标签只是单位说明。指标收在染色区内，因此给足字重 */
 function HeroMetric({ label, value, money }: { label: string; value: string; money?: boolean }) {
   return (
     <div className="min-w-0 px-3">
-      <p className={`num truncate text-item ${money ? 'text-money' : 'text-ink-primary'}`}>{value}</p>
+      <p className={`num truncate text-section ${money ? 'text-money' : 'text-ink-primary'}`}>{value}</p>
       <p className="mt-1 truncate text-caption text-ink-tertiary">{label}</p>
     </div>
   )
 }
 
-/** 生命周期操作：语义 tint 只到 soft 一级，绝不满铺 */
+/** 生命周期操作：语义 tint 只到 soft 一级，绝不满铺；每块带图标 + 标题 + 副标题 */
 function ActionButton({
   label,
   hint,
+  icon,
   onClick,
   tone = 'plain',
 }: {
   label: string
   hint?: string
+  icon: ReactNode
   onClick: () => void
   tone?: 'plain' | 'info' | 'success' | 'money' | 'danger'
 }) {
@@ -133,11 +135,34 @@ function ActionButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[56px] w-full flex-col items-center justify-center gap-0.5 rounded-control border px-3 transition-colors duration-150 active:opacity-70 ${tones[tone]}`}
+      className={`flex min-h-[64px] w-full items-center gap-3 rounded-control border px-3.5 text-left transition-colors duration-150 active:opacity-70 ${tones[tone]}`}
     >
-      <span className="text-secondary font-medium">{label}</span>
-      {hint && <span className="text-[10px] text-ink-tertiary">{hint}</span>}
+      <span className="shrink-0">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-item font-medium">{label}</span>
+        {hint && <span className="mt-0.5 block truncate text-caption text-ink-tertiary">{hint}</span>}
+      </span>
     </button>
+  )
+}
+
+/** 操作区图标：统一 18px 线性图标，颜色继承所在按钮的语义色 */
+function ActionGlyph({ d, circle = false }: { d: string; circle?: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {circle && <circle cx="12" cy="12" r="8.6" />}
+      <path d={d} />
+    </svg>
   )
 }
 
@@ -288,10 +313,30 @@ export default function ItemDetailPage() {
           <h1 className="text-page-title text-ink-primary">物品详情</h1>
         </div>
 
-        {/* Hero：物品身份卡。hero-surface 是专属材质（独立 token），与普通卡片一眼可辨 */}
-        <section className="mt-3 overflow-hidden rounded-surface border border-hero-line bg-hero shadow-card">
-          <div className="hero-surface px-5 pb-4 pt-5">
-            <div className="mx-auto w-[52%]">
+        {/* Hero：物品身份卡。横向布局 —— 名称/状态/分类在左、物品图在右，
+            三栏指标收在同一块染色区内（不另起白色底），整卡自成一块材质。
+            hero-surface 铺满整卡，因此渐变连续、无接缝。 */}
+        <section className="hero-surface mt-3 overflow-hidden rounded-surface border border-hero-line shadow-card">
+          <div className="flex items-center gap-4 px-5 pb-3.5 pt-5">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-title-card text-ink-primary">{item.name}</h2>
+              <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                <StatusChip status={status} />
+                {category && (
+                  <Link
+                    to={`/categories/${category.id}`}
+                    className="group inline-flex min-h-[24px] items-center gap-1 rounded-pill bg-surface-sunken px-2.5 text-caption text-ink-secondary transition-opacity active:opacity-70 sm:hover:opacity-80"
+                  >
+                    {categoryPath(categories, item.categoryId)}
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-out-quint sm:group-hover:translate-x-0.5" aria-hidden>
+                      <path d="m9 6 6 6-6 6" />
+                    </svg>
+                  </Link>
+                )}
+                {isOwned(item) && <WarrantyChip item={item} today={today} />}
+              </div>
+            </div>
+            <div className="w-[38%] max-w-[128px] shrink-0">
               <ObjectPlate
                 src={iconUrl}
                 alt={item.name}
@@ -300,31 +345,11 @@ export default function ItemDetailPage() {
                 plateStyle={{ viewTransitionName: 'item-hero' }}
               />
             </div>
-
-            <div className="mt-5 text-center">
-              <h2 className="text-title-card text-ink-primary">{item.name}</h2>
-              {category && (
-                <Link
-                  to={`/categories/${category.id}`}
-                  className="group mt-2.5 inline-flex items-center gap-1 text-secondary text-ink-tertiary transition-colors active:opacity-60 sm:hover:text-ink-secondary"
-                >
-                  {categoryPath(categories, item.categoryId)}
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-out-quint sm:group-hover:translate-x-0.5">
-                    <path d="m9 6 6 6-6 6" />
-                  </svg>
-                </Link>
-              )}
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
-              <StatusChip status={status} />
-              {isOwned(item) && <WarrantyChip item={item} today={today} />}
-            </div>
           </div>
 
           {heroMetrics.length > 0 && (
             <div
-              className={`grid divide-x divide-line-inner border-t border-hero-line px-2 py-3.5 ${
+              className={`grid divide-x divide-hero-line border-t border-hero-line px-2 py-3.5 ${
                 heroMetrics.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
               }`}
             >
@@ -461,6 +486,7 @@ export default function ItemDetailPage() {
               label="转为持有"
               hint="补齐购买信息"
               tone="success"
+              icon={<ActionGlyph circle d="m8.5 12.2 2.4 2.4 4.6-5" />}
               onClick={() => setConvertOpen(true)}
             />
           )}
@@ -469,6 +495,7 @@ export default function ItemDetailPage() {
               label="处置物品"
               hint="出售 / 丢弃 / 其他"
               tone="money"
+              icon={<ActionGlyph d="M4 7h16M9.5 7V4.8h5V7M6.5 7l.8 12.2h9.4L17.5 7" />}
               onClick={() => setDisposalOpen(true)}
             />
           )}
@@ -477,6 +504,7 @@ export default function ItemDetailPage() {
               label="恢复为持有"
               hint="保留购买数据"
               tone="success"
+              icon={<ActionGlyph d="M4 12a8 8 0 1 0 2.6-5.9M4 4.5V10h5.4" />}
               onClick={() => void handleRestore()}
             />
           )}
@@ -484,12 +512,14 @@ export default function ItemDetailPage() {
             label="编辑物品"
             hint="修改物品信息"
             tone="info"
+            icon={<ActionGlyph d="M4.5 19.5h4L19 9a2.1 2.1 0 0 0-3-3L5.5 16.5zM14.5 7.5l2 2" />}
             onClick={() => navigate(`/items/${item.id}/edit`)}
           />
           <ActionButton
             label="删除物品"
             hint="永久移除"
             tone="danger"
+            icon={<ActionGlyph d="M5 7h14M10 7V4.8h4V7M6.5 7l.8 12.2h9.4L17.5 7M10.5 10.5v6M13.5 10.5v6" />}
             onClick={() => setConfirmingDelete(true)}
           />
         </section>

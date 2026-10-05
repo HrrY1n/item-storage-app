@@ -13,7 +13,7 @@ export default function TagChip({ name, size = 'md', selected = false, onClick }
       : 'inline-flex min-h-[36px] items-center whitespace-nowrap rounded-pill px-3.5 text-caption leading-none'
   // 未选中：surface + hairline（视觉更轻）；选中：实心墨色（唯一强对比）
   const color = selected
-    ? 'border border-ink-solid bg-ink-solid text-ink-inverse'
+    ? 'border border-accent bg-accent text-ink-inverse'
     : 'border border-line bg-surface text-ink-secondary'
 
   if (onClick) {

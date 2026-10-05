@@ -1,5 +1,10 @@
 import type { Category, Item, ItemStatus, ItemTag, Tag } from '../../domain/types'
-import { calculateTotalCostCents, formatCentsCompact, todayString } from '../../domain/purchase'
+import {
+  calculateTotalCostCents,
+  formatCentsCard,
+  formatCentsCompact,
+  todayString,
+} from '../../domain/purchase'
 import { collectSubtreeIds } from '../../domain/categoryTree'
 import {
   dailyCostOf,
@@ -105,7 +110,7 @@ export function itemMetric(item: Item, today?: string): ItemMetric | null {
     totalCents,
     dailyCents,
     daysText: days !== null ? `${days} 天` : null,
-    totalText: totalCents !== null ? formatCentsCompact(totalCents) : null,
+    totalText: totalCents !== null ? formatCentsCard(totalCents) : null,
     dailyText: dailyCents !== null ? formatCentsCompact(dailyCents) : null,
   }
 }
@@ -156,7 +161,7 @@ export function libraryOverview(
     pricedCount,
     totalCents: pricedCount > 0 ? totalCents : null,
     dailyCents: pricedCount > 0 ? dailySum : null,
-    totalText: pricedCount > 0 ? formatCentsCompact(totalCents) : null,
+    totalText: pricedCount > 0 ? formatCentsCard(totalCents) : null,
     dailyText: pricedCount > 0 ? formatCentsCompact(dailySum) : null,
   }
 }

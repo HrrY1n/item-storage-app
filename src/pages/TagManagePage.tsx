@@ -185,7 +185,7 @@ export default function TagManagePage() {
                 type="button"
                 onClick={() => setMergeTargetId(t.id)}
                 className={`flex min-h-[44px] w-full items-center px-4 text-left text-body transition-colors ${
-                  mergeTargetId === t.id ? 'bg-ink-solid text-ink-inverse' : 'text-ink-primary active:bg-surface-sunken'
+                  mergeTargetId === t.id ? 'bg-accent text-ink-inverse' : 'text-ink-primary active:bg-surface-sunken'
                 }`}
               >
                 #{t.name}

@@ -114,7 +114,7 @@ export default function DisposalSheet({
                 aria-pressed={method === m}
                 className={`flex h-10 flex-1 items-center justify-center rounded-control text-secondary transition-colors duration-150 ${
                   method === m
-                    ? 'bg-ink-solid font-medium text-ink-inverse'
+                    ? 'bg-accent font-medium text-ink-inverse'
                     : 'border border-line bg-surface text-ink-secondary'
                 }`}
               >

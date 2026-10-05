@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { formatCents, formatCentsCompact, formatPurchaseDate, todayString } from '../domain/purchase'
+import {
+  formatCents,
+  formatCentsCard,
+  formatCentsCompact,
+  formatPurchaseDate,
+  todayString,
+} from '../domain/purchase'
 import {
   DISPOSAL_METHOD_LABELS,
   ITEM_STATUS_LABELS,
@@ -27,6 +33,7 @@ import {
 import { ObjectPlate } from '../components/ItemCard'
 import { StatusChip } from '../components/StatusChip'
 import WarrantyStrip from '../components/WarrantyStrip'
+import SegmentedControl from '../components/SegmentedControl'
 import TagChip from '../components/TagChip'
 import EmptyState from '../components/EmptyState'
 
@@ -83,7 +90,7 @@ function GridCard({
       : [
           days !== null ? { v: `${days}`, l: status === 'disposed' ? '持有天数' : '持有天数' } : null,
           cost !== null
-            ? { v: formatCentsCompact(cost), l: sold ? '实际成本' : '总投入' }
+            ? { v: formatCentsCard(cost), l: sold ? '实际成本' : '总投入' }
             : null,
           daily !== null ? { v: formatCentsCompact(daily), l: '日均成本', money: true } : null,
         ].filter((m): m is { v: string; l: string; money?: boolean } => m !== null)
@@ -183,7 +190,7 @@ function ListRow({
         </p>
         <div className="num mt-1 flex items-baseline gap-2.5 text-caption">
           {days !== null && <span className="text-ink-tertiary">{days} 天</span>}
-          {cost !== null && <span className="text-ink-primary">{formatCentsCompact(cost)}</span>}
+          {cost !== null && <span className="text-ink-primary">{formatCentsCard(cost)}</span>}
           {daily !== null && <span className="text-money">{formatCentsCompact(daily)}/天</span>}
           {warranty !== null && status === 'owned' && (
             <span
@@ -261,29 +268,19 @@ export default function ItemsListPage() {
         </p>
       </header>
 
-      {/* 生命周期切换：持有 / 心愿 / 处置 —— 对应真实数据字段 */}
+      {/* 生命周期切换：持有 / 心愿 / 处置 —— 对应真实数据字段。
+          复用全站唯一的 SegmentedControl，与设置页的外观模式保持同一套控件语言。 */}
       <div className="mt-5 px-5">
-        <div className="flex gap-1.5">
-          {STATUS_TABS.map((t) => {
-            const active = status === t.key
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setStatus(t.key)}
-                aria-pressed={active}
-                className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-pill text-secondary transition-colors duration-150 ease-out-quint ${
-                  active ? 'bg-ink-solid font-medium text-ink-inverse' : 'bg-surface-sunken text-ink-secondary'
-                }`}
-              >
-                {t.label}
-                <span className={`num text-[11px] ${active ? 'text-ink-inverse opacity-70' : 'text-ink-tertiary'}`}>
-                  {counts[t.key]}
-                </span>
-              </button>
-            )
-          })}
-        </div>
+        <SegmentedControl
+          ariaLabel="物品状态"
+          value={status}
+          onChange={setStatus}
+          options={STATUS_TABS.map((t) => ({
+            value: t.key,
+            label: t.label,
+            hint: String(counts[t.key]),
+          }))}
+        />
       </div>
 
       {/* 工具栏：搜索 / 分类 / 排序 / 视图 */}
@@ -418,7 +415,7 @@ function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       className={`flex h-8 shrink-0 items-center whitespace-nowrap rounded-pill px-3 text-caption transition-colors duration-150 ease-out-quint ${
-        active ? 'bg-ink-solid font-medium text-ink-inverse' : 'bg-surface-sunken text-ink-secondary'
+        active ? 'bg-accent font-medium text-ink-inverse' : 'bg-surface-sunken text-ink-secondary'
       }`}
     >
       {children}

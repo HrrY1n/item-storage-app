@@ -160,7 +160,7 @@ export default function IconPickerSheet({ open, value, onSelect, onClose }: Prop
                     aria-pressed={active}
                     className={`flex min-h-[32px] shrink-0 items-center whitespace-nowrap rounded-pill px-3 text-caption transition-colors duration-150 ease-out-quint ${
                       active
-                        ? 'bg-ink-solid font-medium text-ink-inverse'
+                        ? 'bg-accent font-medium text-ink-inverse'
                         : 'bg-surface-sunken text-ink-secondary'
                     }`}
                   >

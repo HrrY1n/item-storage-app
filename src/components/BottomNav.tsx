@@ -72,17 +72,15 @@ export default function BottomNav() {
               className="group flex min-h-[64px] flex-1 items-center justify-center"
             >
               {({ isActive }) => (
-                <span className="flex flex-col items-center gap-0.5">
-                  <span
-                    className={`flex h-[30px] w-[44px] items-center justify-center rounded-pill transition-colors duration-200 ease-out-quint ${
-                      isActive ? 'bg-accent-soft text-accent' : 'text-ink-tertiary'
-                    }`}
-                  >
-                    <Icon active={isActive} />
-                  </span>
+                <span
+                  className={`flex flex-col items-center gap-1 rounded-pill px-3 py-1.5 transition-colors duration-200 ease-out-quint ${
+                    isActive ? 'bg-accent-soft text-accent' : 'text-ink-tertiary'
+                  }`}
+                >
+                  <Icon active={isActive} />
                   <span
                     className={`text-[10px] leading-none tracking-[0.04em] transition-colors duration-200 ${
-                      isActive ? 'font-medium text-ink-primary' : 'text-ink-tertiary'
+                      isActive ? 'font-medium text-accent' : 'text-ink-tertiary'
                     }`}
                   >
                     {label}

@@ -148,7 +148,7 @@ export default function ConvertToOwnedSheet({
                 aria-pressed={platform === p}
                 className={`flex h-8 items-center whitespace-nowrap rounded-pill px-3 text-caption transition-colors duration-150 ${
                   platform === p
-                    ? 'bg-ink-solid font-medium text-ink-inverse'
+                    ? 'bg-accent font-medium text-ink-inverse'
                     : 'bg-surface-sunken text-ink-secondary'
                 }`}
               >

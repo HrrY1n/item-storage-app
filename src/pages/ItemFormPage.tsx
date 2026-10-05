@@ -89,7 +89,7 @@ function ChipButton({
       onClick={onClick}
       aria-pressed={selected}
       className={`flex min-h-[36px] items-center whitespace-nowrap rounded-pill px-3.5 text-secondary transition-colors duration-150 active:scale-[0.97] ${
-        selected ? 'bg-ink-solid text-ink-inverse' : restClass
+        selected ? 'bg-accent text-ink-inverse' : restClass
       }`}
     >
       {label}

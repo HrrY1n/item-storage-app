@@ -196,7 +196,7 @@ export default function CategoryManagePage() {
                 type="button"
                 onClick={() => setEditor({ ...editor, parentId: null })}
                 className={`flex min-h-[44px] w-full items-center px-4 text-left text-body transition-colors ${
-                  editor.parentId === null ? 'bg-ink-solid text-ink-inverse' : 'text-ink-primary active:bg-surface-sunken'
+                  editor.parentId === null ? 'bg-accent text-ink-inverse' : 'text-ink-primary active:bg-surface-sunken'
                 }`}
               >
                 作为一级分类
@@ -207,7 +207,7 @@ export default function CategoryManagePage() {
                   type="button"
                   onClick={() => setEditor({ ...editor, parentId: n.category.id })}
                   className={`flex min-h-[44px] w-full items-center px-4 text-left text-body transition-colors ${
-                    editor.parentId === n.category.id ? 'bg-ink-solid text-ink-inverse' : 'text-ink-primary active:bg-surface-sunken'
+                    editor.parentId === n.category.id ? 'bg-accent text-ink-inverse' : 'text-ink-primary active:bg-surface-sunken'
                   }`}
                   style={{ paddingLeft: 16 + n.depth * 18 }}
                 >
