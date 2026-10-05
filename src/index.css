@@ -20,10 +20,13 @@
 [data-theme='light'] {
   color-scheme: light;
 
-  --color-canvas: #fafafa;
+  /* Phase 2H：页面底明显比卡片沉一档（冷灰 canvas ≈ #F2F2F4），卡片靠明度差自然抬升，
+     而不是靠阴影硬撑。iOS grouped interface 的三级结构：
+     canvas（页面）→ surface（section 卡）→ sunken（inner cell） */
+  --color-canvas: #f2f2f4;
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-surface-sunken: #f4f4f3;
+  --color-surface-sunken: #e9e9ec;
   --color-plate: #f5f4f0;
   /* 物品展台的"打光"：同一套配方，不是每张卡片随机渐变 */
   --plate-sheen: rgba(255, 255, 255, 0.85);
@@ -58,6 +61,19 @@
   --color-danger: #c0392b;
   --color-danger-soft: #fbefed;
 
+  /* info：普通交互链接 / 清除 / 设置 / 查看全部。
+     系统蓝风格但降过饱和以适配暖色品牌；品牌 accent 仍然只做选中与品牌强调。 */
+  --color-info: #2f6bd0;
+  --color-info-soft: #edf2fb;
+
+  /* Hero Surface：物品身份卡的专属材质，独立于普通 surface。
+     浅色 = 极淡的暖 plum tint（柔和、不艳），底部透出品牌陶土的微光。 */
+  --color-hero: #f2eef3;
+  --color-hero-top: #f7f4f8;
+  --color-hero-bottom: #ebe6ee;
+  --color-hero-line: rgba(23, 23, 23, 0.07);
+  --hero-glow: rgba(180, 85, 59, 0.09);
+
   --color-overlay: rgba(23, 23, 23, 0.26);
   --color-focus-ring: rgba(23, 23, 23, 0.55);
   --color-selection: rgba(180, 85, 59, 0.16);
@@ -80,14 +96,16 @@
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --color-canvas: #0e0e10;
-  --color-surface: #17171a;
-  --color-surface-raised: #1f1f23;
-  --color-surface-sunken: #232327;
-  --color-plate: #232327;
+  /* Phase 2H：深色三级各自抬升一档（canvas → surface → raised/sunken），
+     目标是一眼分辨 页面 / 卡片 / 内部控件 / 悬浮 Chrome，杜绝"糊成一团"。 */
+  --color-canvas: #101013;
+  --color-surface: #1c1c21;
+  --color-surface-raised: #26262c;
+  --color-surface-sunken: #2a2a31;
+  --color-plate: #26262c;
   --plate-sheen: rgba(255, 255, 255, 0.055);
-  --plate-top: #2b2b30;
-  --plate-bottom: #1c1c20;
+  --plate-top: #303039;
+  --plate-bottom: #212127;
   --plate-glow: rgba(216, 138, 98, 0.17);
 
   --color-ink-primary: #f4f4f2;
@@ -115,6 +133,17 @@
   --color-success-soft: #16241d;
   --color-danger: #e5645a;
   --color-danger-soft: #2a1a19;
+
+  --color-info: #7aa7f0;
+  --color-info-soft: #1d2536;
+
+  /* 深色 Hero：与浅色同一规则，但更深、更饱和——暖 plum 底 + 陶土微光，
+     "同一信息架构，两套独立调过的材质"的样板。 */
+  --color-hero: #252130;
+  --color-hero-top: #2d2839;
+  --color-hero-bottom: #1e1a28;
+  --color-hero-line: rgba(255, 255, 255, 0.08);
+  --hero-glow: rgba(224, 150, 120, 0.14);
 
   --color-overlay: rgba(0, 0, 0, 0.62);
   --color-focus-ring: rgba(244, 244, 242, 0.6);
@@ -271,6 +300,16 @@ p {
     background-image:
       radial-gradient(85% 58% at 50% 14%, var(--plate-glow) 0%, transparent 72%),
       linear-gradient(180deg, var(--plate-top) 0%, var(--plate-bottom) 100%);
+  }
+
+  /* Hero Surface（Phase 2H）：物品身份卡的专属打光，与普通展台（plate-surface）刻意不同——
+     带一层极淡的主题 tint（暖 plum）与集中的顶部光晕。所有物品共用同一配方，
+     颜色只来自 --color-hero-* / --hero-glow token，组件里绝不出现 hex。 */
+  .hero-surface {
+    background-color: var(--color-hero);
+    background-image:
+      radial-gradient(90% 62% at 50% 10%, var(--hero-glow) 0%, transparent 70%),
+      linear-gradient(180deg, var(--color-hero-top) 0%, var(--color-hero-bottom) 100%);
   }
 }
 

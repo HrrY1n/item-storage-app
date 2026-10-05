@@ -15,8 +15,8 @@ export const THEME_STORAGE_KEY = 'pil.theme'
 
 /** 与 tailwind --color-canvas 完全一致；用于 <meta name="theme-color"> */
 export const CANVAS_COLOR: Record<ResolvedTheme, string> = {
-  light: '#FAFAFA',
-  dark: '#0E0E10',
+  light: '#F2F2F4',
+  dark: '#101013',
 }
 
 export const THEME_PREFERENCES: ThemePreference[] = ['system', 'light', 'dark']

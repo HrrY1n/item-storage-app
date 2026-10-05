@@ -155,10 +155,10 @@ export default function HomePage() {
         </div>
       ) : (
         <>
-          {/* ① 持有中总投入 + ② 三个关键指标 */}
+          {/* ① 持有中总投入 + ② 三个关键指标 —— 主视觉 anchor：Hero 材质让它一眼是"第一块" */}
           <section className="mt-6 px-5">
             <div className="overflow-hidden rounded-surface border border-line bg-surface shadow-card">
-              <div className="px-4 pb-4 pt-4">
+              <div className="hero-surface px-4 pb-4 pt-4">
                 <p className="text-label text-money-deep">持有中总投入</p>
                 {totalText !== null ? (
                   <>
@@ -240,7 +240,7 @@ export default function HomePage() {
                 action={
                   <Link
                     to="/items"
-                    className="group inline-flex items-center gap-1 text-secondary text-ink-tertiary transition-colors active:opacity-60 sm:hover:text-ink-primary"
+                    className="group inline-flex items-center gap-1 text-secondary text-info transition-opacity active:opacity-60 sm:hover:opacity-75"
                   >
                     全部
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-out-quint sm:group-hover:translate-x-0.5">
@@ -312,7 +312,7 @@ export default function HomePage() {
                 action={
                   <Link
                     to="/categories"
-                    className="group inline-flex items-center gap-1 text-secondary text-ink-tertiary transition-colors active:opacity-60 sm:hover:text-ink-primary"
+                    className="group inline-flex items-center gap-1 text-secondary text-info transition-opacity active:opacity-60 sm:hover:opacity-75"
                   >
                     全部
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 ease-out-quint sm:group-hover:translate-x-0.5">

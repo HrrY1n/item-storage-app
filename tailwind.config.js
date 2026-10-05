@@ -86,6 +86,24 @@ export default {
           DEFAULT: 'var(--color-danger)',
           soft: 'var(--color-danger-soft)',
         },
+        /**
+         * info：普通交互（链接 / 清除 / 设置 / 查看全部 / 编辑入口）。
+         * 与 accent 分工：accent = 品牌 / 选中，info = 可执行的普通操作。
+         */
+        info: {
+          DEFAULT: 'var(--color-info)',
+          soft: 'var(--color-info-soft)',
+        },
+        /**
+         * Hero Surface：物品身份卡专属材质（见 index.css 的 .hero-surface）。
+         * 只在 Hero 与其分界线上使用，绝不当作普通卡片底色。
+         */
+        hero: {
+          DEFAULT: 'var(--color-hero)',
+          top: 'var(--color-hero-top)',
+          bottom: 'var(--color-hero-bottom)',
+          line: 'var(--color-hero-line)',
+        },
         overlay: 'var(--color-overlay)',
       },
       spacing: {

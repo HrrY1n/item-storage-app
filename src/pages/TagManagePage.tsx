@@ -189,7 +189,7 @@ export default function TagManagePage() {
                 }`}
               >
                 #{t.name}
-                <span className={`ml-2 text-caption ${mergeTargetId === t.id ? 'text-ink-inverse/70' : 'text-ink-tertiary'}`}>
+                <span className={`ml-2 text-caption ${mergeTargetId === t.id ? 'text-ink-inverse opacity-70' : 'text-ink-tertiary'}`}>
                   {countOf(t.id)} 件
                 </span>
               </button>

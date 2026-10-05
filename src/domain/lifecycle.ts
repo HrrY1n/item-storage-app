@@ -186,6 +186,40 @@ export function warrantyOf(item: Item, today: string = todayString()): WarrantyI
   return warrantyInfo(item.warrantyExpiresAt, today)
 }
 
+export interface WarrantyProgress {
+  /**
+   * 保修期剩余比例（0–1）。用于进度条填充。
+   * - 已过保 → 0
+   * - 无法计算（缺购买日期 / 起点不合法）→ null（UI 只显示文字，不画进度条）
+   */
+  ratio: number | null
+  /** 保修总天数；无法计算为 null */
+  totalDays: number | null
+  /** 已流逝天数；无法计算为 null */
+  elapsedDays: number | null
+}
+
+/**
+ * 保修期进度（创建/购买日 → 到期日的剩余比例），供 WarrantyStrip 图形化。
+ * 纯展示辅助：任何数据不足都返回 null 比例，UI 优雅降级为纯文字。
+ */
+export function warrantyProgressOf(item: Item, today: string = todayString()): WarrantyProgress {
+  const empty: WarrantyProgress = { ratio: null, totalDays: null, elapsedDays: null }
+  if (item.warrantyExpiresAt === null) return empty
+  const expiry = parseDateToDayNumber(item.warrantyExpiresAt)
+  const now = parseDateToDayNumber(today)
+  if (expiry === null || now === null) return empty
+
+  if (expiry <= now) return { ratio: 0, totalDays: null, elapsedDays: null }
+
+  const start = item.purchaseDate !== null ? parseDateToDayNumber(item.purchaseDate) : null
+  if (start === null || start >= expiry) return empty
+
+  const totalDays = expiry - start
+  const elapsedDays = Math.min(totalDays, Math.max(0, now - start))
+  return { ratio: 1 - elapsedDays / totalDays, totalDays, elapsedDays }
+}
+
 // ---------------------------------------------------------------- 不变量
 
 export interface LifecycleInput {

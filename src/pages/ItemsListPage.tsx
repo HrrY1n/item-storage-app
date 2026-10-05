@@ -25,7 +25,8 @@ import {
   type ItemSortKey,
 } from '../features/data/viewModels'
 import { ObjectPlate } from '../components/ItemCard'
-import { StatusChip, WarrantyChip } from '../components/StatusChip'
+import { StatusChip } from '../components/StatusChip'
+import WarrantyStrip from '../components/WarrantyStrip'
 import TagChip from '../components/TagChip'
 import EmptyState from '../components/EmptyState'
 
@@ -99,11 +100,7 @@ function GridCard({
             <StatusChip status={status} size="sm" />
           </span>
         )}
-        {status === 'owned' && item.warrantyExpiresAt && (
-          <span className="absolute left-2 top-2">
-            <WarrantyChip item={item} today={today} size="sm" />
-          </span>
-        )}
+        {/* 持有物品的保修信息由底部 WarrantyStrip 承担，图区不再叠加 chip */}
       </div>
       <div className="flex flex-1 flex-col p-3">
         <p className="line-clamp-2 min-h-[40px] text-item text-ink-primary">{item.name}</p>
@@ -138,6 +135,10 @@ function GridCard({
           </div>
         )}
       </div>
+      {/* 保修进度条：只有真正有保修数据的持有物品才出现，无保修卡片零空白 */}
+      {status === 'owned' && item.warrantyExpiresAt !== null && (
+        <WarrantyStrip item={item} today={today} />
+      )}
     </Link>
   )
 }
@@ -276,7 +277,7 @@ export default function ItemsListPage() {
                 }`}
               >
                 {t.label}
-                <span className={`num text-[11px] ${active ? 'text-ink-inverse/70' : 'text-ink-tertiary'}`}>
+                <span className={`num text-[11px] ${active ? 'text-ink-inverse opacity-70' : 'text-ink-tertiary'}`}>
                   {counts[t.key]}
                 </span>
               </button>

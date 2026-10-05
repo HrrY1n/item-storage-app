@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { categoryPath } from '../domain/categoryTree'
 import {
@@ -19,6 +19,7 @@ import {
   ownershipDaysOf,
   statusOf,
   warrantyInfo,
+  warrantyProgressOf,
 } from '../domain/lifecycle'
 import {
   useCategories,
@@ -37,6 +38,22 @@ import { StatusChip, WarrantyChip } from '../components/StatusChip'
 import DisposalSheet, { type DisposalResult } from '../components/DisposalSheet'
 import ConvertToOwnedSheet, { type PurchaseInput } from '../components/ConvertToOwnedSheet'
 import { useToast } from '../components/Toast'
+import { useHeaderCollapse } from '../features/ui/useHeaderCollapse'
+
+/** 分组容器：section 卡 + 标题。整页的 grouped 语言由此统一。 */
+function GroupCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="mt-3 overflow-hidden rounded-surface border border-line bg-surface shadow-card">
+      <p className="px-4 pt-3.5 text-label text-ink-tertiary">{title}</p>
+      <div className="px-4 pb-4 pt-2">{children}</div>
+    </section>
+  )
+}
+
+/** Inner cell：分组内更沉一层的信息格，字段行铺在其上 */
+function InnerCell({ children }: { children: ReactNode }) {
+  return <div className="rounded-control bg-surface-sunken px-3.5 py-2.5">{children}</div>
+}
 
 /** 三级信息行：左标签右数值，中间以极细虚线引导 */
 function SpecRow({
@@ -69,6 +86,20 @@ function SpecRow({
   )
 }
 
+/** 记录时间戳（createdAt / updatedAt 是完整 ISO 串，与纯日期字段分开格式化） */
+function formatTimestamp(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
 /** Hero 指标格：数字是结论，标签只是单位说明 */
 function HeroMetric({ label, value, money }: { label: string; value: string; money?: boolean }) {
   return (
@@ -79,7 +110,7 @@ function HeroMetric({ label, value, money }: { label: string; value: string; mon
   )
 }
 
-/** 生命周期操作：只列业务上有意义的动作，不为了凑格子硬加 */
+/** 生命周期操作：语义 tint 只到 soft 一级，绝不满铺 */
 function ActionButton({
   label,
   hint,
@@ -89,29 +120,34 @@ function ActionButton({
   label: string
   hint?: string
   onClick: () => void
-  tone?: 'plain' | 'danger'
+  tone?: 'plain' | 'info' | 'success' | 'money' | 'danger'
 }) {
+  const tones: Record<string, string> = {
+    plain: 'border-line bg-surface text-ink-primary active:bg-surface-sunken',
+    info: 'border-transparent bg-info-soft text-info',
+    success: 'border-transparent bg-success-soft text-success',
+    money: 'border-money-line bg-money-soft text-money-deep',
+    danger: 'border-transparent bg-danger-soft text-danger',
+  }
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[56px] w-full flex-col items-center justify-center gap-0.5 rounded-control border px-3 transition-colors duration-150 active:opacity-70 ${
-        tone === 'danger'
-          ? 'border-line text-danger active:bg-danger-soft'
-          : 'border-line bg-surface text-ink-primary active:bg-surface-sunken'
-      }`}
+      className={`flex min-h-[56px] w-full flex-col items-center justify-center gap-0.5 rounded-control border px-3 transition-colors duration-150 active:opacity-70 ${tones[tone]}`}
     >
-      <span className="text-secondary">{label}</span>
+      <span className="text-secondary font-medium">{label}</span>
       {hint && <span className="text-[10px] text-ink-tertiary">{hint}</span>}
     </button>
   )
 }
 
 /**
- * 物品详情：一份"物品档案"。
+ * 物品详情：一份"物品档案"（Phase 2H 重构）。
  *
- * 顺序：Hero（这是谁 + 值多少）→ 状态 → 保修 → 处置 → 投入明细 → 标签 → 备注 → 生命周期操作
- * 刻意不做成一堆等高卡片：用打光盘面、留白、hairline 与字号差建立节奏。
+ * 层级（由高到低）：
+ *   Large Title → Hero 身份卡（这是谁 + 值多少）→ 信息分组 → 生命周期操作
+ * 分组 = GroupCard（surface）+ InnerCell（sunken）+ hairline，不是一堆等权重卡片。
+ * 不伪造数据：保修 / 处置 / 标签 / 备注 / 记录信息都只在有数据时出现。
  */
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -120,6 +156,7 @@ export default function ItemDetailPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [disposalOpen, setDisposalOpen] = useState(false)
   const [convertOpen, setConvertOpen] = useState(false)
+  const { sentinelRef, collapsed } = useHeaderCollapse<HTMLDivElement>()
 
   const item = useItem(id)
   const categories = useCategories()
@@ -153,6 +190,7 @@ export default function ItemDetailPage() {
   const net = effectiveCostCents(item)
   const daily = dailyCostOf(item, today)
   const warranty = warrantyInfo(item.warrantyExpiresAt, today)
+  const warrantyProgress = isOwned(item) ? warrantyProgressOf(item, today) : null
   const sold = isDisposed(item) && item.disposalMethod === 'sold' && item.salePriceCents !== null
 
   // Hero 三栏的措辞严格按状态区分：
@@ -231,11 +269,13 @@ export default function ItemDetailPage() {
   return (
     <div>
       <PageHeader
-        title=""
+        title="物品详情"
+        floating
+        collapsed={collapsed}
         right={
           <Link
             to={`/items/${item.id}/edit`}
-            className="flex min-h-[36px] items-center px-1 text-item text-ink-primary transition-opacity active:opacity-50 sm:hover:opacity-60"
+            className="flex min-h-[28px] items-center px-1 text-item text-ink-primary transition-opacity active:opacity-50 sm:hover:opacity-60"
           >
             编辑
           </Link>
@@ -243,9 +283,14 @@ export default function ItemDetailPage() {
       />
 
       <div className="animate-fade-rise px-5 pt-3">
-        {/* Hero：物品是主角。打光盘面 + 物品直接落在光盘面上（不套第二层底衬） */}
-        <section className="overflow-hidden rounded-surface border border-line bg-surface shadow-card">
-          <div className="plate-surface-lg px-5 pb-4 pt-5">
+        {/* Large Title：滚动离场后由 sticky header 的居中小标题接管 */}
+        <div ref={sentinelRef}>
+          <h1 className="text-page-title text-ink-primary">物品详情</h1>
+        </div>
+
+        {/* Hero：物品身份卡。hero-surface 是专属材质（独立 token），与普通卡片一眼可辨 */}
+        <section className="mt-3 overflow-hidden rounded-surface border border-hero-line bg-hero shadow-card">
+          <div className="hero-surface px-5 pb-4 pt-5">
             <div className="mx-auto w-[52%]">
               <ObjectPlate
                 src={iconUrl}
@@ -257,7 +302,7 @@ export default function ItemDetailPage() {
             </div>
 
             <div className="mt-5 text-center">
-              <h1 className="text-title-card text-ink-primary">{item.name}</h1>
+              <h2 className="text-title-card text-ink-primary">{item.name}</h2>
               {category && (
                 <Link
                   to={`/categories/${category.id}`}
@@ -279,7 +324,7 @@ export default function ItemDetailPage() {
 
           {heroMetrics.length > 0 && (
             <div
-              className={`grid divide-x divide-line-inner border-t border-line px-2 py-3.5 ${
+              className={`grid divide-x divide-line-inner border-t border-hero-line px-2 py-3.5 ${
                 heroMetrics.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
               }`}
             >
@@ -300,52 +345,10 @@ export default function ItemDetailPage() {
           </section>
         )}
 
-        {/* 保修追踪 */}
-        {warranty !== null && isOwned(item) && (
-          <section className="mt-3 rounded-surface border border-line bg-surface p-4 shadow-card">
-            <div className="flex items-center justify-between">
-              <p className="text-label text-ink-tertiary">保修追踪</p>
-              <WarrantyChip item={item} today={today} />
-            </div>
-            <p className="mt-2.5 text-body text-ink-primary">{warranty.detail}</p>
-            <p className="num mt-1 text-caption text-ink-tertiary">
-              到期日：{formatPurchaseDate(warranty.expiresAt)}
-            </p>
-          </section>
-        )}
-
-        {/* 处置信息 */}
-        {isDisposed(item) && (
-          <section className="mt-3 rounded-surface border border-line bg-surface p-4 shadow-card">
-            <p className="text-label text-ink-tertiary">处置信息</p>
-            <div className="mt-2.5">
-              {item.disposalMethod && (
-                <SpecRow label="方式" value={DISPOSAL_METHOD_LABELS[item.disposalMethod]} />
-              )}
-              {item.disposedAt && (
-                <SpecRow label="处置日期" value={formatPurchaseDate(item.disposedAt)} />
-              )}
-              {sold && <SpecRow label="出售金额" value={formatCents(item.salePriceCents ?? 0)} money />}
-              {sold && gross !== null && <SpecRow label="原始总投入" value={formatCents(gross)} />}
-              {item.disposalNote && <SpecRow label="备注" value={item.disposalNote} />}
-            </div>
-            {sold && net !== null && (
-              <p className="mt-2 text-caption text-ink-tertiary">
-                实际持有成本 = 原始总投入 − 出售金额
-                {net < 0 && '（卖得比买得多，实际是收益）'}
-              </p>
-            )}
-            <p className="num mt-2 text-caption text-ink-tertiary">
-              持有天数已冻结在处置日，之后不会再增长。
-            </p>
-          </section>
-        )}
-
-        {/* 投入明细：子表面 + 虚线 + 金额色，让"这笔钱怎么来的"一眼可读 */}
+        {/* 购买与投入：section + inner cell，构成"价格怎么来的" */}
         {gross !== null && (
-          <section className="mt-3 rounded-surface border border-line bg-surface p-4 shadow-card">
-            <p className="text-label text-ink-tertiary">购买与投入</p>
-            <div className="mt-2.5 rounded-control bg-surface-sunken px-3.5 py-2.5">
+          <GroupCard title="购买与投入">
+            <InnerCell>
               {item.purchasePriceCents !== null && (
                 <SpecRow label="购买价格" value={formatCents(item.purchasePriceCents)} />
               )}
@@ -359,7 +362,7 @@ export default function ItemDetailPage() {
                   {formatCents(gross)}
                 </span>
               </div>
-            </div>
+            </InnerCell>
             {(item.purchaseDate || item.purchasePlatform) && (
               <div className="mt-2.5">
                 {item.purchaseDate && (
@@ -370,35 +373,94 @@ export default function ItemDetailPage() {
                 )}
               </div>
             )}
-          </section>
+          </GroupCard>
+        )}
+
+        {/* 保修追踪：有数据才出现；进度条只在可计算时出现 */}
+        {warranty !== null && isOwned(item) && (
+          <GroupCard title="保修追踪">
+            <div className="flex items-center justify-between">
+              <p className="text-body text-ink-primary">{warranty.detail}</p>
+              <WarrantyChip item={item} today={today} />
+            </div>
+            <p className="num mt-1 text-caption text-ink-tertiary">
+              到期日：{formatPurchaseDate(warranty.expiresAt)}
+            </p>
+            {warrantyProgress?.ratio != null && warranty.state !== 'expired' && (
+              <div className="mt-3">
+                <div className="h-1.5 overflow-hidden rounded-pill bg-surface-sunken">
+                  <div
+                    className={`h-full rounded-pill transition-[width] duration-500 ease-out-quint ${
+                      warranty.state === 'expiring' ? 'bg-danger' : 'bg-success'
+                    }`}
+                    style={{ width: `${Math.max(3, Math.round(warrantyProgress.ratio * 100))}%` }}
+                  />
+                </div>
+                <p className="num mt-1.5 text-caption text-ink-tertiary">
+                  保修期已过 {Math.round((1 - warrantyProgress.ratio) * 100)}%
+                </p>
+              </div>
+            )}
+          </GroupCard>
+        )}
+
+        {/* 处置信息 */}
+        {isDisposed(item) && (
+          <GroupCard title="处置信息">
+            {item.disposalMethod && (
+              <SpecRow label="方式" value={DISPOSAL_METHOD_LABELS[item.disposalMethod]} />
+            )}
+            {item.disposedAt && (
+              <SpecRow label="处置日期" value={formatPurchaseDate(item.disposedAt)} />
+            )}
+            {sold && <SpecRow label="出售金额" value={formatCents(item.salePriceCents ?? 0)} money />}
+            {sold && gross !== null && <SpecRow label="原始总投入" value={formatCents(gross)} />}
+            {item.disposalNote && <SpecRow label="备注" value={item.disposalNote} />}
+            {sold && net !== null && (
+              <p className="mt-2 text-caption text-ink-tertiary">
+                实际持有成本 = 原始总投入 − 出售金额
+                {net < 0 && '（卖得比买得多，实际是收益）'}
+              </p>
+            )}
+            <p className="num mt-2 text-caption text-ink-tertiary">
+              持有天数已冻结在处置日，之后不会再增长。
+            </p>
+          </GroupCard>
         )}
 
         {/* 标签 */}
         {itemTags.length > 0 && (
-          <section className="mt-3 rounded-surface border border-line bg-surface p-4 shadow-card">
-            <p className="text-label text-ink-tertiary">标签</p>
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
+          <GroupCard title="标签">
+            <div className="flex flex-wrap gap-1.5">
               {itemTags.map((tag) => (
                 <TagChip key={tag.id} name={tag.name} />
               ))}
             </div>
-          </section>
+          </GroupCard>
         )}
 
         {/* 备注 */}
         {item.note && (
-          <section className="mt-3 rounded-surface border border-line bg-surface p-4 shadow-card">
-            <p className="text-label text-ink-tertiary">备注</p>
-            <p className="mt-2 text-body leading-relaxed text-ink-secondary">{item.note}</p>
-          </section>
+          <GroupCard title="备注">
+            <p className="text-body leading-relaxed text-ink-secondary">{item.note}</p>
+          </GroupCard>
         )}
 
-        {/* 生命周期操作：按当前状态给出有意义的动作，不凑格子 */}
+        {/* 记录信息：只有真实的 createdAt / updatedAt，不伪造完整时间线 */}
+        <GroupCard title="记录信息">
+          <SpecRow label="创建于" value={formatTimestamp(item.createdAt)} />
+          {item.updatedAt !== item.createdAt && (
+            <SpecRow label="最近更新" value={formatTimestamp(item.updatedAt)} />
+          )}
+        </GroupCard>
+
+        {/* 生命周期操作：按当前状态给出有意义的动作，语义 tint 只到 soft 一级 */}
         <section className="mt-6 grid grid-cols-2 gap-2.5">
           {isWishlist(item) && (
             <ActionButton
               label="转为持有"
               hint="补齐购买信息"
+              tone="success"
               onClick={() => setConvertOpen(true)}
             />
           )}
@@ -406,6 +468,7 @@ export default function ItemDetailPage() {
             <ActionButton
               label="处置物品"
               hint="出售 / 丢弃 / 其他"
+              tone="money"
               onClick={() => setDisposalOpen(true)}
             />
           )}
@@ -413,11 +476,22 @@ export default function ItemDetailPage() {
             <ActionButton
               label="恢复为持有"
               hint="保留购买数据"
+              tone="success"
               onClick={() => void handleRestore()}
             />
           )}
-          <ActionButton label="编辑物品" onClick={() => navigate(`/items/${item.id}/edit`)} />
-          <ActionButton label="删除物品" tone="danger" onClick={() => setConfirmingDelete(true)} />
+          <ActionButton
+            label="编辑物品"
+            hint="修改物品信息"
+            tone="info"
+            onClick={() => navigate(`/items/${item.id}/edit`)}
+          />
+          <ActionButton
+            label="删除物品"
+            hint="永久移除"
+            tone="danger"
+            onClick={() => setConfirmingDelete(true)}
+          />
         </section>
       </div>
 

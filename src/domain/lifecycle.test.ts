@@ -16,6 +16,7 @@ import {
   statusOf,
   validateDisposal,
   warrantyInfo,
+  warrantyProgressOf,
 } from './lifecycle'
 import { formatCents, formatCentsCompact } from './purchase'
 import { makeItem } from '../test/fixtures'
@@ -447,5 +448,45 @@ describe('Dashboard 计算', () => {
 
   it('没有任何持有物品时分布为空', () => {
     expect(categoryDistribution([makeItem({ status: 'wishlist' })], [cat('c1', '数码')])).toEqual([])
+  })
+})
+
+// ---------------------------------------------------------------- 保修进度（Phase 2H）
+
+describe('warrantyProgressOf', () => {
+  it('无保修日期 → 全 null（UI 优雅降级为纯文字）', () => {
+    const p = warrantyProgressOf(makeItem(), TODAY)
+    expect(p.ratio).toBeNull()
+    expect(p.totalDays).toBeNull()
+    expect(p.elapsedDays).toBeNull()
+  })
+
+  it('保修期内：剩余比例 = 剩余天数 / 总天数', () => {
+    // 购买 2026-07-01，保修到 2027-01-01 → 总 184 天，到 TODAY 已过 96 天，剩 88 天
+    const item = makeItem({ purchaseDate: '2026-07-01', warrantyExpiresAt: '2027-01-01' })
+    const p = warrantyProgressOf(item, TODAY)
+    expect(p.totalDays).toBe(184)
+    expect(p.elapsedDays).toBe(96)
+    expect(p.ratio).toBeCloseTo(88 / 184, 6)
+  })
+
+  it('已过保：比例为 0（不是负数），不提供总天数', () => {
+    const item = makeItem({ purchaseDate: '2026-01-01', warrantyExpiresAt: '2026-06-01' })
+    const p = warrantyProgressOf(item, TODAY)
+    expect(p.ratio).toBe(0)
+    expect(p.totalDays).toBeNull()
+  })
+
+  it('缺购买日期但有保修日期：比例 null（无法画进度），但不崩溃', () => {
+    const item = makeItem({ purchaseDate: null, warrantyExpiresAt: '2027-01-01' })
+    const p = warrantyProgressOf(item, TODAY)
+    expect(p.ratio).toBeNull()
+  })
+
+  it('保修到期不晚于购买日期（脏数据）：比例 null', () => {
+    const item = makeItem({ purchaseDate: '2026-11-01', warrantyExpiresAt: '2026-11-01' })
+    expect(warrantyProgressOf(item, TODAY).ratio).toBeNull()
+    const before = makeItem({ purchaseDate: '2026-11-01', warrantyExpiresAt: '2026-10-31' })
+    expect(warrantyProgressOf(before, TODAY).ratio).toBeNull()
   })
 })

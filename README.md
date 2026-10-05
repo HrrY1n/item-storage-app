@@ -10,58 +10,58 @@
 
 ---
 
-## 界面预览
+## 界面预览（Phase 2H）
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/phase2g/01-dashboard-light.png" alt="概览 · 浅色"></td>
-<td width="50%"><img src="docs/screenshots/phase2g/02-dashboard-dark.png" alt="概览 · 深色"></td>
+<td width="50%"><img src="docs/screenshots/phase2h/01-dashboard-light.png" alt="概览 · 浅色"></td>
+<td width="50%"><img src="docs/screenshots/phase2h/02-dashboard-dark.png" alt="概览 · 深色"></td>
 </tr>
 <tr>
-<td align="center"><sub>概览 Dashboard · 总投入 / 保修提醒 / 分类分布 / 最近添加</sub></td>
-<td align="center"><sub>概览 Dashboard · 深色</sub></td>
+<td align="center"><sub>概览 Dashboard · Hero 材质主锚点 + 信息分组</sub></td>
+<td align="center"><sub>概览 Dashboard · 深色（独立调校的材质系统）</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/phase2g/03-items-owned.png" alt="物品列表 · 持有"></td>
-<td><img src="docs/screenshots/phase2g/04-items-disposed.png" alt="物品列表 · 处置"></td>
+<td><img src="docs/screenshots/phase2h/03-items-grid-light.png" alt="物品列表 · 浅色"></td>
+<td><img src="docs/screenshots/phase2h/04-items-grid-dark.png" alt="物品列表 · 深色"></td>
 </tr>
 <tr>
-<td align="center"><sub>物品列表 · 持有（两列网格 + 三栏指标）</sub></td>
-<td align="center"><sub>物品列表 · 处置（冻结天数 / 出售金额）</sub></td>
+<td align="center"><sub>物品列表 · 网格卡 + 保修进度条</sub></td>
+<td align="center"><sub>物品列表 · 深色</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/phase2g/06-detail-owned.png" alt="物品档案 · 持有"></td>
-<td><img src="docs/screenshots/phase2g/07-detail-sold-dark.png" alt="物品档案 · 已出售"></td>
+<td><img src="docs/screenshots/phase2h/05-detail-top-light.png" alt="物品档案 · 浅色"></td>
+<td><img src="docs/screenshots/phase2h/06-detail-top-dark.png" alt="物品档案 · 深色"></td>
 </tr>
 <tr>
-<td align="center"><sub>物品档案 · 持有中（Hero + 购买明细 + 保修追踪）</sub></td>
-<td align="center"><sub>物品档案 · 已出售（实际持有成本口径）· 深色</sub></td>
+<td align="center"><sub>Large Title + Hero Surface 身份卡 + Grouped Sections</sub></td>
+<td align="center"><sub>物品档案 · 深色 Hero</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/phase2g/08-disposal-sheet.png" alt="处置物品"></td>
-<td><img src="docs/screenshots/phase2g/09-form-wishlist.png" alt="心愿物品表单"></td>
+<td><img src="docs/screenshots/phase2h/07-detail-scrolled-light.png" alt="滚动折叠 · 浅色"></td>
+<td><img src="docs/screenshots/phase2h/08-detail-scrolled-dark.png" alt="滚动折叠 · 深色"></td>
 </tr>
 <tr>
-<td align="center"><sub>处置物品 · 出售 / 丢弃 / 其他</sub></td>
-<td align="center"><sub>心愿物品 · 无购买信息也可保存</sub></td>
+<td align="center"><sub>滚动后 Compact Header（居中小标题 + chrome 材质）</sub></td>
+<td align="center"><sub>生命周期操作 · 语义 tint</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/phase2g/05-items-listview.png" alt="列表视图"></td>
-<td><img src="docs/screenshots/phase2g/10-items-desktop.png" alt="桌面取景框"></td>
+<td><img src="docs/screenshots/phase2h/09-edit-light.png" alt="编辑物品 · 浅色"></td>
+<td><img src="docs/screenshots/phase2h/10-edit-dark.png" alt="编辑物品 · 深色"></td>
 </tr>
 <tr>
-<td align="center"><sub>列表视图 · 适合长名称与横向比较</sub></td>
-<td align="center"><sub>桌面浏览器 · 外壳加宽，网格升列</sub></td>
+<td align="center"><sub>编辑页 = 详情页的编辑态（同一套分组语言）</sub></td>
+<td align="center"><sub>编辑页 · 深色</sub></td>
 </tr>
 </table>
 
-> 以上均为**真实浏览器**（无头 Edge + CDP）在生产构建上的截图，未做任何修饰。
+> 以上均为**真实浏览器**（无头 Edge + CDP）渲染截图，未做任何修饰。浅色与深色**成对验证**；历史阶段截图见文末。
 
 ---
 
 ## 当前状态
 
-**当前版本：`0.5.0`**（版本号唯一来源是 `src/appInfo.ts` 的 `APP_VERSION`；设置 → 关于页可读，改版本需同步 `package.json` 与 `package-lock.json`）
+**当前版本：`0.6.0`**（版本号唯一来源是 `src/appInfo.ts` 的 `APP_VERSION`；设置 → 关于页可读，改版本需同步 `package.json` 与 `package-lock.json`）
 
 | 阶段 | 版本 | 内容 | 状态 |
 |---|---|---|---|
@@ -71,10 +71,13 @@
 | Phase 2C | 0.3.0 | 备份/恢复（ZIP）、PWA 离线安装、CI | ✅ 完成 |
 | Phase 2E | 0.3.0 | 购买信息（日期 / 价格 / 附加花费 / 平台）与日均使用成本 | ✅ 完成 |
 | Phase 2F | 0.4.0 | 物品图标体系（12 → 73）、图标选择器、三态主题、preset 资产幂等同步、整体视觉精修 | ✅ 完成 |
-| **Phase 2G** | **0.5.0** | 导航重构（4 Tab + 独立 +）、概览 Dashboard、完整物品列表、**心愿→持有→处置生命周期**、出售金额与实际持有成本、保修追踪、图标 73 → 156 | ✅ 完成 |
+| Phase 2G | 0.5.0 | 导航重构（4 Tab + 独立 +）、概览 Dashboard、完整物品列表、**心愿→持有→处置生命周期**、出售金额与实际持有成本、保修追踪、图标 73 → 156 | ✅ 完成 |
+| **Phase 2H** | **0.6.0** | 视觉系统精修：MarkItem-inspired + award-winning iOS design study —— 明暗两套独立材质、Hero Surface、Large Title → Compact Header、Grouped Sections、列表卡片与编辑体验重做 | ✅ 完成 |
 
-**测试**：**256** 个单元测试全部通过（domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + **生命周期与成本口径** + 数据库迁移 + 备份兼容）。
-**验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **112** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8。三套 dev 脚本 + 一套生产脚本，全部在 2G 改动后复跑通过）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
+**测试**：**266** 个单元测试全部通过（domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + **生命周期与成本口径** + 数据库迁移 + 备份兼容 + **Phase 2H 主题 token 对称性与保修进度**）。
+**验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **152** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8 · **Phase 2H 32**；生产冒烟 8/8 通过）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
+
+> **Phase 2H 说明**：本轮是设计升级，学习目标来自竞品拆解（MarkItem 的视觉与层级原则）、Apple Design Awards 2025/2026 获奖与入围 App（Moonlitt / Tide Guide / Structured / Play / Vocabulary / Mela / Speechify / Guitar Wiz）以及 Apple HIG。**不复制任何竞品的品牌、图标、文案或业务字段**，也**没有引入容器系统、总价值、多货币、数量、Timeline Event 库**等无产品价值的功能；完整拆解与决策过程见 [`docs/PHASE_2H_DESIGN_AUDIT.md`](docs/PHASE_2H_DESIGN_AUDIT.md)。数据库 Schema 未改动，用户数据 100% 兼容。
 
 ### 浏览器测试隔离
 
@@ -136,31 +139,34 @@ node scripts/gen-item-icons.mjs   # 重新生成全部物品图标（唯一生�
 所有颜色定义在 `src/index.css` 的两套变量里，`tailwind.config.js` 的调色板与阴影**全部指向 `var(--color-*)`**：
 
 ```css
-:root, [data-theme='light'] { --color-canvas: #fafafa; --color-surface: #fff; /* … */ }
-[data-theme='dark']         { --color-canvas: #0e0e10; --color-surface: #17171a; /* … */ }
+:root, [data-theme='light'] { --color-canvas: #f2f2f4; --color-surface: #fff; /* … */ }
+[data-theme='dark']         { --color-canvas: #101013; --color-surface: #1c1c21; /* … */ }
 ```
 
-因此组件只表达意图（`bg-surface` / `text-ink-primary` / `border-line`），**全站没有任何 `dark:` 变体**。深色模式是一套**独立设计的主题**，而不是浅色的颜色反转：
+因此组件只表达意图（`bg-surface` / `text-ink-primary` / `border-line`），**全站没有任何 `dark:` 变体**。深色模式是一套**独立设计的主题**，而不是浅色的颜色反转。Phase 2H 重新校准了明度分层（iOS grouped interface 三级结构）——页面底明显比卡片沉一档，卡片不再靠阴影硬撑：
 
 | 分层 | 浅色 | 深色 | 作用 |
 |---|---|---|---|
-| `canvas` | `#FAFAFA` | `#0E0E10` | 页面底 |
-| `surface` | `#FFFFFF` | `#17171A` | 卡片 / 列表行 |
-| `surface-raised` | `#FFFFFF` | `#1F1F23` | 浮层 / 对话框 |
-| `surface-sunken` | `#F4F4F3` | `#232327` | 未选胶囊 / 内嵌表面 |
-| `plate` | `#F5F4F0` | `#232327` | 物品展台底衬 |
+| `canvas` | `#F2F2F4` | `#101013` | 页面底（冷灰 / 深灰，与卡片拉开明度差） |
+| `surface` | `#FFFFFF` | `#1C1C21` | 分组卡 / 列表行 |
+| `surface-raised` | `#FFFFFF` | `#26262C` | 浮层 / 对话框 |
+| `surface-sunken` | `#E9E9EC` | `#2A2A31` | inner cell / 未选胶囊 |
+| `hero`（top→bottom） | `#F7F4F8` → `#EBE6EE` | `#2D2839` → `#1E1A28` | **物品身份卡专属材质**（暖 plum tint + 陶土微光） |
+| `plate` | `#F5F4F0` | `#26262C` | 物品展台底衬 |
 | `ink` primary→faint | `#171717` → `#8C8C8C` | `#F4F4F2` → `#83837F` | 文字四级 |
 | `line` / `line-strong` / `line-inner` | 低对比 hairline | 低对比 hairline | 结构线 |
 
-**语义色只有三个**，刻意不铺彩虹：
+Hero 是 Phase 2H 新增的**独立层级**：`.hero-surface` 打光配方 + `--color-hero-*` / `--hero-glow` token，浅色是极淡的暖 plum，深色是更深更饱和的对应色——"同一信息架构，两套独立调过的材质"的样板，颜色绝不硬编码进页面。
+
+**语义色有五个**，刻意不铺彩虹：
 
 | Token | 用途 |
 |---|---|
 | 陶土 `accent` | 品牌与交互：选中态、导航指示 |
+| 蓝 `info`（Phase 2H 新增） | **普通交互**：清除 / 设置 / 查看全部 / 编辑入口 —— 系统蓝风格但降饱和以适配暖色品牌 |
+| 绿 `success` | 保修中 / 恢复为持有 |
 | 琥珀 `money` | 价格 / 总投入 / 日均成本 —— 数据指标不该和"可交互"共用同一种颜色 |
 | 红 `danger` | 删除等危险操作 |
-
-绿 / 紫 / 蓝**故意未预定义**：等真的出现「保修中 / 退役 / 已处置」这类状态时再加，预先铺满就是彩虹 UI。
 
 ### 首帧不闪白
 
@@ -282,17 +288,22 @@ Phase 2G 新增 **83** 个，并开出「护理」「厨房」两个新分类，
 
 ## 界面与视觉系统
 
-- **物品展台只有一套打光配方**（`plate-surface` / `plate-surface-lg` + `--plate-*`）：顶光 + 底部微沉，**不是每张卡片随机渐变**，整页光线才一致
-- **详情页是"档案"而不是"表单详情"**：打光 Hero（物品直接落在光盘面上，不套第二层底衬）→ 三栏关键指标 → 价格明细子表面 → 保修追踪 → 处置信息 → 备注
+- **明暗两套独立调校的材质系统**（Phase 2H）：canvas / surface / sunken 三级明度差按 iOS grouped interface 重新校准；深色"抬升"而非"变灰"，一眼能分辨页面、卡片、内部控件与悬浮 Chrome
+- **Hero Surface 是独立层级**（Phase 2H）：`.hero-surface` 专属打光（暖 plum tint + 陶土微光），名称、状态、分类、物品图与三栏指标构成完整"物品身份卡"，与普通卡片一眼可辨
+- **Large Title → Compact Header**（Phase 2H）：详情页进入时是大标题，滚动后由 IntersectionObserver 折叠为居中小标题 + chrome 毛玻璃条，两个标题从不同时可见；不依赖动画库，`prefers-reduced-motion` 自然降级
+- **Grouped Sections**（Phase 2H）：详情页与编辑页统一为「section 卡 + sunken inner cell + hairline 分隔」，字段不再各自成卡；详情页信息分四层优先级（是谁 → 花了多少钱 → 购买/保修/分类/标签 → 操作）
+- **编辑页 = 详情页的编辑态**（Phase 2H）：同 header、同分组、同圆角、同 token；底部「保存更改」主操作 + 「取消编辑」次操作，危险操作不进表单
+- **保修进度条**（Phase 2H）：网格卡底部的纯 CSS 分段条（已流逝 = warning/danger 调，剩余 = success），带剩余天数与百分比；只有真正有保修数据的持有物品才渲染，无保修卡片零空白
+- **物品展台只有一套打光配方**（`plate-surface` + `--plate-*`）：顶光 + 底部微沉，**不是每张卡片随机渐变**，整页光线才一致
 - **Hero 措辞按状态切换**：持有中是「持有天数 / 总投入 / 日均成本」；已出售才用「**实际**持有天数 / **实际**持有成本 / **实际**日均成本」。不该给还在用的物品扣上「实际」二字
 - **数字不重复出现**：Hero 只给结论（持有天数 / 总投入 / 日均成本），明细表只给构成（购买价格 / 附加花费 / 合计）
 - **字距按文字脚本区分**：CJK 是方块字、自带左右边距，标题用**微开**字距；负字距只留给等宽数字
 - **卡片用等高 grid 而非瀑布流**：等高才能让三栏数字横向对齐比较，也保住"最近添加"的时间顺序可预期性
-- **语义色只有四个在用**：陶土 accent（品牌/选中）、琥珀 money（价格/成本）、红 danger（删除）、绿 success（保修中）。其余色刻意不铺——没有语义的状态上色就是彩虹 UI
-- **概览是 Dashboard 而非企业后台**：一个主数字锚点（持有中总投入）+ 三格指标 + 提醒 + 分类分布 + 最近添加，全部由真实数据推导，无数据整块消失
+- **语义色只有五个**：accent（品牌/选中）、info（普通交互）、success（保修中）、money（价格/成本）、danger（删除）。其余色刻意不铺——没有语义的状态上色就是彩虹 UI
+- **概览是 Dashboard 而非企业后台**：一个 Hero 材质的主数字锚点（持有中总投入）+ 三格指标 + 提醒 + 分类分布 + 最近添加，全部由真实数据推导，无数据整块消失
 - **响应式**：`--shell-max` 单一来源控制外壳宽度（430 / 520 / 600px），配合网格列数与图标库列数逐级升档，而不是把手机界面横向拉长
 - **动效短且有方向感**：`fade-rise 340ms` / `pop-in 280ms` / `sheet-up 320ms` / 抽屉 `340ms`；全部由 `prefers-reduced-motion` 门控
-- **无障碍降级齐备**：`prefers-reduced-transparency`（毛玻璃降级为实色）、`prefers-contrast`、`prefers-reduced-motion`
+- **无障碍降级齐备**：`prefers-reduced-transparency`（毛玻璃降级为实色）、`prefers-contrast`、`prefers-reduced-motion`；125% / 150% 浏览器缩放下无横向溢出（真实浏览器验证）
 
 ---
 
@@ -581,6 +592,22 @@ export interface Item {
 
 <details>
 <summary>历史阶段截图（点击展开）</summary>
+
+Phase 2H · 视觉系统精修（新增）
+
+| 桌面取景框 · 深色 | 列表视图 | 空状态 · 深色 |
+|---|---|---|
+| ![桌面](docs/screenshots/phase2h/14-desktop-dark.png) | ![列表视图](docs/screenshots/phase2h/13-items-listview-light.png) | ![空状态](docs/screenshots/phase2h/15-empty-dark.png) |
+
+Phase 2G · 生命周期与 Dashboard
+
+| 概览 · 浅色 | 概览 · 深色 | 详情 · 持有 | 详情 · 已出售 |
+|---|---|---|---|
+| ![概览浅色](docs/screenshots/phase2g/01-dashboard-light.png) | ![概览深色](docs/screenshots/phase2g/02-dashboard-dark.png) | ![详情](docs/screenshots/phase2g/06-detail-owned.png) | ![已出售](docs/screenshots/phase2g/07-detail-sold-dark.png) |
+
+| 处置 Sheet | 心愿表单 | 列表视图 | 桌面取景框 |
+|---|---|---|---|
+| ![处置](docs/screenshots/phase2g/08-disposal-sheet.png) | ![心愿](docs/screenshots/phase2g/09-form-wishlist.png) | ![列表视图](docs/screenshots/phase2g/05-items-listview.png) | ![桌面](docs/screenshots/phase2g/10-items-desktop.png) |
 
 Phase 2F · 图标体系与三态主题
 
