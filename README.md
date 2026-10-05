@@ -76,6 +76,18 @@
 **测试**：**256** 个单元测试全部通过（domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + **生命周期与成本口径** + 数据库迁移 + 备份兼容）。
 **验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **112** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8。三套 dev 脚本 + 一套生产脚本，全部在 2G 改动后复跑通过）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
 
+### 浏览器测试隔离
+
+浏览器验证必须使用项目内置的隔离启动器，不得使用日常 Edge Profile。启动和停止示例：
+
+```powershell
+npm run browser:start -- --port=9222
+node scripts/verify.mjs
+npm run browser:stop -- --port=9222
+```
+
+启动器把测试 Profile 放在 `.tmp`，并关闭同步、扩展、首次运行导入和组件更新；它不会登录 Microsoft 账户。停止时只按 PID 关闭该测试浏览器，禁止使用 `taskkill /IM msedge.exe`。完整规则见 [`AGENTS.md`](AGENTS.md) 和 [`BROWSER_TESTING.md`](BROWSER_TESTING.md)。
+
 ---
 
 ## 技术栈

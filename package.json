@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "icons": "node scripts/gen-pwa-icons.mjs"
+    "icons": "node scripts/gen-pwa-icons.mjs",
+    "browser:start": "node scripts/start-test-edge.mjs",
+    "browser:stop": "node scripts/stop-test-edge.mjs"
   },
   "dependencies": {
     "dexie": "^4.4.6",
