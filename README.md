@@ -53,6 +53,14 @@
 <td align="center"><sub>编辑页 = 详情页的编辑态（同一套分组语言）</sub></td>
 <td align="center"><sub>编辑页 · 深色</sub></td>
 </tr>
+<tr>
+<td><img src="docs/screenshots/phase2h/11-settings-light.png" alt="设置 · 浅色"></td>
+<td><img src="docs/screenshots/phase2h/12-settings-dark.png" alt="设置 · 深色"></td>
+</tr>
+<tr>
+<td align="center"><sub>设置 · 外观模式（与列表页共用同一分段控件）</sub></td>
+<td align="center"><sub>设置 · 深色</sub></td>
+</tr>
 </table>
 
 > 以上均为**真实浏览器**（无头 Edge + CDP）渲染截图，未做任何修饰。浅色与深色**成对验证**；历史阶段截图见文末。
