@@ -34,8 +34,8 @@
 <td><img src="docs/screenshots/phase2h/06-detail-top-dark.png" alt="物品档案 · 深色"></td>
 </tr>
 <tr>
-<td align="center"><sub>Large Title + Hero Surface 身份卡 + Grouped Sections</sub></td>
-<td align="center"><sub>物品档案 · 深色 Hero</sub></td>
+<td align="center"><sub>物品档案 · Large Title + 横向 Hero 身份卡 + Grouped Sections</sub></td>
+<td align="center"><sub>物品档案 · 深色 Hero（更深更饱和的同一套材质）</sub></td>
 </tr>
 <tr>
 <td><img src="docs/screenshots/phase2h/07-detail-scrolled-light.png" alt="滚动折叠 · 浅色"></td>
@@ -43,7 +43,7 @@
 </tr>
 <tr>
 <td align="center"><sub>滚动后 Compact Header（居中小标题 + chrome 材质）</sub></td>
-<td align="center"><sub>生命周期操作 · 语义 tint</sub></td>
+<td align="center"><sub>生命周期操作 · 图标 + 标题 + 副标题 + 语义 tint</sub></td>
 </tr>
 <tr>
 <td><img src="docs/screenshots/phase2h/09-edit-light.png" alt="编辑物品 · 浅色"></td>
@@ -78,6 +78,17 @@
 **验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **152** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8 · **Phase 2H 32**；生产冒烟 8/8 通过）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
 
 > **Phase 2H 说明**：本轮是设计升级，学习目标来自竞品拆解（MarkItem 的视觉与层级原则）、Apple Design Awards 2025/2026 获奖与入围 App（Moonlitt / Tide Guide / Structured / Play / Vocabulary / Mela / Speechify / Guitar Wiz）以及 Apple HIG。**不复制任何竞品的品牌、图标、文案或业务字段**，也**没有引入容器系统、总价值、多货币、数量、Timeline Event 库**等无产品价值的功能；完整拆解与决策过程见 [`docs/PHASE_2H_DESIGN_AUDIT.md`](docs/PHASE_2H_DESIGN_AUDIT.md)。数据库 Schema 未改动，用户数据 100% 兼容。
+
+**Phase 2H 第二轮补记**（复看竞品截图后发现并修掉的问题）：
+
+| 问题 | 修法 |
+|---|---|
+| Hero 是竖排海报、指标掉到白色卡片区，密度和"一整块身份"感偏弱 | 改为**横向身份卡**：名称/状态/分类 chip 在左、物品图在右，三栏指标收进同一块染色区（`hero-surface` 铺满整卡，渐变连续无接缝） |
+| 生命周期操作只有两行文字，右侧空一大片 | 改为「**图标 + 标题 + 副标题**」左对齐块，配低饱和语义 tint |
+| 列表页状态切换自造了一套深色药丸，与设置页外观模式不像同一控件 | 复用全站**唯一**的 `SegmentedControl`（iOS 浅轨道 + 抬起滑块），并给它加了计数 hint |
+| 底栏选中态只给图标加底，文字不变 | 改为**包住图标 + 文字的整枚胶囊** |
+| 网格卡「总投入」被截成 `¥399....` | 新增 `formatCentsCard`：整元省两位小数，非整元**绝不四舍五入** |
+| 深色下选中态翻成刺眼白底黑字（`ink-solid` 在深色是浅色实心块） | 全部选中态改用 `bg-accent text-ink-inverse`；主操作 CTA 保留 `ink-solid` |
 
 ### 浏览器测试隔离
 
@@ -207,7 +218,7 @@ localStorage['pil.theme'] + window.matchMedia('(prefers-color-scheme: dark)')
 | `/settings` | 设置 | **从概览页右上角齿轮进入**，路由不变 |
 | `/settings/categories` `/settings/tags` `/settings/icons` | 管理页 | — |
 
-「+」是**比普通 Tab 更醒目的圆形按钮**，嵌在导航条右端（不是浮在上方的独立 FAB）。四个普通 Tab 均分左侧剩余宽度。安全区（`env(safe-area-inset-bottom)`）、半透明 chrome、`prefers-reduced-transparency` 降级、桌面取景框对齐全部保留。
+「+」是**比普通 Tab 更醒目的圆形按钮**，嵌在导航条右端（不是浮在上方的独立 FAB）。四个普通 Tab 均分左侧剩余宽度。选中态是**包住图标 + 文字的一枚胶囊**（陶土淡底 + 陶土字），图标与标签同时变色——只给图标加底会让"选中"这件事少一半信号。安全区（`env(safe-area-inset-bottom)`）、半透明 chrome、`prefers-reduced-transparency` 降级、桌面取景框对齐全部保留。
 
 > 本项目**刻意不做「容器」Tab，也不做「日历」Tab**：容器会与"不维护位置树"的产品定位冲突；日历在保修/时间功能足够复杂之前不值得占一个主导航位。
 
@@ -289,8 +300,10 @@ Phase 2G 新增 **83** 个，并开出「护理」「厨房」两个新分类，
 ## 界面与视觉系统
 
 - **明暗两套独立调校的材质系统**（Phase 2H）：canvas / surface / sunken 三级明度差按 iOS grouped interface 重新校准；深色"抬升"而非"变灰"，一眼能分辨页面、卡片、内部控件与悬浮 Chrome
-- **Hero Surface 是独立层级**（Phase 2H）：`.hero-surface` 专属打光（暖 plum tint + 陶土微光），名称、状态、分类、物品图与三栏指标构成完整"物品身份卡"，与普通卡片一眼可辨
+- **Hero Surface 是独立层级**（Phase 2H）：`.hero-surface` 专属打光（暖 plum tint + 陶土微光）铺满整卡；卡片是**横向身份卡**——名称 / 状态 / 分类 chip 在左、物品图在右，三栏指标收在**同一块染色区**内（不另起白色底），因此渐变连续、没有接缝
+- **生命周期操作是「图标 + 标题 + 副标题」块**（Phase 2H）：2×2 网格，每块带 18px 线性图标 + 两行文字 + 低饱和语义 tint（success / money / info / danger），而不是两行孤零零的文字
 - **Large Title → Compact Header**（Phase 2H）：详情页进入时是大标题，滚动后由 IntersectionObserver 折叠为居中小标题 + chrome 毛玻璃条，两个标题从不同时可见；不依赖动画库，`prefers-reduced-motion` 自然降级
+- **全站唯一分段控件**（Phase 2H）：设置页的外观模式、列表页的生命周期切换共用 `SegmentedControl`（轨道 + 抬起滑块），同一控件不允许在两处长成两副样子；底栏选中态是**包住图标 + 文字的整枚胶囊**
 - **Grouped Sections**（Phase 2H）：详情页与编辑页统一为「section 卡 + sunken inner cell + hairline 分隔」，字段不再各自成卡；详情页信息分四层优先级（是谁 → 花了多少钱 → 购买/保修/分类/标签 → 操作）
 - **编辑页 = 详情页的编辑态**（Phase 2H）：同 header、同分组、同圆角、同 token；底部「保存更改」主操作 + 「取消编辑」次操作，危险操作不进表单
 - **保修进度条**（Phase 2H）：网格卡底部的纯 CSS 分段条（已流逝 = warning/danger 调，剩余 = success），带剩余天数与百分比；只有真正有保修数据的持有物品才渲染，无保修卡片零空白
