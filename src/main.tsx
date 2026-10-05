@@ -6,6 +6,7 @@ import { ThemeProvider } from './theme/ThemeProvider'
 import { loadDemoData } from './mock/loadDemoData'
 import { db } from './db/db'
 import { exportBackup, readAndValidateBackup, restoreFromPayload } from './services/backupService'
+import { startPwaUpdate } from './services/pwaUpdate'
 
 // 仅开发环境暴露演示数据加载器与备份验证钩子（生产构建不会包含）
 if (import.meta.env.DEV) {
@@ -49,3 +50,9 @@ createRoot(document.getElementById('root')!).render(
     </ThemeProvider>
   </StrictMode>,
 )
+
+/**
+ * PWA 更新管理：Service Worker 的**唯一**注册点（vite.config 已设 injectRegister: null）。
+ * 放在首次渲染之后启动，注册与启动检查都不阻塞首屏。
+ */
+startPwaUpdate()

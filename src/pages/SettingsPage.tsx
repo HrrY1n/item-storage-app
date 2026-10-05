@@ -14,6 +14,7 @@ import {
   restoreFromPayload,
 } from '../services/backupService'
 import { isStandalone } from '../services/pwa'
+import { usePwaUpdate } from '../features/pwa/PwaUpdateContext'
 import type { BackupPayload, BackupSummary } from '../domain/backup'
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
@@ -101,6 +102,8 @@ export default function SettingsPage() {
   const { toast, show } = useToast()
   const fileRef = useRef<HTMLInputElement>(null)
   const { preference, resolved, setPreference } = useTheme()
+  const { checkForUpdate } = usePwaUpdate()
+  const [checkingUpdate, setCheckingUpdate] = useState(false)
 
   const [busy, setBusy] = useState<'export' | 'restore' | null>(null)
   const [pending, setPending] = useState<{ summary: BackupSummary; payload: BackupPayload } | null>(
@@ -158,6 +161,23 @@ export default function SettingsPage() {
       show('恢复失败，当前数据未被改动')
     } finally {
       setBusy(null)
+    }
+  }
+
+  /** 手动检查更新：强制忽略节流；结果用 toast 反馈，不制造版本管理页面 */
+  const handleCheckUpdate = async () => {
+    if (checkingUpdate) return
+    setCheckingUpdate(true)
+    try {
+      const result = await checkForUpdate()
+      if (result === 'up-to-date') show('当前已是最新版本')
+      else if (result === 'updating') show('发现新版本，正在更新')
+      else if (result === 'pending-blocked') show('新版本已就绪，将在当前操作完成后更新')
+      else show('当前离线，联网后会自动检查更新')
+    } catch {
+      show('检查更新失败，请稍后重试')
+    } finally {
+      setCheckingUpdate(false)
     }
   }
 
@@ -225,6 +245,12 @@ export default function SettingsPage() {
           label="在 iPhone 上安装"
           hint={standalone ? '已从主屏幕运行' : '添加到主屏幕后可全屏使用'}
           onClick={() => setIosOpen(true)}
+        />
+        <RowButton
+          label="检查更新"
+          hint={checkingUpdate ? '正在检查…' : '主动检查是否有新版本'}
+          disabled={checkingUpdate || busy !== null}
+          onClick={() => void handleCheckUpdate()}
         />
         <RowButton
           label="关于"

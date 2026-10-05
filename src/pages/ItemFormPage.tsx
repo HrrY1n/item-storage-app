@@ -30,6 +30,7 @@ import TagChip from '../components/TagChip'
 import ConfirmDialog from '../components/Dialogs'
 import { useToast } from '../components/Toast'
 import IconPickerSheet from '../components/IconPickerSheet'
+import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
 
 /**
  * 分组容器：与详情页 GroupCard 同一套语言（surface 卡 + label + inner cells）。
@@ -127,6 +128,12 @@ export default function ItemFormPage() {
   const [warrantyExpiresAt, setWarrantyExpiresAt] = useState('')
   const [confirmDiscard, setConfirmDiscard] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  /**
+   * 编辑态不允许自动刷新到新版本：用户正在输入，reload 会丢掉未保存内容。
+   * 发现新版本时改为"新版本已就绪"，保存/离开后自动应用。
+   */
+  useUpdateGuard(true, 'item-form')
 
   // 编辑模式：数据就绪后初始化一次表单
   const initialized = useRef(false)

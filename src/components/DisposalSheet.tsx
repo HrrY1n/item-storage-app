@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { DISPOSAL_METHOD_LABELS, validateDisposal } from '../domain/lifecycle'
 import type { DisposalMethod, Item } from '../domain/types'
 import { parsePriceInput, todayString } from '../domain/purchase'
+import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
 
 export interface DisposalResult {
   disposedAt: string
@@ -39,6 +40,9 @@ export default function DisposalSheet({
   const [note, setNote] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  // 面板打开期间（用户可能已输入出售金额）不允许自动刷新
+  useUpdateGuard(open, 'disposal-sheet')
 
   useEffect(() => {
     if (!open) return

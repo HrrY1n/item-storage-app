@@ -3,6 +3,8 @@ import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router'
 import { seedIfEmpty, syncPresetAssets, upgradeSchemaVersionMeta } from './db/seed'
 import { requestPersistentStorage } from './services/pwa'
 import BottomNav from './components/BottomNav'
+import UpdateBanner from './components/UpdateBanner'
+import { PwaUpdateProvider } from './features/pwa/PwaUpdateContext'
 import HomePage from './pages/HomePage'
 import ItemsListPage from './pages/ItemsListPage'
 import CategoriesPage from './pages/CategoriesPage'
@@ -50,6 +52,8 @@ function Layout() {
         <Outlet />
       </main>
       {showBottomNav && <BottomNav />}
+      {/* 更新提示只在"不能立刻刷新"时出现；安全状态下后台静默完成更新 */}
+      <UpdateBanner />
     </div>
   )
 }
@@ -103,7 +107,9 @@ function Boot() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Boot />
+      <PwaUpdateProvider>
+        <Boot />
+      </PwaUpdateProvider>
     </BrowserRouter>
   )
 }

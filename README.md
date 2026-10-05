@@ -69,7 +69,7 @@
 
 ## 当前状态
 
-**当前版本：`0.6.0`**（版本号唯一来源是 `src/appInfo.ts` 的 `APP_VERSION`；设置 → 关于页可读，改版本需同步 `package.json` 与 `package-lock.json`）
+**当前版本：`0.6.1`**（版本号唯一来源是 `src/appInfo.ts` 的 `APP_VERSION`；设置 → 关于页可读，改版本需同步 `package.json` 与 `package-lock.json`）
 
 | 阶段 | 版本 | 内容 | 状态 |
 |---|---|---|---|
@@ -80,10 +80,11 @@
 | Phase 2E | 0.3.0 | 购买信息（日期 / 价格 / 附加花费 / 平台）与日均使用成本 | ✅ 完成 |
 | Phase 2F | 0.4.0 | 物品图标体系（12 → 73）、图标选择器、三态主题、preset 资产幂等同步、整体视觉精修 | ✅ 完成 |
 | Phase 2G | 0.5.0 | 导航重构（4 Tab + 独立 +）、概览 Dashboard、完整物品列表、**心愿→持有→处置生命周期**、出售金额与实际持有成本、保修追踪、图标 73 → 156 | ✅ 完成 |
-| **Phase 2H** | **0.6.0** | 视觉系统精修：MarkItem-inspired + award-winning iOS design study —— 明暗两套独立材质、Hero Surface、Large Title → Compact Header、Grouped Sections、列表卡片与编辑体验重做 | ✅ 完成 |
+| Phase 2H | 0.6.0 | 视觉系统精修：MarkItem-inspired + award-winning iOS design study —— 明暗两套独立材质、Hero Surface、Large Title → Compact Header、Grouped Sections、列表卡片与编辑体验重做 | ✅ 完成 |
+| **Phase 2H.1** | **0.6.1** | PWA 更新体验修复：主动 SW update check、前台恢复检查、表单期间绝不 reload、安全自动更新、设置页「检查更新」 | ✅ 完成 |
 
-**测试**：**270** 个单元测试全部通过（domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + **生命周期与成本口径** + 数据库迁移 + 备份兼容 + **Phase 2H 主题 token 对称性、保修进度与卡片金额格式**）。
-**验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **152** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8 · **Phase 2H 32**；生产冒烟 8/8 通过）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
+**测试**：**295** 个单元测试全部通过（domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + **生命周期与成本口径** + 数据库迁移 + 备份兼容 + **Phase 2H 主题 token 对称性、保修进度与卡片金额格式** + **Phase 2H.1 PWA 更新决策与管理器的纯逻辑**）。
+**验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **175** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8 · Phase 2H 32；生产冒烟 8/8；**Phase 2H.1 PWA 更新端到端 23/23**）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
 
 > **Phase 2H 说明**：本轮是设计升级，学习目标来自竞品拆解（MarkItem 的视觉与层级原则）、Apple Design Awards 2025/2026 获奖与入围 App（Moonlitt / Tide Guide / Structured / Play / Vocabulary / Mela / Speechify / Guitar Wiz）以及 Apple HIG。**不复制任何竞品的品牌、图标、文案或业务字段**，也**没有引入容器系统、总价值、多货币、数量、Timeline Event 库**等无产品价值的功能；完整拆解与决策过程见 [`docs/PHASE_2H_DESIGN_AUDIT.md`](docs/PHASE_2H_DESIGN_AUDIT.md)。数据库 Schema 未改动，用户数据 100% 兼容。
 
@@ -327,6 +328,59 @@ Phase 2G 新增 **83** 个，并开出「护理」「厨房」两个新分类，
 - **响应式**：`--shell-max` 单一来源控制外壳宽度（430 / 520 / 600px），配合网格列数与图标库列数逐级升档，而不是把手机界面横向拉长
 - **动效短且有方向感**：`fade-rise 340ms` / `pop-in 280ms` / `sheet-up 320ms` / 抽屉 `340ms`；全部由 `prefers-reduced-motion` 门控
 - **无障碍降级齐备**：`prefers-reduced-transparency`（毛玻璃降级为实色）、`prefers-contrast`、`prefers-reduced-motion`；125% / 150% 浏览器缩放下无横向溢出（真实浏览器验证）
+
+---
+
+## PWA 更新机制（Phase 2H.1）
+
+### 问题与根因
+
+Cloudflare 部署了新版本之后，桌面端刷新即可拿到新版，但 **iPhone 主屏 PWA 可能长时间停留在旧版本**。原因不是缓存没清，而是：
+
+`vite-plugin-pwa` 的 `registerType: 'autoUpdate'` 只负责「浏览器**已经发现**新 SW 之后如何安装接管」。读过插件运行时（`dist/client/build/register.js`）可以确认两件事：
+
+1. autoUpdate 模式下 `updateServiceWorker()` **什么都不做**；
+2. 插件**从不主动调用** `registration.update()`。
+
+而 iOS 主屏 PWA 恢复的往往是一个**被挂起的旧页面**，浏览器自己不会立刻去查更新 —— 于是页面一直停在旧版本。本阶段补的就是"客户端主动更新管理"。
+
+### 实现方式
+
+| 环节 | 做法 |
+|---|---|
+| 注册 | `injectRegister: null` + 应用内 `registerSW({ immediate: true })`，**注册路径唯一**（构建产物中不再有 `/registerSW.js`） |
+| 接管时机 | 传入 `onNeedReload`：插件此时**不会**自己 `location.reload()`，改由更新管理器决定何时刷新 |
+| 启动检查 | 注册完成后异步 `registration.update()`（不阻塞首屏） |
+| 前台恢复 | `visibilitychange` / `pageshow` → 统一走 `requestUpdateCheck(reason)` |
+| 网络恢复 | `online` 事件重新检查一次 |
+| 节流 | 前台恢复类检查 ≥ 60s 一次；启动、手动、联网恢复忽略节流；没有 `setInterval` 轮询 |
+| 缓存穿透 | 先 `fetch(sw.js, { cache: 'no-store' })` 再 `registration.update()` |
+| 离线 / 失败 | `navigator.onLine === false` 直接跳过；`update()` 抛错静默降级，不弹"更新失败" |
+
+### 安全更新：SAFE / BLOCKED
+
+**绝不**"发现新版本就无条件 reload" —— 本 App 有表单。
+
+- **SAFE**：没有正在编辑的内容 → 后台完成更新并自动进入新版，用户不需要做任何事（不用清缓存、不用重装）。
+- **BLOCKED**：`ItemFormPage`、`DisposalSheet`、`ConvertToOwnedSheet` 打开期间，用 `useUpdateGuard()` 注册"此刻不能刷新" → 只置 `updatePending`，显示轻量提示条「新版本已就绪，完成当前操作后自动更新」（非阻塞、非 alert）。
+- 保存 / 离开编辑态 → 守卫解除 → **自动**补上这次更新，不需要用户再点一次。
+
+### 防 reload 循环
+
+只有一条 reload 出口（`applying` 关门），并用 `sessionStorage` 记录最近一次更新触发的刷新时间：15 秒保护窗口内不重复自动刷新 —— 是**延迟**而不是丢弃，窗口过后仍会应用，不会把后续真实新版本永久锁死。
+
+### 程序资源 vs 用户数据
+
+| | 存放位置 | 更新时会发生什么 |
+|---|---|---|
+| **程序资源**（JS / CSS / 图标） | Cache Storage / Service Worker | 新旧版本替换，旧缓存由 `cleanupOutdatedCaches` 清理 |
+| **用户数据**（物品 / 分类 / 标签 / 资产） | **IndexedDB** | **完全不受影响**；Dexie schema 仍是 v3，没有任何 delete / clear / reset |
+
+这两套是独立的：更新缓存不会碰 IndexedDB，用户自己改过的分类、新建的标签、录入的物品在版本升级后原样保留。默认分类只在**首次** seed，版本更新绝不覆盖。
+
+### 设置页
+
+设置 → 应用 → **检查更新**：强制忽略节流检查一次，结果用 toast 反馈（已是最新 / 正在更新 / 待操作完成后更新 / 当前离线）。
 
 ---
 

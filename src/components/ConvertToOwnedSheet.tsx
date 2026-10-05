@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Item, PurchasePlatform } from '../domain/types'
 import { PURCHASE_PLATFORMS, parsePriceInput, platformLabel, todayString } from '../domain/purchase'
+import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
 
 export interface PurchaseInput {
   purchaseDate: string
@@ -35,6 +36,9 @@ export default function ConvertToOwnedSheet({
   const [warranty, setWarranty] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  // 面板打开期间（用户可能已输入购买信息）不允许自动刷新
+  useUpdateGuard(open, 'convert-sheet')
 
   useEffect(() => {
     if (!open) return

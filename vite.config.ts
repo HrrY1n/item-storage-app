@@ -2,8 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-/** 应用主题色（与 tailwind canvas / index.html theme-color 保持一致） */
-const CANVAS = '#FAFAFA'
+/**
+ * 应用主题色：必须与 Phase 2H 的浅色 canvas token 一致。
+ * （旧值 #FAFAFA 是 2H 之前的 canvas，2H 已改为冷灰 #F2F2F4）
+ */
+const CANVAS = '#F2F2F4'
 
 export default defineConfig({
   /**
@@ -21,7 +24,12 @@ export default defineConfig({
     VitePWA({
       // 有新版本时后台自动更新，不设计复杂的版本管理 UI
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      /**
+       * 注册路径必须唯一：应用代码通过 `virtual:pwa-register` 的 registerSW() 注册，
+       * 因此这里显式设为 null，插件不再向 index.html 注入 /registerSW.js
+       * （保留 'auto' 会与手动注册并存，出现两个 registration 来源）。
+       */
+      injectRegister: null,
       // public/ 下需要一并进入 precache 清单的静态资源
       includeAssets: ['icons/items/*.svg', 'icons/pwa/apple-touch-icon-180x180.png'],
       manifest: {
