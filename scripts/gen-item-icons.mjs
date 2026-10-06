@@ -71,11 +71,10 @@ const ICONS = [
   {
     key: 'desktop',
     body: `
-<rect x="33" y="14" width="30" height="58" rx="6" fill="${W}"/>
-<rect x="40" y="22" width="16" height="6" rx="2" fill="${C1}" stroke-width="3"/>
-<circle cx="48" cy="42" r="4.5" fill="${C1}" stroke-width="3"/>
-<circle cx="48" cy="58" r="4.5" fill="${C2}" stroke-width="3"/>
-<rect x="28" y="72" width="40" height="8" rx="4" fill="${C2}"/>`,
+<rect x="32" y="12" width="32" height="68" rx="7" fill="${W}"/>
+<rect x="40" y="21" width="16" height="5" rx="2.5" fill="${C1}" stroke-width="3"/>
+<path d="M40 36h16M40 44h16M40 52h12" stroke="${M}" stroke-width="3"/>
+<circle cx="48" cy="66" r="4" fill="${C3}" stroke-width="3"/>`,
   },
   {
     key: 'monitor',
@@ -103,11 +102,12 @@ const ICONS = [
   {
     key: 'earbuds',
     body: `
-<circle cx="37" cy="28" r="7" fill="${C1}" stroke-width="3"/>
-<path d="M37 35v16" stroke-width="3"/>
-<circle cx="59" cy="28" r="7" fill="${C1}" stroke-width="3"/>
-<path d="M59 35v16" stroke-width="3"/>
-<rect x="25" y="50" width="46" height="26" rx="11" fill="${W}"/>`,
+<circle cx="36" cy="30" r="8" fill="${C1}"/>
+<path d="M36 38 33 54" stroke-width="4.5"/>
+<circle cx="60" cy="30" r="8" fill="${C1}"/>
+<path d="M60 38 63 54" stroke-width="4.5"/>
+<rect x="24" y="58" width="48" height="22" rx="10" fill="${W}"/>
+<path d="M24 66h48" stroke-width="3"/>`,
   },
   {
     key: 'headphones',
@@ -181,10 +181,8 @@ const ICONS = [
   {
     key: 'trackpad',
     body: `
-<rect x="11" y="24" width="74" height="52" rx="9" fill="${W}"/>
-<rect x="17" y="30" width="62" height="40" rx="6" fill="${C1}" stroke-width="3"/>
-<path d="M48 38v10" stroke-width="3"/>
-<circle cx="48" cy="56" r="5.5" fill="${C2}" stroke-width="3"/>`,
+<path d="M14 34h68l-5 28a8 8 0 0 1-8 6H27a8 8 0 0 1-8-6z" fill="${C1}"/>
+<path d="M26 46h44" stroke="${W}" stroke-width="3"/>`,
   },
   {
     key: 'charger',
@@ -642,21 +640,23 @@ const ICONS = [
 <rect x="24" y="74" width="16" height="4" rx="2" fill="${C2}"/>` },
   { key: 'phonecase', label: '手机壳', body: `
 <rect x="30" y="10" width="36" height="76" rx="10" fill="${C1}"/>
-<rect x="37" y="18" width="22" height="40" rx="4" fill="${W}" stroke-width="2.6"/>
-<circle cx="48" cy="70" r="6" fill="${W}" stroke-width="2.6"/>` },
+<rect x="36" y="16" width="14" height="14" rx="4" fill="${W}" stroke-width="2.6"/>
+<circle cx="41" cy="21" r="2.4" fill="${S}" stroke="none"/>
+<circle cx="47" cy="27" r="1.6" fill="${S}" stroke="none"/>` },
   { key: 'tabletcase', label: '平板保护壳', body: `
-<rect x="16" y="14" width="64" height="68" rx="9" fill="${C1}"/>
-<rect x="24" y="22" width="48" height="44" rx="4" fill="${W}" stroke-width="2.6"/>
-<path d="M32 74h32" stroke-width="3"/>` },
+<rect x="18" y="14" width="60" height="68" rx="9" fill="${C1}"/>
+<path d="M38 14v68M58 14v68" stroke="${W}" stroke-width="3"/>
+<rect x="66" y="38" width="6" height="20" rx="3" fill="${W}" stroke-width="2.6"/>` },
   { key: 'earbudcase', label: '耳机盒', body: `
 <rect x="24" y="40" width="48" height="38" rx="12" fill="${W}"/>
 <path d="M24 52h48" stroke-width="3"/>
 <circle cx="48" cy="36" r="12" fill="${C1}"/>
 <path d="M40 36a8 8 0 0 1 16 0z" fill="${W}" stroke-width="2.6"/>` },
   { key: 'dock', label: '充电底座', body: `
-<path d="M22 58h52l6 12a4 4 0 0 1-3.6 5.4H19.6A4 4 0 0 1 16 70z" fill="${C2}"/>
-<rect x="40" y="20" width="16" height="34" rx="5" fill="${W}"/>
-<rect x="44" y="28" width="8" height="18" rx="2" fill="${C1}" stroke-width="2.6"/>` },
+<rect x="34" y="14" width="28" height="46" rx="6" fill="${W}"/>
+<rect x="39" y="20" width="18" height="30" rx="3" fill="${C1}" stroke-width="2.6"/>
+<path d="M22 60h52l6 12a4 4 0 0 1-3.6 5.6H19.6A4 4 0 0 1 16 72z" fill="${C2}"/>
+<circle cx="48" cy="55" r="2" fill="${S}" stroke="none"/>` },
   { key: 'wirelesscharger', label: '无线充', body: `
 <circle cx="48" cy="48" r="28" fill="${W}"/>
 <circle cx="48" cy="48" r="20" fill="none" stroke="${C1}" stroke-width="3"/>
@@ -698,23 +698,23 @@ const ICONS = [
 <circle cx="68" cy="25" r="2.4" fill="${G}" stroke="none"/>
 <circle cx="68" cy="59" r="2.4" fill="${M}" stroke="none"/>` },
   { key: 'hdddock', label: '硬盘盒', body: `
-<rect x="16" y="30" width="64" height="40" rx="8" fill="${C2}"/>
-<circle cx="38" cy="50" r="11" fill="${W}"/>
-<circle cx="38" cy="50" r="4" fill="${C1}" stroke-width="2.6"/>
-<path d="M58 42h14M58 50h14M58 58h14" stroke="${M}" stroke-width="3"/>` },
+<rect x="30" y="14" width="36" height="34" rx="5" fill="${W}"/>
+<path d="M36 22h24M36 30h24" stroke="${M}" stroke-width="3"/>
+<rect x="18" y="46" width="60" height="34" rx="8" fill="${C2}"/>
+<circle cx="66" cy="63" r="3.4" fill="${C1}" stroke-width="2.6"/>
+<path d="M28 63h24" stroke="${M}" stroke-width="3"/>` },
   { key: 'cfreader', label: '读卡器', body: `
-<rect x="16" y="34" width="64" height="30" rx="7" fill="${C2}"/>
-<rect x="24" y="42" width="18" height="14" rx="3" fill="${C1}" stroke-width="2.6"/>
-<rect x="48" y="42" width="18" height="14" rx="3" fill="${C1}" stroke-width="2.6"/>
-<path d="M72 42h4v14h-4z" fill="${M}" stroke-width="2.6"/>` },
+<path d="M38 12h14l6 6v20H38z" fill="${C1}"/>
+<rect x="22" y="38" width="52" height="40" rx="9" fill="${W}"/>
+<path d="M32 38h32" stroke-width="3.4"/>
+<path d="M42 58h12" stroke="${M}" stroke-width="3"/>
+<circle cx="64" cy="58" r="2.6" fill="${G}" stroke="none"/>` },
   { key: 'mousepad', label: '鼠标垫', body: `
-<rect x="10" y="26" width="76" height="44" rx="8" fill="${C3}"/>
-<rect x="18" y="34" width="60" height="28" rx="5" fill="none" stroke="${C1}" stroke-width="3"/>
-<path d="M28 62h40" stroke="${M}" stroke-width="3"/>` },
+<rect x="10" y="28" width="76" height="42" rx="9" fill="${C3}"/>
+<rect x="17" y="35" width="62" height="28" rx="5" fill="none" stroke="${W}" stroke-width="2.6" stroke-dasharray="5 5"/>` },
   { key: 'wristrest', label: '键盘腕托', body: `
-<path d="M14 52h68a6 6 0 0 1 6 6v6a6 6 0 0 1-6 6H14a6 6 0 0 1-6-6v-6a6 6 0 0 1 6-6z" fill="${C3}"/>
-<path d="M20 40h56" stroke-width="3"/>
-<path d="M30 30h36" stroke="${M}" stroke-width="3"/>` },
+<path d="M18 40h60a8 8 0 0 1 8 8v8a12 12 0 0 1-12 12H22a12 12 0 0 1-12-12v-8a8 8 0 0 1 8-8z" fill="${C3}"/>
+<path d="M22 50h52" stroke="${W}" stroke-width="3"/>` },
   { key: 'webcam', label: '摄像头', body: `
 <circle cx="48" cy="46" r="22" fill="${C2}"/>
 <circle cx="48" cy="46" r="11" fill="${C1}"/>
@@ -777,10 +777,9 @@ const ICONS = [
 <path d="M30 32v32M48 32v32M66 32v32" stroke-width="3"/>
 <path d="M20 48h56" stroke-width="3"/>` },
   { key: 'screenprotector', label: '屏幕保护膜', body: `
-<rect x="26" y="8" width="44" height="80" rx="9" fill="${C1}"/>
-<rect x="33" y="20" width="30" height="48" rx="4" fill="${W}" stroke-width="2.6"/>
-<path d="M40 78h16" stroke-width="3"/>
-<path d="M60 26l6-6" stroke="${W}" stroke-width="3"/>` },
+<path d="M28 10h40a4 4 0 0 1 4 4v68a4 4 0 0 1-4 4H28a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" fill="${C1}"/>
+<path d="M72 74 56 86h16z" fill="${W}" stroke-width="2.6"/>
+<path d="M36 32l12-12M40 44l18-18" stroke="${W}" stroke-width="3"/>` },
   { key: 'labelprinter', label: '标签打印机', body: `
 <rect x="12" y="24" width="72" height="44" rx="10" fill="${W}"/>
 <rect x="22" y="34" width="52" height="18" rx="4" fill="${C2}" stroke-width="2.6"/>
@@ -790,10 +789,11 @@ const ICONS = [
 
   // ============================================================ Phase 2G 新增：个人护理
   { key: 'electrictoothbrush', label: '电动牙刷', body: `
-<rect x="38" y="10" width="20" height="34" rx="9" fill="${W}"/>
-<rect x="40" y="44" width="16" height="30" rx="7" fill="${C1}"/>
-<rect x="42" y="14" width="12" height="10" rx="3" fill="${C2}" stroke-width="2.6"/>
-<path d="M40 26h16" stroke="${M}" stroke-width="3"/>` },
+<rect x="40" y="8" width="16" height="18" rx="6" fill="${C2}"/>
+<path d="M44 13h8M44 18h8" stroke-width="2.4"/>
+<rect x="42" y="26" width="12" height="20" rx="4" fill="${W}"/>
+<path d="M38 46h20l-2 30a8 8 0 0 1-16 0z" fill="${C1}"/>
+<circle cx="48" cy="60" r="3.4" fill="${W}" stroke-width="2.6"/>` },
   { key: 'toothbrush', label: '牙刷', body: `
 <rect x="40" y="20" width="16" height="56" rx="8" fill="${C1}"/>
 <rect x="42" y="10" width="12" height="12" rx="4" fill="${W}"/>
