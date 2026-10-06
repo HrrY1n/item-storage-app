@@ -3,6 +3,25 @@
     "target": "ES2022",
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // ⭐ 显式声明"不自动吸收任何 @types 包"。
+    //
+    // 不写这一项时，TS 会把 node_modules/@types 下的**所有**包都当全局声明自动包含。
+    // 于是本地一旦残留了 lockfile 里没有的 @types/node（历史 npm i 留下的），
+    // `Buffer` / `process` 这类 Node 全局就会在**浏览器目标**下意外可解析 ——
+    // 本地 typecheck/build 一路假绿，而 CI 的 npm ci 按 lockfile 装不到它，
+    // 构建直接 TS2580 失败（2026-10-06 真实事故，见 fceaed3）。
+    //
+    // ⚠️ 这只禁用**自动**包含，不影响两件事：
+    //   1. 模块解析 —— `import ... from 'react'` 仍会正常找到 @types/react
+    //   2. 显式引用 —— src/vite-env.d.ts 里的
+    //      `/// <reference types="vite/client" />` / `vite-plugin-pwa/client`
+    //      是**显式**指令，不受本项影响，继续生效
+    //
+    // ⚠️ 也不是万能的：依赖里若有 `/// <reference types="node" />`
+    //    （本项目的 node_modules/jszip/index.d.ts:7 就有一条），那是**显式**引用，
+    //    本地一旦有 @types/node 仍会顺着它把 Node 全局带进来 —— 本项挡不住这条路径。
+    //    所以"本地不许出现 lockfile 之外的 @types"仍要靠 `npm ci` 保证。
+    "types": [],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
