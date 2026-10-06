@@ -150,11 +150,12 @@ const ICONS = [
   {
     key: 'gameconsole',
     body: `
-<rect x="7" y="30" width="82" height="40" rx="13" fill="${W}"/>
-<rect x="34" y="38" width="28" height="24" rx="3" fill="${C1}" stroke-width="3"/>
-<path d="M22 43v12M16 49h12" stroke-width="3"/>
-<circle cx="74" cy="46" r="3.4" fill="${C2}" stroke-width="3"/>
-<circle cx="66" cy="56" r="3.4" fill="${C1}" stroke-width="3"/>`,
+<rect x="12" y="34" width="72" height="30" rx="8" fill="${W}"/>
+<path d="M58 34v30" stroke-width="3"/>
+<path d="M65 42h12M65 49h12M65 56h12" stroke="${M}" stroke-width="3"/>
+<path d="M21 45h26" stroke-width="3"/>
+<circle cx="23" cy="56" r="3.4" fill="${C1}" stroke-width="2.6"/>
+<path d="M24 64v5M72 64v5" stroke-width="3"/>`,
   },
   {
     key: 'gamepad',
@@ -471,9 +472,10 @@ const ICONS = [
   {
     key: 'tv',
     body: `
-<rect x="9" y="24" width="78" height="48" rx="8" fill="${W}"/>
-<rect x="15" y="30" width="66" height="36" rx="3" fill="${C1}"/>
-<path d="M48 72v8M35 82h26" stroke-width="3"/>`,
+<rect x="8" y="26" width="80" height="44" rx="6" fill="${W}"/>
+<rect x="14" y="32" width="68" height="32" rx="3" fill="${C1}"/>
+<path d="M32 70l-5 9M64 70l5 9" stroke-width="3"/>
+<circle cx="48" cy="67.5" r="1.6" fill="${S}" stroke="none"/>`,
   },
   {
     key: 'fan',
@@ -602,10 +604,9 @@ const ICONS = [
   {
     key: 'souvenir',
     body: `
-<path d="M34 64l7 20 7-8 7 8 7-20" fill="${R}" stroke-width="3"/>
-<circle cx="48" cy="40" r="24" fill="${C2}"/>
-<circle cx="48" cy="40" r="14" fill="${C1}" stroke-width="3"/>
-<path d="M48 32v16M40 40h16" stroke-width="3"/>`,
+<circle cx="48" cy="48" r="27" fill="${C4}"/>
+<circle cx="48" cy="48" r="17" fill="${W}" stroke-width="3"/>
+<path d="M48 37l3.4 7 7.6 1-5.5 5.3 1.4 7.6-6.9-3.7-6.9 3.7 1.4-7.6-5.5-5.3 7.6-1z" fill="${R}" stroke-width="2.2"/>`,
   },
 
   // ============================================================ 其他
@@ -648,10 +649,13 @@ const ICONS = [
 <path d="M38 14v68M58 14v68" stroke="${W}" stroke-width="3"/>
 <rect x="66" y="38" width="6" height="20" rx="3" fill="${W}" stroke-width="2.6"/>` },
   { key: 'earbudcase', label: '耳机盒', body: `
-<rect x="24" y="40" width="48" height="38" rx="12" fill="${W}"/>
-<path d="M24 52h48" stroke-width="3"/>
-<circle cx="48" cy="36" r="12" fill="${C1}"/>
-<path d="M40 36a8 8 0 0 1 16 0z" fill="${W}" stroke-width="2.6"/>` },
+<rect x="27" y="10" width="42" height="15" rx="7.5" fill="${C1}"/>
+<path d="M22 31h52v25a16 16 0 0 1-16 16H38a16 16 0 0 1-16-16z" fill="${W}"/>
+<path d="M22 42h52" stroke-width="3"/>
+<circle cx="38" cy="34" r="5" fill="${C1}" stroke-width="2.6"/>
+<path d="M38 39v7" stroke-width="2.6"/>
+<circle cx="58" cy="34" r="5" fill="${C1}" stroke-width="2.6"/>
+<path d="M58 39v7" stroke-width="2.6"/>` },
   { key: 'dock', label: '充电底座', body: `
 <rect x="34" y="14" width="28" height="46" rx="6" fill="${W}"/>
 <rect x="39" y="20" width="18" height="30" rx="3" fill="${C1}" stroke-width="2.6"/>
@@ -716,16 +720,19 @@ const ICONS = [
 <path d="M18 40h60a8 8 0 0 1 8 8v8a12 12 0 0 1-12 12H22a12 12 0 0 1-12-12v-8a8 8 0 0 1 8-8z" fill="${C3}"/>
 <path d="M22 50h52" stroke="${W}" stroke-width="3"/>` },
   { key: 'webcam', label: '摄像头', body: `
-<circle cx="48" cy="46" r="22" fill="${C2}"/>
-<circle cx="48" cy="46" r="11" fill="${C1}"/>
-<circle cx="48" cy="46" r="4" fill="${W}" stroke-width="2.6"/>
-<rect x="32" y="12" width="32" height="10" rx="5" fill="${C2}"/>
-<path d="M40 22v4M56 22v4" stroke-width="3"/>` },
+<rect x="16" y="26" width="64" height="28" rx="14" fill="${C2}"/>
+<circle cx="48" cy="40" r="10" fill="${C1}"/>
+<circle cx="48" cy="40" r="4" fill="${W}" stroke-width="2.6"/>
+<circle cx="27" cy="40" r="2.2" fill="${S}" stroke="none"/>
+<path d="M40 54v8a6 6 0 0 0 6 6h4a6 6 0 0 0 6-6v-8z" fill="${W}"/>
+<path d="M34 74h28" stroke-width="3"/>` },
   { key: 'lightring', label: '直播灯', body: `
-<circle cx="48" cy="42" r="26" fill="${W}"/>
-<circle cx="48" cy="42" r="17" fill="${C1}" stroke-width="2.6"/>
-<path d="M22 62l-8 8M74 62l8 8" stroke-width="3"/>
-<rect x="40" y="72" width="16" height="8" rx="3" fill="${C2}"/>` },
+<circle cx="48" cy="40" r="24" fill="${C1}"/>
+<circle cx="48" cy="40" r="13" fill="none" stroke-width="3"/>
+<rect x="41" y="31" width="14" height="18" rx="3" fill="${W}" stroke-width="2.6"/>
+<path d="M44 31v-4h8v4" stroke-width="2.6" fill="none"/>
+<path d="M48 64v8" stroke-width="3"/>
+<rect x="38" y="72" width="20" height="8" rx="4" fill="${C2}"/>` },
   { key: 'recorder', label: '录音笔', body: `
 <rect x="34" y="10" width="28" height="70" rx="9" fill="${C2}"/>
 <circle cx="48" cy="32" r="8" fill="${C1}"/>
@@ -761,9 +768,13 @@ const ICONS = [
 <path d="M45 48h6" stroke-width="3"/>
 <path d="M24 30l-6-8M72 30l6-8" stroke-width="3"/>` },
   { key: 'battery', label: '充电电池', body: `
-<rect x="26" y="10" width="44" height="76" rx="10" fill="${C2}"/>
-<rect x="38" y="20" width="20" height="6" rx="3" fill="${M}" stroke="none"/>
-<path d="M48 34l-12 20h10l-2 14 14-22H48z" fill="${C1}"/>` },
+<rect x="24" y="22" width="20" height="58" rx="7" fill="${C2}"/>
+<rect x="30" y="14" width="8" height="8" rx="2.5" fill="${C2}"/>
+<rect x="52" y="22" width="20" height="58" rx="7" fill="${C1}"/>
+<rect x="58" y="14" width="8" height="8" rx="2.5" fill="${C1}"/>
+<path d="M29 34h10M34 29v10" stroke-width="2.8"/>
+<path d="M57 70h10" stroke-width="2.8"/>
+<path d="M64 34l-8 14h6l-2 12 10-16h-6l3-10z" fill="${R}" stroke-width="2.2"/>` },
   { key: 'powerstrip', label: '插线板', body: `
 <rect x="8" y="30" width="80" height="36" rx="8" fill="${W}"/>
 <g fill="${C2}" stroke-width="2.6">
@@ -773,9 +784,11 @@ const ICONS = [
 </g>
 <circle cx="48" cy="74" r="3" fill="${S}" stroke="none"/>` },
   { key: 'cableorganizer', label: '理线器', body: `
-<rect x="14" y="32" width="68" height="32" rx="14" fill="${C3}"/>
-<path d="M30 32v32M48 32v32M66 32v32" stroke-width="3"/>
-<path d="M20 48h56" stroke-width="3"/>` },
+<path d="M28 56V36a7 7 0 0 1 14 0v20" fill="none" stroke="${C1}" stroke-width="5"/>
+<path d="M46 56V28a7 7 0 0 1 14 0v28" fill="none" stroke="${M}" stroke-width="5"/>
+<path d="M64 56V40a7 7 0 0 1 14 0v16" fill="none" stroke="${C4}" stroke-width="5"/>
+<rect x="14" y="56" width="68" height="20" rx="9" fill="${C3}"/>
+<path d="M32 56v20M50 56v20M68 56v20" stroke-width="3"/>` },
   { key: 'screenprotector', label: '屏幕保护膜', body: `
 <path d="M28 10h40a4 4 0 0 1 4 4v68a4 4 0 0 1-4 4H28a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" fill="${C1}"/>
 <path d="M72 74 56 86h16z" fill="${W}" stroke-width="2.6"/>
@@ -814,10 +827,11 @@ const ICONS = [
 <rect x="58" y="58" width="18" height="30" rx="7" fill="${C2}"/>
 <path d="M56 24a14 14 0 0 0 0 20" fill="none" stroke-width="3.4"/>` },
   { key: 'skincare', label: '护肤品', body: `
-<rect x="32" y="34" width="32" height="46" rx="8" fill="${C1}"/>
-<rect x="36" y="22" width="24" height="14" rx="5" fill="${C2}"/>
-<circle cx="48" cy="56" r="9" fill="${W}" stroke-width="2.6"/>
-<path d="M48 51v10M43 56h10" stroke="${C1}" stroke-width="2.6"/>` },
+<path d="M43 12h10v10h-10z" fill="${C2}"/>
+<path d="M43 16h-9" stroke-width="3"/>
+<path d="M44 22h8v8h-8z" fill="${C2}"/>
+<rect x="32" y="30" width="32" height="52" rx="9" fill="${C4}"/>
+<path d="M48 50c4.4 5 6.6 7.6 6.6 10.6a6.6 6.6 0 0 1-13.2 0c0-3 2.2-5.6 6.6-10.6z" fill="${W}" stroke-width="2.6"/>` },
   { key: 'perfume', label: '香水', body: `
 <rect x="34" y="36" width="28" height="46" rx="8" fill="${C4}"/>
 <rect x="42" y="22" width="12" height="16" rx="4" fill="${C2}"/>
@@ -827,11 +841,12 @@ const ICONS = [
 <rect x="14" y="34" width="68" height="20" rx="8" fill="${C2}"/>
 <g stroke-width="2.6"><path d="M24 54v16M32 54v18M40 54v16M48 54v18M56 54v16M64 54v18M72 54v16"/></g>` },
   { key: 'nailclipper', label: '指甲剪', body: `
-<path d="M18 40h32v14H18z" fill="${C2}"/>
-<path d="M50 40h14a6 6 0 0 1 0 14H50z" fill="${C1}"/>
-<path d="M64 44h12a5 5 0 0 1 0 10H64z" fill="${W}"/>
-<circle cx="30" cy="68" r="8" fill="none" stroke-width="3"/>
-<path d="M37 64l14-8" stroke-width="3"/>` },
+<g transform="rotate(-22 48 52)">
+<path d="M16 46 L58 40a10 10 0 0 1 10 10v4a10 10 0 0 1-10 10H22z" fill="${C2}"/>
+<path d="M16 46l-6-3M16 50l-7 1M16 54l-6 4" stroke-width="2.6"/>
+<rect x="26" y="22" width="28" height="7" rx="3.5" fill="${C1}" transform="rotate(-16 26 29)"/>
+<circle cx="27" cy="50" r="3.6" fill="${W}" stroke-width="2.6"/>
+</g>` },
   { key: 'scale', label: '体重秤', body: `
 <rect x="18" y="16" width="60" height="64" rx="12" fill="${W}"/>
 <rect x="28" y="28" width="40" height="24" rx="5" fill="${C1}" stroke-width="2.6"/>
@@ -964,9 +979,10 @@ const ICONS = [
 <rect x="72" y="26" width="16" height="44" rx="5" fill="${C1}"/>
 <path d="M30 48h36" stroke="${M}" stroke-width="3"/>` },
   { key: 'yogamat', label: '瑜伽垫', body: `
-<rect x="14" y="30" width="68" height="24" rx="12" fill="${C3}"/>
-<path d="M26 30v24M70 30v24" stroke="${M}" stroke-width="3"/>
-<path d="M14 66h68" stroke="${M}" stroke-width="3" stroke-dasharray="4 5"/>` },
+<circle cx="29" cy="55" r="17" fill="${C3}"/>
+<circle cx="29" cy="55" r="7.5" fill="none" stroke-width="3"/>
+<path d="M29 72h37v-9a7 7 0 0 1 7-7h3a6 6 0 0 1 6 6v13a8 8 0 0 1-8 8H29z" fill="${C3}"/>
+<path d="M52 72v7" stroke="${M}" stroke-width="3" stroke-dasharray="3 4"/>` },
   { key: 'basketball', label: '篮球', body: `
 <circle cx="48" cy="48" r="30" fill="${C2}"/>
 <path d="M48 18v60M18 48h60" stroke-width="2.8"/>
@@ -1011,10 +1027,12 @@ const ICONS = [
 <circle cx="48" cy="32" r="7" fill="${C1}"/>
 <path d="M48 39v10M48 49 22 84M48 49l26 35M48 49v35" stroke-width="3.4"/>` },
   { key: 'fishingrod', label: '钓鱼竿', body: `
-<path d="M14 82 68 20a8 8 0 0 1 12 10L26 90" fill="${C2}"/>
-<path d="M68 20c8-4 16 0 16 8" fill="none" stroke-width="2.6"/>
-<path d="M78 32c0 10 0 16 4 22" fill="none" stroke="${M}" stroke-width="2.2"/>
-<circle cx="82" cy="58" r="4" fill="${C1}" stroke-width="2.4"/>` },
+<path d="M24 82 L76 16" stroke-width="3.2"/>
+<path d="M24 82 L40 58" stroke-width="5.5"/>
+<circle cx="44" cy="62" r="7" fill="${C1}" stroke-width="3"/>
+<circle cx="52" cy="66" r="2.2" fill="${S}" stroke="none"/>
+<path d="M76 16c8 4 8 14 8 22v12" fill="none" stroke="${M}" stroke-width="2.2"/>
+<path d="M84 50v6a5 5 0 0 1-10 0" fill="none" stroke-width="2.6"/>` },
   { key: 'skateboard', label: '滑板', body: `
 <path d="M12 44h72a4 4 0 0 1 4 4v6a10 10 0 0 1-10 10H18a10 10 0 0 1-10-10v-6a4 4 0 0 1 4-4z" fill="${C4}"/>
 <path d="M26 64v6M70 64v6" stroke-width="3.4"/>
