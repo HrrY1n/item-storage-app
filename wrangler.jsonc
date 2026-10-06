@@ -19,15 +19,18 @@
     "not_found_handling": "single-page-application"
   },
 
-  // D1 绑定。⚠️ database_id 是占位符，待用户在 Cloudflare 面板创建 item-sync 后回填。
-  //    绑定名统一为 SYNC_DB（不使用泛化的 DB），对应代码里的 env.SYNC_DB。
-  //    建库与建表都不需要命令行认证：建库用面板 Create database，
-  //    建表在面板 Console 里粘贴 worker/migrations/0001_init.sql 执行。
+  // D1 绑定。数据库已由用户在 Cloudflare 面板创建（Create database → item-sync）。
+  //
+  // ⚠️ 绑定名统一为 SYNC_DB，**不要**改成 Dashboard 示例里那个泛化的 "DB" ——
+  //    代码里读的是 env.SYNC_DB（worker/index.ts 的 Env 接口），改名会直接 500。
+  //
+  // 建表同样不需要命令行认证：在该数据库的 Console 里粘贴
+  // worker/migrations/0001_init.sql 执行即可（脚本可重复执行安全）。
   "d1_databases": [
     {
       "binding": "SYNC_DB",
       "database_name": "item-sync",
-      "database_id": "PLACEHOLDER_REPLACE_WITH_ACTUAL_ID"
+      "database_id": "d321784c-7ba0-4750-a468-73228a0bf51f"
     }
   ]
 }
