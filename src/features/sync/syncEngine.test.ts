@@ -47,8 +47,17 @@ class FakeCloud {
   private seq = 0
   /** 记录被请求过的路径，便于断言「没发多余请求」 */
   readonly calls: string[] = []
+  /** 让下一次 push 失败（模拟网络/服务端故障） */
+  failNextPush = false
+  /** push 之前触发的钩子：用于模拟「用户在这期间又改了同一实体」 */
+  onBeforePush: (() => Promise<void>) | null = null
 
-  push(deviceId: string, changes: Array<{ entity: string; entityId: string; payload: unknown; deletedAt: string | null; clientUpdatedAt: string; baseRevision: number; undeleteIntent?: boolean }>): { accepted: number; ignored: Array<{ entity: string; entityId: string; reason: string }>; currentRevision: number } {
+  async push(deviceId: string, changes: Array<{ entity: string; entityId: string; payload: unknown; deletedAt: string | null; clientUpdatedAt: string; baseRevision: number; undeleteIntent?: boolean }>): Promise<{ accepted: number; acceptedIds: string[]; ignored: Array<{ entity: string; entityId: string; reason: string }>; currentRevision: number }> {
+    if (this.failNextPush) {
+      this.failNextPush = false
+      throw new Error('simulated push failure')
+    }
+    const acceptedIds: string[] = []
     const accepted = changes.filter((c) => {
       const key = `${c.entity}:${c.entityId}`
       const existing = this.rows.get(key)
@@ -56,6 +65,7 @@ class FakeCloud {
       if (existing !== undefined && existing.deletedAt !== null && c.undeleteIntent !== true) {
         return false
       }
+      acceptedIds.push(c.entityId)
       this.seq += 1
       this.rows.set(key, {
         revision: this.seq,
@@ -72,7 +82,14 @@ class FakeCloud {
       })
       return true
     }).length
-    return { accepted, ignored: [], currentRevision: this.seq }
+    // ⭐ 请求已写进云端、响应还没回到客户端的窗口 —— 这才是真正的"飞行中"。
+    // 用户在这个窗口里编辑同一实体，产生的 V2 条目必须活下来。
+    if (this.onBeforePush !== null) {
+      const hook = this.onBeforePush
+      this.onBeforePush = null
+      await hook()
+    }
+    return { accepted, acceptedIds, ignored: [], currentRevision: this.seq }
   }
 
   pull(after: number): { changes: RemoteChange[]; nextRevision: number; hasMore: boolean } {
@@ -90,6 +107,11 @@ class FakeCloud {
   /** 某设备当前的记录（用于断言收敛） */
   get changeOf(): (key: string) => RemoteChange | undefined {
     return (key: string) => this.rows.get(key)?.change
+  }
+
+  /** 直接读某条记录的 payload 字段（避免泛型断言噪音） */
+  payloadOf(key: string): unknown {
+    return this.rows.get(key)?.change.payload
   }
 }
 
@@ -119,8 +141,18 @@ function makeDevice(opts: { online?: boolean } = {}): { engine: SyncEngine; host
           deviceId: string
           changes: Parameters<FakeCloud['push']>[1]
         }
-        const r = cloud.push(state.deviceId, body.changes)
-        return { status: 200, text: async () => JSON.stringify({ ...r, conflicts: [] }) }
+        const r = await cloud.push(state.deviceId, body.changes)
+        return {
+          status: 200,
+          text: async () =>
+            //acceptedIds 与 dedupDirectives 必须回传：客户端靠它们精确出队 / 去重
+            JSON.stringify({
+              ...r,
+              acceptedIds: r.acceptedIds,
+              dedupDirectives: [],
+              conflicts: [],
+            }),
+        }
       }
       if (url.includes('/api/sync/pull')) {
         const after = Number(new URL(url).searchParams.get('after') ?? '0')
@@ -502,6 +534,230 @@ describe('回声防护（最重要的一条）', () => {
     const pulledSecond = await engine.run()
     expect(pulledSecond.pulled).toBe(0)
     expect((await syncRepository.getState())?.lastPulledRevision).toBe(2)
+  })
+})
+
+describe('⭐ tag 删除跨设备同步（复审第 5 条）', () => {
+  it('A 建 tag → B 拉到 → A 删 tag → B 再拉到 → tag 消失', async () => {
+    // B 设备（拉取方）
+    const { engine: engineB } = makeDevice()
+    await pairDevice('dev-b')
+
+    // 云端先有A 创建的 tag
+    cloud.push('dev-a', [
+      {
+        entity: 'tag',
+        entityId: 'tag-from-a',
+        payload: { name: '通勤', nameNormalized: '通勤', createdAt: 't', updatedAt: 't' },
+        deletedAt: null,
+        clientUpdatedAt: 't',
+        baseRevision: 0,
+      },
+    ])
+    await engineB.run()
+    expect(await db.tags.get('tag-from-a')).toBeDefined()
+
+    // A 设备删除该 tag（物理删除 → 留下 delete 条目）
+    // ⚠️ 同一个 Dexie 里该 tag 已被上一轮 pull 写入，直接 add 会撞主键
+    const { engine: engineA } = makeDevice()
+    await pairDevice('dev-a')
+    await db.tags.put({
+      id: 'tag-from-a',
+      name: '通勤',
+      nameNormalized: '通勤',
+      createdAt: 't',
+      updatedAt: 't',
+    })
+    await syncRepository.clearQueue()
+    await tagRepository.delete('tag-from-a')
+
+    // A 把删除推上云
+    await engineA.run()
+    const onCloud = cloud.changeOf('tag:tag-from-a')
+    expect(onCloud?.deletedAt).toBeTruthy()
+
+    // B 再拉 → tag 消失
+    await syncRepository.setState({ lastPulledRevision: 0 })
+    await engineB.run()
+    expect(await db.tags.get('tag-from-a')).toBeUndefined()
+  })
+
+  it('★ B 的旧副本不得复活已删除的 tag', async () => {
+    const { engine: engineB } = makeDevice()
+    await pairDevice('dev-b')
+
+    // 云端：该 tag 已被 A 删除
+    cloud.push('dev-a', [
+      {
+        entity: 'tag',
+        entityId: 'doomed-tag',
+        payload: {},
+        deletedAt: '2026-03-01T00:00:00.000Z',
+        clientUpdatedAt: '2026-03-01T00:00:00.000Z',
+        baseRevision: 0,
+      },
+    ])
+
+    // B 本地还留着旧副本
+    await db.tags.add({
+      id: 'doomed-tag',
+      name: '已删',
+      nameNormalized: '已删',
+      createdAt: 't',
+      updatedAt: 't',
+    })
+
+    await engineB.run()
+    expect(await db.tags.get('doomed-tag')).toBeUndefined()
+  })
+
+  it('删除 tag 会连带清掉引用它的关联', async () => {
+    const { engine: engineB } = makeDevice()
+    await pairDevice('dev-b')
+
+    await db.itemTags.clear()
+    await db.tags.put({
+      id: 'tag-x',
+      name: 'X',
+      nameNormalized: 'x',
+      createdAt: 't',
+      updatedAt: 't',
+    })
+    const item = await itemRepository.create({ ...baseInput, tagIds: ['tag-x'] })
+    expect(await itemRepository.tagIdsOf(item.id)).toEqual(['tag-x'])
+
+    // 先把本机状态正常推上云（清空 outbox、推进游标），
+    // 这样后面 pull 回来的就只有"云端删除 tag"这一件事，不会混进旧载荷。
+    const first = await engineB.run()
+    expect(first.ok).toBe(true)
+    expect(await syncRepository.pendingCount()).toBe(0)
+
+    cloud.push('dev-a', [
+      {
+        entity: 'tag',
+        entityId: 'tag-x',
+        payload: {},
+        deletedAt: '2026-03-01T00:00:00.000Z',
+        clientUpdatedAt: 't',
+        baseRevision: 0,
+      },
+    ])
+    await engineB.run()
+
+    // tag 消失，且引用它的关联也被清掉
+    expect(await db.tags.get('tag-x')).toBeUndefined()
+    expect(await itemRepository.tagIdsOf(item.id)).toEqual([])
+  })
+
+  it('merge 的 source tag 在另一台设备消失', async () => {
+    const { engine: engineB } = makeDevice()
+    await pairDevice('dev-b')
+
+    // 云端：source 与 target 两个 tag
+    cloud.push('dev-a', [
+      { entity: 'tag', entityId: 'src', payload: { name: '旧', nameNormalized: '旧', createdAt: 't', updatedAt: 't' }, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
+      { entity: 'tag', entityId: 'dst', payload: { name: '新', nameNormalized: '新', createdAt: 't', updatedAt: 't' }, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
+    ])
+    await engineB.run()
+    expect(await db.tags.get('src')).toBeDefined()
+
+    // A 执行 merge → source 留删除条目
+    const { engine: engineA } = makeDevice()
+    await pairDevice('dev-a')
+    await db.tags.put({ id: 'src', name: '旧', nameNormalized: '旧', createdAt: 't', updatedAt: 't' })
+    await db.tags.put({ id: 'dst', name: '新', nameNormalized: '新', createdAt: 't', updatedAt: 't' })
+    await syncRepository.clearQueue()
+    await tagRepository.merge('src', 'dst')
+    await engineA.run()
+
+    await syncRepository.setState({ lastPulledRevision: 0 })
+    await engineB.run()
+    expect(await db.tags.get('src')).toBeUndefined()
+    expect(await db.tags.get('dst')).toBeDefined()
+  })
+})
+
+describe('⭐ push 失败 / 竞态时绝不动本地数据（复审第 6 条 · Local-first 硬不变量）', () => {
+  it('★ push 失败时停止 pull，本地修改不被远端旧值覆盖、outbox 原样保留', async () => {
+    const { engine } = makeDevice()
+    await pairDevice('dev-a')
+
+    // 本地有待推改动 V1
+    const item = await itemRepository.create({ ...baseInput, name: '我的本地修改' })
+    expect(await syncRepository.pendingCount()).toBe(1)
+
+    // 云端存在同名记录，但内容是**旧值**
+    cloud.push('dev-b', [
+      {
+        entity: 'item',
+        entityId: item.id,
+        payload: { name: '云端旧值', categoryId: 'c1', iconAssetId: 'preset-other', createdAt: 't', updatedAt: 't' },
+        deletedAt: null,
+        clientUpdatedAt: 't',
+        baseRevision: 0,
+      },
+    ])
+
+    // 让 push 失败
+    cloud.failNextPush = true
+    const r = await engine.run()
+
+    expect(r.ok).toBe(false)
+    // 本地修改**完好无损**
+    expect((await db.items.get(item.id))?.name).toBe('我的本地修改')
+    // outbox **未被清空**
+    expect(await syncRepository.pendingCount()).toBe(1)
+    // 游标未推进（本轮根本没pull）
+    expect((await syncRepository.getState())?.lastPulledRevision).toBe(0)
+  })
+
+  it('★ 同步期间用户再次编辑同一实体 → 新 outbox 必须保留（V1/V2 race）', async () => {
+    const { engine } = makeDevice()
+    await pairDevice('dev-a')
+
+    const item = await itemRepository.create({ ...baseInput, name: 'V1' })
+    const v1Entry = (await syncRepository.listQueue()).find((r) => r.entityId === item.id)
+    expect(v1Entry).toBeDefined()
+
+    // 在 push 飞行途中，用户又改了同一实体（V2）→ outbox 里产生**新条目**
+    cloud.onBeforePush = async () => {
+      await itemRepository.update(item.id, { ...baseInput, name: 'V2' })
+      const after = await db.items.get(item.id)
+      console.log('[钩子] 更新后本地 name =', after?.name, '| outbox =', (await syncRepository.listQueue()).map(r => r.id.slice(-6)).join(','))
+    }
+
+    await engine.run()
+
+    // ⭐ 关键断言：V1 出队了，但 V2 的条目**必须还在** outbox 里等下一轮。
+    //   若被清掉，V2 就永远不会同步上去 —— 这正是复审第 6 条要防的。
+    const still = await syncRepository.listQueue()
+    expect(still).toHaveLength(1)
+    expect(still[0].entityId).toBe(item.id)
+    // 新条目的 id 与 V1 不同（说明确实是新条目，不是旧的残留）
+    expect(still[0].id).not.toBe(v1Entry?.id)
+
+    // 下一轮：V2 成功同步
+    const second = await engine.run()
+    expect(second.ok).toBe(true)
+    expect(await syncRepository.pendingCount()).toBe(0)
+    // 云端最终应是 V2（第二轮才推上去的）
+    const final = cloud.payloadOf(`item:${item.id}`) as { name?: string } | undefined
+    expect(final?.name).toBe('V2')
+  })
+
+  it('push 失败后下一轮成功：outbox 全部清空且数据最终一致', async () => {
+    const { engine } = makeDevice()
+    await pairDevice('dev-a')
+
+    await itemRepository.create({ ...baseInput, name: '先失败再成功' })
+    cloud.failNextPush = true
+    const first = await engine.run()
+    expect(first.ok).toBe(false)
+    expect(await syncRepository.pendingCount()).toBe(1)
+
+    const second = await engine.run()
+    expect(second.ok).toBe(true)
+    expect(await syncRepository.pendingCount()).toBe(0)
   })
 })
 

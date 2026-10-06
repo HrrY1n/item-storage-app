@@ -146,7 +146,8 @@ describe('outbox', () => {
     await syncRepository.clearEntity('item', 'i1')
 
     const left = await syncRepository.listQueue()
-    expect(left.map((r) => `${r.entity}:${r.entityId}`)).toEqual(['item:i2', 'tag:t1'])
+    // 顺序无关断言（列表顺序依赖 Dexie 的索引实现，不该被测试锁死）
+    expect(left.map((r) => `${r.entity}:${r.entityId}`).sort()).toEqual(['item:i2', 'tag:t1'])
   })
 
   it('clearEntity 清空后可以重新入队（pull 之后仍能再次推送）', async () => {

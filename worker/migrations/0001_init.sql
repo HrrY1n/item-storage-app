@@ -76,28 +76,37 @@ INSERT OR IGNORE INTO sync_revision_seq (id, revision) VALUES (1, 0);
 
 
 -- ---------------------------------------------------------------------
--- ③ 认证：只存 secret 的 SHA-256 哈希
+-- ③ 认证：单用户 · 单同步空间 · 一个共享 secret
 --
--- ⚠️ 绝不存明文secret。D1 一旦被完整泄漏，攻击者也无法直接登录。
+-- Phase 3B 第一版的信任模型（刻意简化）：
+--   · 整个数据库**只有一个**同步空间
+--   · 两台设备**共享同一个** secret
+--   · 因此**不提供**"单独吊销某台设备"的能力
+--     （两设备共享凭据，吊销一台等于吊销全部）。per-device token 留后续 Phase。
+--
+-- ★ 单空间这个不变量由 **schema 表达**，不依赖代码约定：
+--   id INTEGER PRIMARY KEY CHECK (id = 1) 保证最多只能有一行，
+--   第二次 INSERT 必然违反 CHECK → Worker 返回 409。
+--
+-- ⚠️ 绝不存明文 secret。D1 一旦被完整泄漏，攻击者也无法直接登录。
 --
 -- 为什么不做 PBKDF2 / scrypt / argon2 拉伸：
 -- 那些算法是给**低熵人类密码**用的。本方案的 secret 是 256-bit 全随机
 -- （熵 190+ bits），熵已足够；再拉伸只是白白拖慢每次请求，
 -- 而 Workers 免费版 CPU 限 10ms/invocation，拉伸有超时风险。
---
--- 每个设备一个 key_id，便于单独吊销（revoked_at）。
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sync_auth (
-  -- 公开标识，**不是秘密**。写在 URL 里也无所谓（但我们仍不放）
-  key_id      TEXT PRIMARY KEY,
+  -- ★ 固定为 1：既是主键又是一个 CHECK 约束 —— 任何 INSERT 都必须写 1，
+  --   于是**最多只能存在一行**。第二台设备无法创建新空间。
+  id           INTEGER PRIMARY KEY CHECK (id = 1),
+
+  -- 公开标识，**不是秘密**。仅用于日志与将来扩展，本版不做吊销。
+  key_id       TEXT NOT NULL,
 
   -- hex(SHA-256(secret))。服务端用**常数时间比较**比对。
-  secret_hash TEXT NOT NULL,
+  secret_hash  TEXT NOT NULL,
 
-  created_at  TEXT NOT NULL,
-
-  -- 非空即已吊销。吊销某台设备不影响其他设备。
-  revoked_at  TEXT
+  created_at   TEXT NOT NULL
 );
 
 

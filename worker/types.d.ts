@@ -10,12 +10,30 @@
  *   → 并把 tsconfig.worker.json 的 "types" 改成 ["@cloudflare/workers-types"]
  */
 
-/** D1 的 prepared statement（只声明用到的方法） */
+/**
+ * D1 的 prepared statement（只声明用到的方法）。
+ *
+ * ⚠️ `bind()` 返回**新的** D1PreparedStatement（D1 是不可变的），
+ *    且 `run()` 的返回里带 `results` —— `UPDATE ... RETURNING` 的行就在这里。
+ *    这两点都是 Phase 3B 复审第 2 条踩过的坑，签名必须写准。
+ */
 interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement
   first<T = unknown>(): Promise<T | null>
-  run<T = unknown>(): Promise<unknown>
-  all<T = unknown>(): Promise<{ results?: T[] }>
+  run<T = unknown>(): Promise<D1Result<T>>
+  all<T = unknown>(): Promise<D1Result<T>>
+}
+
+interface D1Result<T = unknown> {
+  success?: boolean
+  results?: T[]
+  meta?: {
+    duration?: number
+    changes?: number
+    last_row_id?: number
+    rows_read?: number
+    rows_written?: number
+  }
 }
 
 /** D1 数据库绑定 */

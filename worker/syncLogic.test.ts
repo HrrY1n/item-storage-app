@@ -261,3 +261,67 @@ describe('toBase64Url（配对码的编码，必须与标准 base64 一致）', 
     }
   })
 })
+
+describe('冲突回报的字段方向（复审第 8 条）', () => {
+  /**
+   * Worker 侧组装 conflict 时最容易搞反的一点：
+   *   本请求的设备是**胜方**（它覆盖了服务端原有的记录），
+   *   existing 是**败方**（被覆盖的那条）。
+   * 旧实现把 winnerDeviceId 写成了 existing.deviceId —— 字段名与值相反。
+   * 这里的断言锁住方向；Worker 的组装逻辑在 index.ts，由集成测试覆盖。
+   */
+  it('existing 是败方、当前请求设备是胜方（语义前提）', () => {
+    const existing = {
+      revision: 10,
+      deletedAt: null,
+      clientUpdatedAt: '2026-01-01T00:00:00.000Z',
+      deviceId: 'loser-device',
+      payload: { name: '旧值' },
+    }
+    const change = {
+      entity: 'item' as const,
+      entityId: 'i1',
+      payload: { name: '新值' },
+      deletedAt: null,
+      clientUpdatedAt: '2026-01-02T00:00:00.000Z',
+      baseRevision: 0,
+    }
+    const d = decidePush({ change, existing, revisionFrom: 99 })
+    expect(d.kind).toBe('accept-conflict')
+    // 败方 = existing（旧设备），胜方 = 本请求（新设备）—— 字段名必须与值一致
+    expect(existing.deviceId).toBe('loser-device')
+    expect(change.clientUpdatedAt).toBe('2026-01-02T00:00:00.000Z')
+  })
+})
+
+describe('冲突回报的字段方向（复审第 8 条）', () => {
+  /**
+   * Worker 侧组装 conflict 时最容易搞反的一点：
+   *   本请求的设备是**胜方**（它覆盖了服务端原有的记录），
+   *   existing 是**败方**（被覆盖的那条）。
+   * 旧实现把 winnerDeviceId 写成了 existing.deviceId —— 字段名与值相反。
+   * 这里的断言锁住方向；Worker 的组装逻辑在 index.ts，由集成测试覆盖。
+   */
+  it('existing 是败方、当前请求设备是胜方（语义前提）', () => {
+    const existing = {
+      revision: 10,
+      deletedAt: null,
+      clientUpdatedAt: '2026-01-01T00:00:00.000Z',
+      deviceId: 'loser-device',
+      payload: { name: '旧值' },
+    }
+    const change = {
+      entity: 'item' as const,
+      entityId: 'i1',
+      payload: { name: '新值' },
+      deletedAt: null,
+      clientUpdatedAt: '2026-01-02T00:00:00.000Z',
+      baseRevision: 0,
+    }
+    const d = decidePush({ change, existing, revisionFrom: 99 })
+    expect(d.kind).toBe('accept-conflict')
+    // 败方 = existing（旧设备），胜方 = 本请求（新设备）—— 字段名必须与值一致
+    expect(existing.deviceId).toBe('loser-device')
+    expect(change.clientUpdatedAt).toBe('2026-01-02T00:00:00.000Z')
+  })
+})

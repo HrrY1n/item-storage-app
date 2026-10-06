@@ -162,16 +162,30 @@ export interface SyncState {
   pendingCount: number
 }
 
+/** outbox 操作类型 */
+export type SyncQueueOp = 'upsert' | 'delete'
+
 /**
  * outbox 条目。
  *
- * ⚠️ 刻意**不存 payload** —— push 时才从业务表现读。
+ * ⚠️ 刻意**不存 payload** —— upsert 时才从业务表现读。
  * 这样同一实体改了 5 次只会推 1 条，也不会出现「outbox 与业务表内容不一致」。
+ *
+ * ⚠️ delete 是例外：**物理删除的实体读不到数据**，所以删除必须把必要元信息
+ *（deletedAt / clientUpdatedAt）随条目一起存下来。
+ * 这正是 tag 删除 / 合并能够跨设备同步的原因 —— 业务表里那条记录已经没了，
+ * 但 outbox 里还留着「某时刻该 tag 被删除」这条事实。
  */
 export interface SyncQueueEntry {
   id: string
   entity: SyncEntity
   entityId: string
+  /** 省略视为 'upsert'（兼容 v4 早期的既有数据） */
+  op?: SyncQueueOp
+  /** 仅 op='delete' 有值：删除发生的时间 */
+  deletedAt?: string | null
+  /** 仅 op='delete' 有值：删除方的 updatedAt（审计用，不参与排序） */
+  clientUpdatedAt?: string | null
   createdAt: string
 }
 

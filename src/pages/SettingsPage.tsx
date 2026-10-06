@@ -18,7 +18,7 @@ import { usePwaUpdate } from '../features/pwa/PwaUpdateContext'
 import { useSync } from '../features/sync/SyncContext'
 import { syncSummaryToMessage } from '../features/sync/syncPolicy'
 import { syncRepository } from '../db/repositories/syncRepository'
-import { createPairingCode, parsePairingCode, registerSecret } from '../services/syncService'
+import { createSyncSpace, joinSyncSpace, parsePairingCode } from '../services/syncService'
 import type { BackupPayload, BackupSummary } from '../domain/backup'
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
@@ -171,9 +171,13 @@ export default function SettingsPage() {
 
   /* ---------------- 跨设备同步（Phase 3B） ---------------- */
   const [syncing, setSyncing] = useState(false)
+  const [busySync, setBusySync] = useState(false)
+  /** 配对码：**只要已启用同步就持续显示**（可随时重新复制），不再是一次性 toast */
   const [pairingCode, setPairingCode] = useState<string | null>(null)
   const [codeInput, setCodeInput] = useState('')
-  const [busySync, setBusySync] = useState(false)
+  /** 加入时的抉择：云端已有数据 */
+  const [joinConflict, setJoinConflict] = useState<number | null>(null)
+  const [pendingJoin, setPendingJoin] = useState<{ secret: string; keyId: string } | null>(null)
 
   const online = typeof navigator === 'undefined' ? true : navigator.onLine !== false
 
@@ -190,25 +194,26 @@ export default function SettingsPage() {
     }
   }
 
-  /** 生成配对码（A 设备）：不立即启用，等另一台接入 */
-  const handleCreateCode = async () => {
+  /** 入口 A：创建新的同步空间（会立即启用并上传本机数据） */
+  const handleCreateSpace = async () => {
     setBusySync(true)
     try {
-      const { code, keyId, secret } = await createPairingCode()
-      const ok = await registerSecret(secret, keyId)
-      if (!ok) {
-        show('无法连接服务器，请检查网络后重试')
-        return
-      }
+      const { code } = await createSyncSpace()
       setPairingCode(code)
-      show('配对码已生成，复制到另一台设备')
+      show('同步空间已创建，配对码已生成')
+      await syncNow()
+    } catch {
+      show('创建失败，请检查网络后重试')
     } finally {
       setBusySync(false)
     }
   }
 
-  /** 粘贴配对码（B 设备）：先校验，通过才落库并启用 */
-  const handleUseCode = async () => {
+  /**
+   * 入口 B：加入已有同步空间。
+   * ⭐ 只调**已认证的** status 校验 secret；401 时**不写任何本地凭据**。
+   */
+  const handleJoin = async () => {
     setBusySync(true)
     try {
       const payload = parsePairingCode(codeInput.trim())
@@ -216,26 +221,51 @@ export default function SettingsPage() {
         show('配对码格式不正确')
         return
       }
-      const ok = await registerSecret(payload.secret, payload.keyId, payload.workerBaseUrl)
-      if (!ok) {
-        show('配对码无效，请重新生成')
+      setPendingJoin({ secret: payload.secret, keyId: payload.keyId })
+      // 先做一次只读的连通性校验（此刻还没启用本机同步）
+      const result = await joinSyncSpace(payload)
+      if (!result.ok) {
+        setPendingJoin(null)
+        show(result.reason === 'offline' ? '当前离线，请联网后重试' : '配对码无效，请确认后在创建设备上重新生成')
         return
       }
-      await syncRepository.initCredentials(payload.secret, payload.keyId)
-      await syncRepository.enqueueAll()
-      await syncRepository.setState({ enabled: true })
+      // 云端已有数据 → 问用户怎么办（不做自动合并）
+      if (result.recordCount > 0) {
+        setJoinConflict(result.recordCount)
+        return
+      }
       setCodeInput('')
-      setPairingCode(null)
-      show('配对成功，正在首次同步')
+      show('已加入，正在首次同步')
       await syncNow()
+    } catch {
+      show('加入失败，请稍后重试')
     } finally {
       setBusySync(false)
     }
   }
 
+  /** 用户选择「以云端为准」：丢弃本地待推条目，让云端覆盖 */
+  const handleJoinUseCloud = async () => {
+    await syncRepository.clearQueue()
+    setJoinConflict(null)
+    show('将以云端数据为准')
+    await syncNow()
+  }
+
+  /** 用户选择「以本机为准」：重新入队全部本地数据并强推 */
+  const handleJoinUseLocal = async () => {
+    await syncRepository.enqueueAll()
+    setJoinConflict(null)
+    show('将以本机数据为准')
+    await syncNow()
+  }
+
   /** 关闭同步：清凭据但保留待推条目（用户数据一条不丢） */
   const handleDisableSync = async () => {
     await syncRepository.disable()
+    setPairingCode(null)
+    setJoinConflict(null)
+    setPendingJoin(null)
     show('已关闭同步，本地数据不受影响')
   }
 
@@ -315,37 +345,41 @@ export default function SettingsPage() {
         <RowLink to="/settings/icons" label="物品图标库" hint={`浏览全部内置图标（共 ${PRESET_ICONS.length} 个）`} />
       </Group>
 
+      {/*──────── 跨设备同步：两个明确入口（Phase 3B 复审第 4 条）────────*/}
       <Group title="跨设备同步">
         {syncSummary === null || syncSummary.kind === 'disabled' ? (
           <>
             <RowButton
-              label="启用同步"
-              hint="让 iPhone 与电脑共享同一份数据（可选）"
-              onClick={() => void handleCreateCode()}
-              disabled={busySync}
-            />
-            <p className="px-4 py-3 text-caption leading-relaxed text-ink-tertiary">
-              同步是可选项：关闭时数据只保存在本机。启用后两台设备会互相同步；
-              离线时一切照常可用，联网后自动追赶。
-            </p>
-          </>
-        ) : syncSummary.kind === 'needs-setup' ? (
-          <>
-            <RowButton
-              label="粘贴配对码"
-              hint="从另一台已生成配对码的设备复制"
-              onClick={() => void handleUseCode()}
-              disabled={busySync || codeInput.trim() === ''}
+              label="创建新的同步空间"
+              hint="在本机开启同步，并生成配对码给另一台设备"
+              onClick={() => void handleCreateSpace()}
+              disabled={busySync || !online}
             />
             <div className="px-4 py-3">
-              <input
-                type="text"
-                value={codeInput}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setCodeInput(e.target.value)}
-                placeholder="粘贴配对码"
-                className="field-shell w-full rounded-lg border border-line px-3 py-2 text-body"
-              />
+              <p className="mb-2 text-caption text-ink-tertiary">
+                已在另一台设备开启过同步？在这里粘贴它的配对码。
+              </p>
+              <div className="field-shell flex gap-2 rounded-lg border border-line px-3 py-2 focus-within:border-accent">
+                <input
+                  type="text"
+                  value={codeInput}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setCodeInput(e.target.value)}
+                  placeholder="粘贴配对码"
+                  className="min-w-0 flex-1 bg-transparent text-body outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleJoin()}
+                  disabled={busySync || codeInput.trim() === ''}
+                  className="shrink-0 rounded-md px-2 py-1 text-body text-accent disabled:opacity-40"
+                >
+                  加入
+                </button>
+              </div>
             </div>
+            <p className="px-4 pb-3 text-caption leading-relaxed text-ink-tertiary">
+              同步是可选项：关闭时数据只保存在本机。离线时一切照常可用，联网后自动追赶。
+            </p>
           </>
         ) : (
           <>
@@ -355,28 +389,67 @@ export default function SettingsPage() {
               onClick={() => void handleSyncNow()}
               disabled={syncing || !online}
             />
-            {pairingCode !== null && (
+
+            {/* 配对码持续显示，可随时重新复制 —— 不再是一次性提示 */}
+            {pairingCode === null ? (
+              <RowButton
+                label="生成配对码"
+                hint="给另一台设备用"
+                onClick={() => void handleCreateSpace()}
+                disabled={busySync || !online}
+              />
+            ) : (
               <div className="px-4 py-3">
                 <p className="mb-2 text-caption text-ink-tertiary">
-                  把这段配对码复制到另一台设备，它粘贴后即可接入。
+                  在另一台设备的「同步 → 加入」里粘贴这段配对码。
                 </p>
-                <p className="break-all rounded-lg bg-sunken px-3 py-2 text-caption text-ink-secondary">
-                  {pairingCode}
-                </p>
+                <div className="flex items-start gap-2">
+                  <p className="min-w-0 flex-1 break-all rounded-lg bg-sunken px-3 py-2 text-caption text-ink-secondary">
+                    {pairingCode}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard?.writeText(pairingCode)
+                      show('配对码已复制')
+                    }}
+                    className="shrink-0 rounded-md px-2 py-1 text-body text-accent"
+                  >
+                    复制
+                  </button>
+                </div>
               </div>
             )}
+
             {syncEnabled && (
-              <RowButton label="关闭同步" hint="清理解锁凭据，本地数据与待同步改动都保留" onClick={() => void handleDisableSync()} />
+              <RowButton
+                label="关闭同步"
+                hint="清理解锁凭据，本地数据与待同步改动都保留"
+                onClick={() => void handleDisableSync()}
+              />
             )}
           </>
         )}
       </Group>
 
+      {/* 加入时云端已有数据 → 显式二选一，绝不自动合并 */}
+      {joinConflict !== null && pendingJoin !== null && (
+        <ConfirmDialog
+          open
+          title="云端已有数据"
+          message={`云端已有 ${joinConflict} 条记录。\n\n「以云端为准」会丢弃本机待同步的改动，用云端数据覆盖本机；「以本机为准」会用本机数据覆盖云端。两种都不会自动合并。`}
+          confirmLabel="以云端为准"
+          cancelLabel="以本机为准"
+          onConfirm={() => void handleJoinUseCloud()}
+          onCancel={() => void handleJoinUseLocal()}
+        />
+      )}
+
       {conflicts.length > 0 && (
         <Group title="最近的覆盖记录">
           {conflicts.map((c) => (
             <div key={c.id} className="px-4 py-3">
-              <p className="text-caption text-ink-tertiary">
+              <p className="text-caption text-ink-secondary">
                 {c.entity === 'item' ? '物品' : c.entity === 'category' ? '分类' : '标签'}
                 ：{c.loserSummary ?? c.entityId}
               </p>

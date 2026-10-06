@@ -1,7 +1,13 @@
 import { ulid } from 'ulid'
 import type { Table } from 'dexie'
 import { db } from '../db'
-import type { SyncConflict, SyncEntity, SyncQueueEntry, SyncState } from '../../domain/types'
+import type {
+  SyncConflict,
+  SyncEntity,
+  SyncQueueEntry,
+  SyncQueueOp,
+  SyncState,
+} from '../../domain/types'
 
 /**
  * 同步相关的本地状态读写（Phase 3B）。
@@ -25,14 +31,27 @@ export const SYNC_CONFLICT_LIMIT = 50
  *
  * @param table syncQueue 表句柄（可能是 db.syncQueue，也可能是 tx.table('syncQueue')）
  */
-async function upsertQueueEntry(table: Table<SyncQueueEntry, string>, entity: SyncEntity, entityId: string): Promise<void> {
-  // 用 [entity+entityId] 唯一索引做幂等：同一实体改了 5 次仍只有 1 条待推
+async function upsertQueueEntry(
+  table: Table<SyncQueueEntry, string>,
+  entity: SyncEntity,
+  entityId: string,
+  op: SyncQueueOp = 'upsert',
+  meta?: { deletedAt?: string | null; clientUpdatedAt?: string | null },
+): Promise<void> {
+  // 用 [entity+entityId] 唯一索引做幂等：同一实体改了 5 次仍只有 1 条待推。
+  // ⚠️ 必须先删后插：新条目要反映**最新意图**
+  //（例如先 upsert 再 delete，最终只该留下一条 delete）。
   await table.where('[entity+entityId]').equals([entity, entityId]).delete()
+  const now = new Date().toISOString()
   await table.add({
     id: ulid(),
     entity,
     entityId,
-    createdAt: new Date().toISOString(),
+    op,
+    ...(op === 'delete'
+      ? { deletedAt: meta?.deletedAt ?? now, clientUpdatedAt: meta?.clientUpdatedAt ?? meta?.deletedAt ?? now }
+      : {}),
+    createdAt: now,
   })
 }
 
@@ -134,6 +153,32 @@ export const syncRepository = {
    */
   async enqueue(entity: SyncEntity, entityId: string): Promise<void> {
     await upsertQueueEntry(db.syncQueue, entity, entityId)
+  },
+
+  /**
+   * ⭐ 在事务内登记一条**删除**。
+   *
+   * 用途：tag 这类**物理删除**的实体。业务表里记录已经没了，
+   * 但同步必须让另一台设备也把它消失 —— 所以「删除事实」要留在 outbox 里。
+   *
+   * @param deletedAt 删除时刻（软删用业务表的 deletedAt；物理删除用此刻）
+   */
+  async enqueueDeleteWithTx(
+    entity: SyncEntity,
+    entityId: string,
+    tx: { table: (name: string) => Table<SyncQueueEntry, string> },
+    deletedAt?: string | null,
+    clientUpdatedAt?: string | null,
+  ): Promise<void> {
+    await upsertQueueEntry(tx.table('syncQueue'), entity, entityId, 'delete', {
+      deletedAt,
+      clientUpdatedAt,
+    })
+  },
+
+  /** 事务外的删除登记（测试与运维用；业务路径请用 enqueueDeleteWithTx） */
+  async enqueueDelete(entity: SyncEntity, entityId: string): Promise<void> {
+    await upsertQueueEntry(db.syncQueue, entity, entityId, 'delete')
   },
 
   /**

@@ -20,9 +20,9 @@ import {
   type SyncErrorKind,
   type SyncReason,
   type SyncStatusSummary,
-  SYNC_PUSH_BATCH_SIZE,
   summarizeSync,
 } from './syncPolicy'
+import { SYNC_PUSH_BATCH_SIZE } from './syncLimits'
 import { SyncTransport, type PushConflict, type RemoteChange, type TransportHost } from './syncTransport'
 
 /**
@@ -122,7 +122,14 @@ export class SyncEngine {
       })
 
       // ---- push ----
+      //
+      // ⚠️ Local-first 硬不变量（Phase 3B 复审第 6 条）：
+      //   push 一旦失败，本轮**立刻停止**，绝不继续 pull。
+      //   因为本地还有未成功上云的修改，若继续 pull，apply 会用远端旧值
+      //   覆盖它们、再清掉 outbox 条目 → 用户的本地改动凭空消失且无法找回。
       const queue = await syncRepository.listQueue()
+      // 本轮成功提交的 outbox entry id 集合（用于精确 dequeue 与精确回声防护）
+      const succeededEntryIds = new Set<string>()
       if (queue.length > 0) {
         const batches = chunk(queue, SYNC_PUSH_BATCH_SIZE)
         for (const batch of batches) {
@@ -132,10 +139,24 @@ export class SyncEngine {
             errorKind = result.kind
             break
           }
-          // 被服务端接受的条目才出队；被忽略的（tombstone）也出队，
-          // 否则它们会永远卡在 outbox 里反复重试。
-          await syncRepository.dequeue(batch.map((r) => r.id))
+          // ⚠️ 出队只认**entry id**，绝不按 entityId 匹配。
+          //
+          //   原因：outbox 的 enqueue 是「先删后插」，所以同一次 push 飞行期间
+          //   用户再编辑同一实体时，V1（老 id）被删、V2（新 id）被插入。
+          //   若按 entityId 匹配出队，V2 会被一起删掉 → 那次编辑永远同步不上。
+          //
+          //   因此这里校验：本批entry 的 id 是否**仍然是 outbox 里那一条**
+          //（V1 若已被 V2 顶掉，就不该再出队），是则精确删除它。
+          const currentIds = new Set((await syncRepository.listQueue()).map((r) => r.id))
+          const doneEntries = batch.filter((r) => currentIds.has(r.id))
+          for (const e of doneEntries) succeededEntryIds.add(e.id)
+          await syncRepository.dequeue(doneEntries.map((r) => r.id))
           pushed += result.accepted
+
+          // ⭐ tag 跨设备去重（复审第 9 条）：把本地的重复 tag 合并到云端既有那条
+          for (const d of result.dedupDirectives) {
+            await this.mergeDuplicateTag(d.duplicateId, d.canonicalId)
+          }
 
           for (const c of result.conflicts) {
             await this.recordConflicts(c)
@@ -144,7 +165,23 @@ export class SyncEngine {
         }
       }
 
-      // ---- pull（push 失败时也尝试 pull：拉取是幂等的，且可能带回别人的更新）----
+      // ---- pull：只在 push 全部成功（或本轮没有待推）时才执行 ----
+      if (errorKind !== null) {
+        // 保留 outbox 原样，不动游标，等下次联网重试
+        return { ok: false, pushed, pulled: 0, conflicts, errorKind }
+      }
+
+      // 本轮真正出队的 entry id 集合。
+      // apply 时按 **entry id** 判断是否清除该实体的 outbox 条目 ——
+      // 只有"本批那个 entry"仍然在场时才清，绝不碰用户飞行期间新产生的那条。
+      const currentAfterPush = new Set((await syncRepository.listQueue()).map((r) => r.id))
+      const succeededEntities = new Set<string>()
+      for (const entry of queue) {
+        if (!succeededEntryIds.has(entry.id)) continue
+        if (!currentAfterPush.has(entry.id)) continue
+        succeededEntities.add(`${entry.entity}:${entry.entityId}`)
+      }
+
       let cursor = (await syncRepository.getState())?.lastPulledRevision ?? 0
       for (;;) {
         const result = await transport.pull(cursor)
@@ -153,7 +190,7 @@ export class SyncEngine {
           break
         }
         if (result.changes.length === 0) break
-        await this.applyRemote(result.changes)
+        await this.applyRemote(result.changes, succeededEntities)
         cursor = result.nextRevision
         pulled += result.changes.length
         if (!result.hasMore) break
@@ -181,7 +218,7 @@ export class SyncEngine {
 
   /** 把 outbox 条目组装成 push 请求（含从业务表读当前值） */
   private async buildPushChanges(
-    batch: Array<{ entity: SyncEntity; entityId: string }>,
+    batch: Array<{ entity: SyncEntity; entityId: string; op?: 'upsert' | 'delete'; deletedAt?: string | null; clientUpdatedAt?: string | null }>,
   ): Promise<
     Array<{
       entity: SyncEntity
@@ -204,6 +241,20 @@ export class SyncEngine {
     }> = []
 
     for (const entry of batch) {
+      // ⭐ 物理删除（tag 删��/ 合并）：业务表里读不到数据，
+      //   删除时间等信息必须来自 outbox 条目本身。
+      if (entry.op === 'delete') {
+        out.push({
+          entity: entry.entity,
+          entityId: entry.entityId,
+          payload: {},
+          deletedAt: entry.deletedAt ?? new Date().toISOString(),
+          clientUpdatedAt: entry.clientUpdatedAt ?? entry.deletedAt ?? new Date().toISOString(),
+          baseRevision,
+        })
+        continue
+      }
+
       if (entry.entity === 'item') {
         const item = await db.items.get(entry.entityId)
         if (item === undefined) {
@@ -255,6 +306,37 @@ export class SyncEngine {
     return out
   }
 
+  /**
+   * 把本地的重复 tag 合并到云端既有的那条。
+   *
+   * 两台设备各自离线建了同名 tag 时用。步骤（**单个事务**）：
+   *  1. 引用重复 tag 的所有物品，把tagId 换成既有的 id
+   *  2. 删除重复 tag 本身
+   *  3. 受影响的物品重新入队（它们的 tagIds 变了）
+   *
+   * itemTags 的复合主键是 [itemId+tagId]，因此若物品同时已关联既有 tag，
+   * 直接 bulkAdd 会撞约束 —— 先查再决定 put还是跳过。
+   */
+  private async mergeDuplicateTag(duplicateId: string, canonicalId: string): Promise<void> {
+    await db.transaction('rw', [db.items, db.itemTags, db.tags, db.syncQueue], async (tx) => {
+      const dup = await db.tags.get(duplicateId)
+      // 重复的tag 已不存在 → 无需合并（幂等）
+      if (dup === undefined) return
+
+      const links = await db.itemTags.where('tagId').equals(duplicateId).toArray()
+      for (const link of links) {
+        const already = await db.itemTags.get([link.itemId, canonicalId])
+        if (already === undefined) {
+          await db.itemTags.put({ itemId: link.itemId, tagId: canonicalId })
+        }
+        await db.itemTags.delete([link.itemId, duplicateId])
+        // 该物品的 tagIds 变了 → 重新入队
+        await syncRepository.enqueueWithTx('item', link.itemId, tx)
+      }
+      await db.tags.delete(duplicateId)
+    })
+  }
+
   /** 落一条冲突记录（只在覆盖方） */
   private async recordConflicts(c: PushConflict): Promise<void> {
     await syncRepository.recordConflict({
@@ -276,15 +358,84 @@ export class SyncEngine {
    * - 写入业务表
    * - 清除该实体在 outbox 里的残留条目（回声防护）
    */
-  private async applyRemote(changes: RemoteChange[]): Promise<void> {
+  private async applyRemote(
+    changes: RemoteChange[],
+    /**
+     * 本轮 push **成功提交**的实体集合（形如 `item:i1`）。
+     * 只有这些实体的 outbox 条目才允许在 apply 时被清除。
+     */
+    succeededQueueIds: Set<string> | null,
+  ): Promise<void> {
     await db.transaction(
       'rw',
       [db.items, db.itemTags, db.categories, db.tags, db.syncQueue],
-      async () => {
-        for (const change of changes) {
+      async (tx) => {
+        // ⚠️ 顺序很重要：**先处理删除，再处理 upsert**。
+        //   若某物品的旧载荷（tagIds 里还带着已删的 tag-x）先被应用，
+        //   它会把关联重新建回来；随后 tag 删除才清一次 —— 但如果 item 因为
+        //   "仍有待推条目"被跳过，关联就永久残留。
+        //   先做删除则不存在这个次序问题：删除已经把关联清干净，
+        //   后续 item 的 apply 只会写它自己的载荷。
+        const ordered = [...changes].sort((a, b) => {
+          const aDel = a.deletedAt !== null ? 0 : 1
+          const bDel = b.deletedAt !== null ? 0 : 1
+          return aDel - bDel
+        })
+
+        for (const change of ordered) {
           const entity = change.entity as SyncEntity
-          // 回声防护：无论本次是新增还是更新，都先清掉本实体的待推条目
-          await syncRepository.clearEntity(entity, change.entityId)
+
+          // ⭐⭐ 最关键的一条（复审第 6 条）：**该实体仍有待推条目时，完全不碰它**。
+          //
+          //   场景：push V1 飞行中用户又改了同一实体 → outbox 里是 V2。
+          //   云端此刻是 V1，pull 回来的也是 V1。若无条件 apply，
+          //   V1 会覆盖本地刚编辑出的 V2 → 用户的编辑凭空消失，
+          //   而且 V2 还在 outbox 里，下一轮又会被推一次，来回震荡。
+          //
+          //   因此这里检查 outbox：只要这个实体还有未推送的改动，
+          //   就跳过 apply（本地版本比云端新，理应优先）。
+          const pending = await db.syncQueue
+            .where('[entity+entityId]')
+            .equals([entity, change.entityId])
+            .count()
+          if (pending > 0) {
+            // 该实体有本地未推送的改动 → 不应用远端版本。
+            // ⚠️ 但**远端的删除仍然必须落地**：本地那条待推记录是我们自己
+            //    的旧改动，它不该阻止"另一台设备已经把它删了"这个事实生效。
+            //    否则物品/标签会在本机永久残留，而且 outbox 里那条旧记录
+            //    每轮都会被推上去、被服务端忽略（tombstone），永远出不了队。
+            if (change.deletedAt !== null) {
+              // 本地删除即可（物理删除的实体）或标记软删（软删的实体）
+              if (entity === 'item') {
+                await db.items.update(change.entityId, { deletedAt: change.deletedAt })
+                await db.itemTags.where('itemId').equals(change.entityId).delete()
+              } else if (entity === 'category') {
+                await db.categories.update(change.entityId, { deletedAt: change.deletedAt })
+              } else if (entity === 'tag') {
+                await db.tags.delete(change.entityId)
+                const links = await db.itemTags.where('tagId').equals(change.entityId).toArray()
+                await db.itemTags.where('tagId').equals(change.entityId).delete()
+                // ⚠️ 关键：受影响物品的 **itemTags 之外**，其上传载荷里的
+                //   tagIds 字段也必须剔除该 tag。否则这些物品在下一轮 push 时
+                //   会把已删的 tagId 再带上云，形成"幽灵引用"。
+                //   （这些物品的本地数据本身不动，只是重写入队让载荷刷新。）
+                for (const link of links) {
+                  const item = await db.items.get(link.itemId)
+                  if (item !== undefined && item.deletedAt === null) {
+                    await syncRepository.enqueueWithTx('item', link.itemId, tx)
+                  }
+                }
+              }
+              // 顺带清掉这个实体的 outbox：它已被服务端 tombstone，再推也是被忽略
+              await syncRepository.clearEntity(entity, change.entityId)
+            }
+            continue
+          }
+
+          // 回声防护：只有本轮确实推送成功过的实体，才清它的 outbox 条目
+          if (succeededQueueIds !== null && succeededQueueIds.has(`${entity}:${change.entityId}`)) {
+            await syncRepository.clearEntity(entity, change.entityId)
+          }
 
           if (entity === 'item') {
             await this.applyRemoteItem(change)
@@ -347,6 +498,18 @@ export class SyncEngine {
   }
 
   private async applyRemoteTag(change: RemoteChange): Promise<void> {
+    const deletedAt = change.deletedAt
+
+    // ⭐ tag 是物理删除，远端删除后本地必须**真的删掉**，
+    //   否则另一台设备会永远保留已删标签，且它的旧副本还能把它"复活"。
+    //   （本地 Dexie 的 nameNormalized 唯一索引保证不会残留重名标签。）
+    if (deletedAt !== null) {
+      await db.tags.delete(change.entityId)
+      // 连带清掉引用它的关联（等价于本地 delete 的效果）
+      await db.itemTags.where('tagId').equals(change.entityId).delete()
+      return
+    }
+
     const tag: Tag | null = decodeTagPayload(change.entityId, change.payload)
     if (tag === null) return
     const existing = await db.tags.get(change.entityId)

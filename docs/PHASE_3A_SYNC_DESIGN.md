@@ -185,7 +185,7 @@ POST /api/sync/push
   → 200: { accepted: n, rejected: [{entity, entityId, reason}], currentRevision: n, ignored: [...] }
   作用：批量 upsert。逐条比较 revision（见 §9）
 
-GET /api/sync/pull?after=<revision>&limit=500
+GET /api/sync/pull?after=<revision>&limit=100
   → 200: { changes: [{ revision, entity, entityId, payload, deletedAt, clientUpdatedAt, deviceId }], nextRevision, hasMore }
   作用：拉取 revision > after 的所有实体最新快照
 
@@ -202,7 +202,11 @@ GET /api/sync/status
    官方 SPA 行为：`not_found_handling: "single-page-application"` 只对**导航请求**（带 `Sec-Fetch-Mode: navigate`）回落 `index.html`；`fetch('/api/...')` 这类子资源请求**不会**回落，会正常进入 Worker。实测依据：官方文档原文明确 "if you define an API endpoint ... and then fetch it with a client-side request ..., the Worker script will be invoked"。**前提是 `compatibility_date >= 2025-04-01`**（当前是 `2026-10-03`，✅）。
    代价：浏览器地址栏直接输入 `/api/sync/status` 会拿到 HTML。**可接受**（这是有意的省流量行为）。
    若 Phase 3B 想彻底显式化，可改用 `assets.run_worker_first: ["/api/*"]`（需 wrangler ≥ 4.20.0）。
-2. **单次 push 的批大小必须 ≤ 500 条**。D1 免费版：单次 Worker 调用 50 条查询、单脚本约 5000 个绑定参数。500 条/批留足余量。
+2. **单次 push 的批大小必须 ≤ 32 条**（Phase 3B 复审后修正，原写 500 是错的）。
+   两条官方硬约束各自给出的上限：
+   - **绑定参数 ≤ 100/query**：Worker 预加载已有记录的查询参数数 ≈ 实体种类(≤3) + 实体id 数 → N ≤ 97
+   - **Free 50 queries/invocation**：1 预加载 + N upsert + 1 revision 分配 ≤ 50 → N ≤ 48
+   取 32 留余量。推导见 `src/features/sync/syncLimits.ts`。
 
 ---
 
@@ -223,7 +227,7 @@ GET /api/sync/status
    └─ 与 Phase 2H.1 的 updatePolicy 同构：统一 requestSync(reason)，内部节流 60s
    └─ navigator.onLine === false → 直接返回，UI 显示「离线」，不报错
 ② 离线前置检查：deviceId 缺失 / 未启用同步 → 返回
-③ PUSH：outbox 中所有变更（分批，每批 ≤500）
+③ PUSH：outbox 中所有变更（分批，每批 ≤32）
      服务端逐条判定 → 返回 accepted / rejected / ignored / currentRevision
      本地：accepted 条目从 outbox 移除（同一 Dexie 事务内）
 ④ PULL：GET /api/sync/pull?after=lastPulledRevision
@@ -326,7 +330,7 @@ ZIP Restore 是 Replace Restore（整体替换），而 Sync 是增量合并—�
 | 时机 | 行为 |
 |---|---|
 | 导出 ZIP | 与 Sync 完全独立，不含任何 sync 状态。ZIP 始终是**云端之外**的第二份备份 |
-| **恢复备份后** | ① `syncState.lastPulledRevision = 0`、`pendingCount = 全量本地数据`、`enabled` **保持开启**；② UI 弹出**明确确认**（非阻塞）：「恢复的备份可能比云端数据旧，要如何处理？」两个按钮：<br>· **以本机为准** → 全量 push，本机覆盖云端<br>· **以云端为准** → 丢弃本机数据，全量 pull 覆盖本机<br>· 取消 → 保持暂停，等用户自己决定 |
+| **恢复备份后** | **同步被关闭**：清凭据（secret / keyId）、游标归零、清空 outbox。本地数据**完全不受影响**，也不会误推任何东西到云端。用户想恢复同步时在设置页重新走一次「创建 / 加入」即可（secret 已清，需重新生成）。<br>⚠️ 不用「二选一自动合并」：Replace Restore 与增量同步语义冲突，任何自动决策都可能在用户不知情时丢掉一整台设备的新数据。（Phase 3B 复审第 10 条确定；实现见 `backupService.restoreFromPayload`）|
 | 何时暂停同步 | 恢复流程中同步**暂停**（复用 Phase 2H.1 的 `useUpdateGuard` 思路），恢复完成后由用户选择 |
 | 恢复后 `appMeta` | 保持现有行为（`seeded='1'`）。**`appMeta` 永不同步**（§5），因此不会影响另一台设备 |
 | 云端数据丢失 | D1 整个库可删（`/api/sync/status` 报告空库 → 提示"云端为空，是否把本机数据上传作为初始数据"） |
@@ -383,7 +387,8 @@ A/B 引导式配对（详细见 `docs/PHASE_3B_IMPLEMENTATION_PLAN.md` §0.2）�
 2. A **暂不启用**（等对方确认）→ 避免单边把空库推上去覆盖对方老数据
 3. 用户把配对码复制/手输到 **B 设备**
 4. B 立刻用该 secret 调 `/api/sync/status` 校验 → 401 即配对码无效、不落库；200 才存 `syncState` 并启用
-5. B 询问「云端已有数据：合并 / 以本机为准上传」→ 首次同步
+5. B 询问「云端已有数据：以云端为准 / 以本机为准」→ 首次同步
+   （⚠️ 此处是**加入方**的抉择，与上面 Restore 的「关闭同步」是不同场景）
 6. A 收到任意一次成功 pull（说明 B 已接入）→ 自动启用并首次同步；24h 无接入则保持未启用，可手动改「单机启用」
 
 配对码**不写 URL / 不写日志 / 不进 Git**；**不做二维码**（沿用项目既有「不做二维码」约定，用剪贴板 + 手输）。
@@ -429,7 +434,7 @@ Supabase Free 对照：500 MB 库、**1 周不活动自动暂停**、5 GB egress
 
 | 指标 | 单次同步 | 每天 10 次 | 占免费额度 | 余量 |
 |---|---|---|---|---|
-| Worker requests | 2（push + pull） | 20 | 0.02% | 5000× |
+| Worker requests | 2（push + pull），但 >32 条变更要分多次 push | 20~24 | 0.02% | 4000× |
 | D1 rows written | 10 条 × 2（表 + UNIQUE 索引）= 20 | 200 | **0.2%** | 500× |
 | D1 rows read | pull 走主键有序扫描，≈ 拉回条数 = 10 | 100 | 0.002% | 50000× |
 | D1 storage | — | ~13,500 行 × 400 B ≈ **5.4 MB** | 0.1% | 900× |
@@ -450,7 +455,7 @@ Supabase Free 对照：500 MB 库、**1 周不活动自动暂停**、5 GB egress
 10,000 件物品首次全量上传：10,750 行 × 2（表 + 索引）≈ **21,500 rows written**，占当日 100,000 的 **21.5%**。
 
 - ✅ 仍然在额度内
-- ⚠️ 但**必须分批**（每批 ≤500），否则撞上 10ms CPU 限制与单请求体积
+- ⚠️ 但**必须分批**（每批 ≤32），否则撞上绑定参数（100/query）与查询数（50/invocation）限制
 - 📌 因此 `/api/sync/status` 必须先问"云端是否空库"，空库才允许走 bootstrap 全量写入
 
 ### 严禁 `SELECT *`
@@ -502,7 +507,7 @@ Supabase Free 对照：500 MB 库、**1 周不活动自动暂停**、5 GB egress
 | R7 | 同步与 PWA 更新的 reload 互相干扰 | 🟢 低 | 两者独立节流；同步**永不触发 reload**；`useUpdateGuard` 只管版本更新 |
 | R8 | 用户误以为"同步 = 备份"，删了云端 | 🟡 中 | UI 文案明确"备份"与"同步"是两件事；`/api/sync/status` 支持云端重建引导 |
 | R9 | 标签跨设备重复 | 🟡 中 | 服务端按 `nameNormalized` 去重 + 客户端事务内合并（§9） |
-| R10 | 首次 bootstrap 大批量写入 | 🟢 低 | 分批 ≤500；先查 status 确认云端为空 |
+| R10 | 首次 bootstrap 大批量写入 | 🟢 低 | 分批 ≤32；先查 status 确认云端为空 |
 
 ---
 

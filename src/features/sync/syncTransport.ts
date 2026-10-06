@@ -1,9 +1,5 @@
-import {
-  classifyStatus,
-  type SyncErrorKind,
-  SYNC_PULL_PAGE_SIZE,
-  SYNC_PUSH_BATCH_SIZE,
-} from './syncPolicy'
+import { classifyStatus, type SyncErrorKind } from './syncPolicy'
+import { SYNC_PULL_PAGE_SIZE, SYNC_PUSH_BATCH_SIZE } from './syncLimits'
 import type { SyncEntity } from '../../domain/syncPayload'
 
 /**
@@ -26,6 +22,13 @@ export interface RemoteChange {
   deviceId: string
 }
 
+/** 服务端要求客户端把重复 tag 合并到既有 id 的指令 */
+export interface TagDedupDirectiveWire {
+  kind: 'merge-tag-into'
+  duplicateId: string
+  canonicalId: string
+}
+
 export interface PushConflict {
   entity: string
   entityId: string
@@ -40,6 +43,15 @@ export interface PushConflict {
 export interface PushResult {
   ok: true
   accepted: number
+  /**
+   * 服务端**实际接受**的实体 id 列表。
+   *
+   * ⚠️ 不能用"本批全部"来近似：服务端会忽略 tombstone 与非法实体。
+   *   客户端必须只删除真正被接受的 outbox 条目，其余保留重试。
+   */
+  acceptedQueueIds: string[]
+  /** tag 跨设备去重指令：客户端要把 duplicateId 合并到 canonicalId */
+  dedupDirectives: TagDedupDirectiveWire[]
   ignored: Array<{ entity: string; entityId: string; reason: string }>
   conflicts: PushConflict[]
   currentRevision: number
@@ -58,8 +70,23 @@ export type PullOutcome = PullResult | SyncFailure
 
 export interface TransportHost {
   isOnline(): boolean
-  /** 带超时的 fetch */
-  fetch(url: string, init: { method: string; headers: Record<string, string>; body?: string }): Promise<{
+  /**
+   * 带**取消信号**的 fetch。
+   *
+   * ⚠️ `signal` 必须出现在 init 里才算真的超时（Phase 3B 复审第 7 条）：
+   *   此前 transport 内部创建了 AbortController 并调用 abort()，
+   *   但 signal 没有传给 host.fetch —— 真实的 fetch 收不到任何取消信号，
+   *   15 秒超时形同虚设（网络挂起时会一直等下去）。
+   */
+  fetch(
+    url: string,
+    init: {
+      method: string
+      headers: Record<string, string>
+      body?: string
+      signal?: AbortSignal
+    },
+  ): Promise<{
     status: number
     text(): Promise<string>
   }>
@@ -75,12 +102,13 @@ export interface TransportConfig {
 export class SyncTransport {
   private readonly host: TransportHost
   private readonly config: TransportConfig
-  /** 单请求超时（毫秒） */
-  private readonly timeoutMs = 15_000
+  /** 单请求超时（毫秒）。public 便于测试缩短它。 */
+  readonly timeoutMs: number
 
-  constructor(host: TransportHost, config: TransportConfig) {
+  constructor(host: TransportHost, config: TransportConfig, timeoutMs = 15_000) {
     this.host = host
     this.config = config
+    this.timeoutMs = timeoutMs
   }
 
   private headers(): Record<string, string> {
@@ -104,6 +132,8 @@ export class SyncTransport {
         method: init.method,
         headers: init.auth ? this.headers() : {},
         ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
+        // ★ 真正把取消信号交给底层 fetch —— 超时才生效
+        signal: controller.signal,
       })
       const text = await res.text()
       let data: Record<string, unknown> | null = null
@@ -122,11 +152,16 @@ export class SyncTransport {
   }
 
   /**
-   * 连通性 + 凭据校验（也是配对流程的第一步）。
-   * 刻意**不要求认证** —— 配对时就是要用它验证 secret 是否有效。
+   * 连通性 + **凭据校验**。
+   *
+   * ⚠️ 复审第 3 条后语义已变：/status 现在是**已认证**端点
+   * （Worker 侧 handleStatus 会 authenticate）。
+   * 客户端此前还发 `auth: false`，两边不一致 → B 设备配对必然失败。
+   * B 设备正是靠它来判断"配对码里的 secret 是否有效"：
+   *200 = 有效，401 = 无效。
    */
   async status(): Promise<{ ok: true; recordCount: number; currentRevision: number } | { ok: false; kind: SyncErrorKind }> {
-    const res = await this.call('/api/sync/status', { method: 'GET', auth: false })
+    const res = await this.call('/api/sync/status', { method: 'GET', auth: true })
     if (res.status === 0) return { ok: false, kind: 'offline' }
     if (res.status !== 200) return { ok: false, kind: classifyStatus(res.status) }
     return {
@@ -136,7 +171,12 @@ export class SyncTransport {
     }
   }
 
-  /** 登记 secret 的哈希（首次配对时由 A 设备调用） */
+  /**
+   * 创建同步空间（**只有 A 设备会调**）。
+   *
+   * 刻意不要求认证 —— 它是"尚未存在 secret"时的入口。
+   * 空间已存在时 Worker 返回 409，因此 B 设备误调也不会造成破坏。
+   */
   async bootstrap(secret: string, keyId: string): Promise<{ ok: boolean; kind?: SyncErrorKind; keyId?: string }> {
     const res = await this.call('/api/sync/bootstrap', {
       method: 'POST',
@@ -159,6 +199,8 @@ export class SyncTransport {
       baseRevision: number
     }>,
   ): Promise<PushOutcome> {
+    // queueEntryId 只是回执用的关联 id，服务端原样回传，
+    // 让客户端能精确知道哪些 outbox 条目可以出队。
     const res = await this.call('/api/sync/push', {
       method: 'POST',
       body: { deviceId: this.config.deviceId, changes },
@@ -170,7 +212,13 @@ export class SyncTransport {
     return {
       ok: true,
       accepted: Number(res.data?.accepted ?? 0),
+      acceptedQueueIds: Array.isArray(res.data?.acceptedIds)
+        ? (res.data!.acceptedIds as string[])
+        : [],
       ignored: Array.isArray(res.data?.ignored) ? (res.data!.ignored as PushResult['ignored']) : [],
+      dedupDirectives: Array.isArray(res.data?.dedupDirectives)
+        ? (res.data!.dedupDirectives as TagDedupDirectiveWire[])
+        : [],
       conflicts: Array.isArray(res.data?.conflicts) ? (res.data!.conflicts as PushConflict[]) : [],
       currentRevision: Number(res.data?.currentRevision ?? 0),
     }

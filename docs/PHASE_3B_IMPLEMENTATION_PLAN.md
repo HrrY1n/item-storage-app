@@ -218,7 +218,11 @@ Phase 3B 的 D1 schema **只建 3 张表、一条 INSERT**，完全可以**零�
 
 ### 4.4 额度自检（10,000 物品规模）
 
-首次 bootstrap 10,750 行 × 2（表 + UNIQUE）≈ 21,500 rows written = 当日 100,000 的 **21.5%** → **必须分批 ≤500 条/次**（同时避开 10ms CPU 与单请求体积）。稳态每天 10 次同步 ≈ 200 rows written = **0.2%**。
+首次 bootstrap 10,750 行 × 2（表 + UNIQUE）≈ 21,500 rows written = 当日 100,000 的 **21.5%** → **必须分批**。
+
+⚠️ **复审修正**：原先写「≤500 条/次」是**错的**。D1 官方限制 **bound parameters per query = 100**，而 Worker 预加载查询的参数量 ≈ 3 + N，500 会直接超限（D1 在运行时才拒绝，用户看到的是「同步莫名失败」）。
+
+两条约束各自给出的上限：绑定参数 → N ≤ 97；Free 50 queries/invocation → N ≤ 48。**取 32**（见 `src/features/sync/syncLimits.ts`）。10,750 条 ÷ 32 ≈ 336 批，稳态每天 10 次同步 ≈ 200 rows written = **0.2%**。
 ---
 
 ## 5. Worker 要增加哪些接口
@@ -230,7 +234,7 @@ Phase 3B 的 D1 schema **只建 3 张表、一条 INSERT**，完全可以**零�
 ```
 POST /api/sync/bootstrap     首次配对：写入 sync_auth，返回 { ok, keyId }
 POST /api/sync/push          批量 upsert 变更 → { accepted, ignored, conflicts, currentRevision }
-GET  /api/sync/pull?after=&limit=500   拉 revision > after → { changes, nextRevision, hasMore }
+GET  /api/sync/pull?after=&limit=100   拉 revision > after → { changes, nextRevision, hasMore }
 GET  /api/sync/status                → { currentRevision, recordCount }
 ```
 
@@ -270,7 +274,7 @@ GET  /api/sync/status                → { currentRevision, recordCount }
 | 约束 | 出处 |
 |---|---|
 | **SPA fallback 只对 navigation 请求生效**，`fetch('/api/*')` 正常进 Worker —— 前提 `compatibility_date ≥ 2025-04-01`（当前 2026-10-03 ✅），所以 `assets` 段无需改 | 官方 SPA 文档 |
-| 单次 push **≤ 500 条** | D1 Free 单次 Worker 调用仅 **50 条查询** |
+| 单次 push **≤ 32 条** | D1 Free：**50 queries/invocation** 且 **100 bound params/query**（两条都是硬约束） |
 | **禁止 `SELECT *`** | pull 恒为 `WHERE revision > ? ORDER BY revision LIMIT ?`；`/status` 用 `COUNT(*)` |
 | `revision` 用 `INTEGER PRIMARY KEY AUTOINCREMENT` | rowid 即索引，零额外成本，天然单调不复用 |
 

@@ -207,7 +207,46 @@ describe('tagRepository → outbox', () => {
     const ids = await queueIds()
     expect(ids).toContain(`item:${item.id}`) // ← 关键：物品的 tagIds 变了
     expect(ids).toContain(`tag:${target.id}`)
-    expect(ids).not.toContain(`tag:${source.id}`)
+  })
+
+  it('⭐ merge 后 source tag 留下**删除条目**（复审第 5 条：否则另一台设备永远留着旧标签）', async () => {
+    const source = await tagRepository.create('旧标签')
+    const target = await tagRepository.create('新标签')
+    const item = await itemRepository.create({ ...baseInput, tagIds: [source.id] })
+    await syncRepository.clearQueue()
+
+    await tagRepository.merge(source.id, target.id)
+
+    // source tag 业务表里已被物理删除，但删除事实必须留在 outbox
+    expect(await db.tags.get(source.id)).toBeUndefined()
+    const queue = await syncRepository.listQueue()
+    const entry = queue.find((r) => r.entityId === source.id)
+    expect(entry).toBeDefined()
+    expect(entry?.op).toBe('delete')
+    expect(entry?.deletedAt).toBeTruthy()
+    // 关联的物品仍要重新入队
+    expect(queue.map((r) => r.entityId)).toContain(item.id)
+  })
+
+  it('⭐ delete 留下删除条目（复审第 5 条）', async () => {
+    const t = await tagRepository.create('待删')
+    await itemRepository.create({ ...baseInput, tagIds: [t.id] })
+    await syncRepository.clearQueue()
+
+    await tagRepository.delete(t.id)
+
+    const entry = (await syncRepository.listQueue()).find((r) => r.entityId === t.id)
+    expect(entry?.op).toBe('delete')
+    expect(entry?.deletedAt).toBeTruthy()
+  })
+
+  it('同实体先 upsert 后 delete → 最终只留一条 delete（最新意图）', async () => {
+    const t = await tagRepository.create('会被删的')
+    expect((await syncRepository.listQueue()).find((r) => r.entityId === t.id)?.op).toBe('upsert')
+    await tagRepository.delete(t.id)
+    const entry = (await syncRepository.listQueue()).find((r) => r.entityId === t.id)
+    expect(entry?.op).toBe('delete')
+    expect(await syncRepository.pendingCount()).toBe(1)
   })
 
   it('merge 后关联转移到目标标签', async () => {

@@ -24,7 +24,9 @@ function createHost(): TransportHost {
     isOnline: () => (typeof navigator === 'undefined' ? true : navigator.onLine !== false),
     now: () => Date.now(),
     async fetch(url, init) {
-      const res = await fetch(url, init)
+      // ⚠️ signal 必须透传给 fetch，否则超时完全无效
+      // （这是 Phase 3B 复审发现的真实缺陷：只建了 AbortController 没接线）
+      const res = await fetch(url, { ...init, signal: init.signal })
       return {
         status: res.status,
         text: () => res.text(),
@@ -81,12 +83,19 @@ export function getSyncEngine(): SyncEngine {
 /* 配对（A/B 引导式，见 3B 计划 §0.2）                                    */
 /* ---------------------------------------------------------------------- */
 
-/** 配对码的载荷结构。注意它包含明文 secret，**只在配对期间存在于内存**。 */
+/**
+ * 配对码的载荷结构。注意它包含明文 secret，**只在配对期间存在于内存**。
+ *
+ * ⚠️ 刻意**不含 workerBaseUrl**（Phase 3B 复审第 11 条）：
+ *   同步 API 与 App 同源，因此永远用 `location.origin`。
+ *   若让配对码携带地址，一个恶意/篡改过的配对码就能把 secret
+ *   引导到第三方 origin 上 —— 那等于把凭据主动送出去。
+ *   同源也意味着省掉了"配对码在不同环境（局域网预览 / 线上）间不通用"的麻烦。
+ */
 export interface PairingPayload {
   v: 1
   keyId: string
   secret: string
-  workerBaseUrl: string
 }
 
 /** 生成 256-bit 随机 secret（base64url，无 padding） */
@@ -100,19 +109,46 @@ function randomKeyId(): string {
 }
 
 /**
- * A 设备：生成配对码。
+ * 入口 A：**创建新的同步空间**。
  *
- * ⚠️ 刻意**不启用同步** —— 等 B 设备接入后再启用。
- * 否则会出现"A 单边把空库推上去覆盖 B 的老数据"。
+ * 流程（Phase 3B 复审第 4 条修正后的简化版）：
+ *   1. 生成 secret + keyId，向 Worker登记（唯一会调 bootstrap 的地方）
+ *   2. 本机**立即启用**同步并把全部本地数据入队推送
+ *   3. 配对码**持久化展示**，用户随时可复制
+ *
+ * ## 为什么不再"等 B 接入后自动启用"
+ *
+ * 旧设计让 A 停在"等 B 接入"状态，靠"收到首次成功 pull"来触发启用。
+ * 复核后认为这有两个问题：
+ *   ① **没有触发机制** —— 谁来决定"A 收到了 B 的数据"？这需要一个额外的
+ *      状态标记与检查点，实际上就是第 4 条批评的"看似有实则无"。
+ *   ② A 本来就是数据的来源方，它的云端数据由自己建立，不存在"推空库覆盖
+ *      B 的老数据"这种风险 —— 那个风险是**B 单边加入**时的方向问题。
+ * 因此改为：A 立即启用（自己的数据就是权威），B 加入时才会遇到
+ * "云端已有数据"的抉择，由 B 侧显式询问用户。
  */
-export async function createPairingCode(): Promise<{ code: string; keyId: string; secret: string }> {
+export async function createSyncSpace(): Promise<{ code: string; keyId: string; secret: string }> {
   const secret = generateSecret()
   const keyId = randomKeyId()
-  const payload: PairingPayload = { v: 1, keyId, secret, workerBaseUrl: WORKER_BASE }
+  const payload: PairingPayload = { v: 1, keyId, secret }
   const code = toBase64Url(new TextEncoder().encode(JSON.stringify(payload)))
-  // 先落凭据（不含 enabled），用户复制配对码到另一台设备
-  await syncRepository.initCredentials(secret, keyId)
-  return { code, keyId, secret }
+
+  // 先向 Worker 登记哈希。失败就不要把配对码给出去（否则对方拿到的是一个
+  // 服务端并不认识的 secret，表现为"配对码无效"，很难排查）。
+  const transport = new SyncTransport(createHost(), {
+    baseUrl: WORKER_BASE,
+    deviceId: 'bootstrap',
+    secret,
+  })
+  const registered = await transport.bootstrap(secret, keyId)
+  if (!registered.ok) throw new Error('无法创建同步空间')
+
+  // 登记成功后才落本地凭据并启用
+  await syncRepository.initCredentials(secret, registered.keyId ?? keyId)
+  await syncRepository.setState({ enabled: true })
+  await syncRepository.enqueueAll()
+
+  return { code, keyId: registered.keyId ?? keyId, secret }
 }
 
 /** 解析配对码；格式不对返回 null */
@@ -128,23 +164,48 @@ export function parsePairingCode(code: string): PairingPayload | null {
     ) {
       return null
     }
-    return {
-      v: 1,
-      keyId: parsed.keyId,
-      secret: parsed.secret,
-      workerBaseUrl: typeof parsed.workerBaseUrl === 'string' ? parsed.workerBaseUrl : WORKER_BASE,
-    }
+    // ⚠️ 即使旧版配对码里带了 workerBaseUrl 也**不采纳** ——
+    // 目标 origin 永远是当前页面自己的 origin。
+    return { v: 1, keyId: parsed.keyId, secret: parsed.secret }
   } catch {
     return null
   }
 }
 
-/** 在 Worker 上登记 secret 的哈希（B 设备与 A 设备都需要登记一次） */
-export async function registerSecret(secret: string, keyId: string, baseUrl = WORKER_BASE): Promise<boolean> {
-  const host = createHost()
-  const transport = new SyncTransport(host, { baseUrl, deviceId: 'bootstrap', secret })
-  const result = await transport.bootstrap(secret, keyId)
-  return result.ok
+/**
+ * 入口 B：**加入已有同步空间**。
+ *
+ * ⭐ B 设备**绝不调用 bootstrap** —— 那个端点是"创建空间"，B 调用它会：
+ *   · 在空间已存在时收到 409（无害，但语义混乱）
+ *   · 更糟：若空间为空（异常状态）就会**抢占**创建权
+ * B 只做一件事：携带 secret 调**已认证的** `/status`：
+ *   200 → secret 有效 → 此时才落本地凭据
+ *   401 → secret 无效 → **不写入任何本地凭据**
+ *
+ * @param payload 配对码
+ * @param cloud 云端当前记录数（用于询问用户如何处理已有数据）
+ */
+export async function joinSyncSpace(payload: PairingPayload): Promise<
+  { ok: true; recordCount: number; currentRevision: number } | { ok: false; reason: 'rejected' | 'offline' }
+> {
+  const transport = new SyncTransport(createHost(), {
+    baseUrl: WORKER_BASE,
+    deviceId: 'join-check',
+    secret: payload.secret,
+  })
+  // 已认证的 status：secret 错就是 401 → 'rejected'
+  // B 全程不调 bootstrap，所以这里不需要再解析配对码（调用方已 parse 过）
+  const status = await transport.status()
+  if (!status.ok) {
+    return { ok: false, reason: status.kind === 'offline' ? 'offline' : 'rejected' }
+  }
+
+  // ✅ 只有校验通过才落本地凭据并启用；401 路径上一个字节都没写
+  await syncRepository.initCredentials(payload.secret, payload.keyId)
+  await syncRepository.setState({ enabled: true })
+  await syncRepository.enqueueAll()
+
+  return { ok: true, recordCount: status.recordCount, currentRevision: status.currentRevision }
 }
 
 export { WORKER_BASE }

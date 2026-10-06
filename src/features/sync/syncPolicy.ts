@@ -129,11 +129,10 @@ export function chunk<T>(items: readonly T[], batchSize: number): T[][] {
   return out
 }
 
-/** push 的默认批大小（与 3B 计划 §5.4 一致） */
-export const SYNC_PUSH_BATCH_SIZE = 500
-
-/** pull 的默认页大小 */
-export const SYNC_PULL_PAGE_SIZE = 500
+// 批大小与页大小的常量已移到 ./syncLimits —— 那里记录了
+// D1 官方限制（bound params ≤ 100 / Free 50 queries per invocation）
+// 以及 32 这个数字的完整推导，避免两处各写一份导致不一致。
+export { SYNC_PULL_PAGE_SIZE, SYNC_PUSH_BATCH_SIZE, D1_MAX_BOUND_PARAMS_PER_QUERY } from './syncLimits'
 
 /**
  * 同步状态的一行摘要，供设置页展示。

@@ -76,9 +76,13 @@ export const tagRepository = {
    */
   async delete(id: string): Promise<void> {
     const affected = (await db.itemTags.where('tagId').equals(id).toArray()).map((l) => l.itemId)
+    const now = new Date().toISOString()
     await db.transaction('rw', [db.tags, db.itemTags, db.syncQueue], async (tx) => {
       await db.tags.delete(id)
       await db.itemTags.where('tagId').equals(id).delete()
+      // ⭐ tag 是**物理删除**：业务表里读不到了，必须把「删除事实」留在 outbox，
+      //否则另一台设备会永远保留这个已删标签。
+      await syncRepository.enqueueDeleteWithTx('tag', id, tx, now, now)
       for (const itemId of affected) {
         await syncRepository.enqueueWithTx('item', itemId, tx)
       }
@@ -90,6 +94,7 @@ export const tagRepository = {
     if (sourceId === targetId) throw new Error('不能合并到自身')
     const links = await db.itemTags.where('tagId').equals(sourceId).toArray()
     const affected = links.map((l) => l.itemId)
+    const now = new Date().toISOString()
     await db.transaction('rw', [db.tags, db.itemTags, db.syncQueue], async (tx) => {
       const [source, target] = await Promise.all([db.tags.get(sourceId), db.tags.get(targetId)])
       if (!source || !target) throw new Error('标签不存在')
@@ -103,6 +108,8 @@ export const tagRepository = {
       }
       await db.tags.delete(sourceId)
       await db.itemTags.where('tagId').equals(sourceId).delete()
+      // ⭐ source tag 也是物理删除 → 登记删除事件，让另一台设备跟着消失
+      await syncRepository.enqueueDeleteWithTx('tag', sourceId, tx, now, now)
       // 被合并进来的物品，其 tagIds 变了 → 必须重新入队
       for (const itemId of affected) {
         await syncRepository.enqueueWithTx('item', itemId, tx)
