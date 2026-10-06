@@ -238,4 +238,19 @@ export async function readAndValidateBackup(
 /** 真正执行替换写入：必须在校验通过 + 用户确认之后调用 */
 export async function restoreFromPayload(payload: BackupPayload): Promise<void> {
   await replaceAllWithBackup(payload)
+
+  // Phase 3B：恢复完成后同步状态必须重置，否则会拿着"旧游标"去pull，
+  // 结果是恢复出来的数据永远推不上云、或云端新数据永远拉不下来。
+  //
+  // 这里刻意**不自动合并**：ZIP Restore 是 Replace Restore，与增量同步语义冲突，
+  // 任何自动决策都可能在用户不知情时丢掉一整台设备的新数据。
+  // 改为：清空 outbox + 游标归零 + 关闭同步，由用户在设置页明确二选一
+  //（以本机为准 / 以云端为准）。详见 PHASE_3B_IMPLEMENTATION_PLAN.md §6。
+  try {
+    const { syncRepository } = await import('../db/repositories/syncRepository')
+    await syncRepository.clearQueue()
+    await syncRepository.disable()
+  } catch {
+    /* 同步模块不可用时静默跳过：备份恢复是更重要的操作，绝不因它失败 */
+  }
 }

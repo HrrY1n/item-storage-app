@@ -1,5 +1,6 @@
 import { ulid } from 'ulid'
 import { db } from '../db'
+import { syncRepository } from './syncRepository'
 import type { DisposalMethod, Item, ItemStatus, PurchasePlatform } from '../../domain/types'
 import { restoreToOwnedFields, sanitizeLifecycle } from '../../domain/lifecycle'
 
@@ -99,11 +100,14 @@ export const itemRepository = {
       updatedAt: now,
       deletedAt: null,
     }
-    await db.transaction('rw', [db.items, db.itemTags], async () => {
+    // ⚠️ syncQueue 在同一个事务里：保证「业务写入成功但 outbox 没写」这种
+    //    静默丢改动的窗口不存在（Phase 3B 步4硬要求）
+    await db.transaction('rw', [db.items, db.itemTags, db.syncQueue], async (tx) => {
       await db.items.add(item)
       if (input.tagIds.length > 0) {
         await db.itemTags.bulkAdd(input.tagIds.map((tagId) => ({ itemId: item.id, tagId })))
       }
+      await syncRepository.enqueueWithTx('item', item.id, tx)
     })
     return item
   },
@@ -113,7 +117,7 @@ export const itemRepository = {
     if (!name) throw new Error('名称不能为空')
     const now = new Date().toISOString()
     const life = lifeFields(input)
-    await db.transaction('rw', [db.items, db.itemTags], async () => {
+    await db.transaction('rw', [db.items, db.itemTags, db.syncQueue], async (tx) => {
       const existing = await db.items.get(id)
       if (!existing || existing.deletedAt) throw new Error('物品不存在')
       await db.items.update(id, {
@@ -138,6 +142,7 @@ export const itemRepository = {
       if (input.tagIds.length > 0) {
         await db.itemTags.bulkAdd(input.tagIds.map((tagId) => ({ itemId: id, tagId })))
       }
+      await syncRepository.enqueueWithTx('item', id, tx)
     })
   },
 
@@ -180,19 +185,32 @@ export const itemRepository = {
     const item = await this.getActive(id)
     if (!item) throw new Error('物品不存在')
     const life = restoreToOwnedFields()
-    await db.items.update(id, {
-      status: life.status,
-      disposedAt: life.disposedAt,
-      disposalMethod: life.disposalMethod,
-      salePriceCents: life.salePriceCents,
-      disposalNote: life.disposalNote,
-      updatedAt: new Date().toISOString(),
+    // Phase 3B：走事务，生命周期变化必须与 outbox 入队原子发生
+    await db.transaction('rw', [db.items, db.syncQueue], async (tx) => {
+      await db.items.update(id, {
+        status: life.status,
+        disposedAt: life.disposedAt,
+        disposalMethod: life.disposalMethod,
+        salePriceCents: life.salePriceCents,
+        disposalNote: life.disposalNote,
+        updatedAt: new Date().toISOString(),
+      })
+      await syncRepository.enqueueWithTx('item', id, tx)
     })
   },
 
-  /** soft delete：仅标记 deletedAt */
+  /**
+   * 软删。
+   *
+   * ⚠️ 原本只是一次 db.items.update（没有事务）。Phase 3B 给它补上事务，
+   *    让「置deletedAt」与「outbox 入队」原子发生 —— 否则软删可能同步不出去，
+   *    而同步设计明确要求删除一旦发生就不被旧设备复活，删除必须可靠上云。
+   */
   async softDelete(id: string): Promise<void> {
     const now = new Date().toISOString()
-    await db.items.update(id, { deletedAt: now, updatedAt: now })
+    await db.transaction('rw', [db.items, db.syncQueue], async (tx) => {
+      await db.items.update(id, { deletedAt: now, updatedAt: now })
+      await syncRepository.enqueueWithTx('item', id, tx)
+    })
   },
 }

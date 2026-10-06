@@ -121,3 +121,80 @@ export interface AppMeta {
   key: string
   value: string
 }
+
+/* ======================================================================
+ * 跨设备同步（Phase 3B）
+ *
+ * 三张新表，其中 syncState / syncQueue / syncConflicts 都属于**纯本地状态**：
+ *  - syncState 含 Bearer secret 明文，因此**绝不进入 ZIP 备份**
+ *  - syncQueue 是 outbox，备份恢复后语义失效（恢复后改为全量重推）
+ *  - syncConflicts 是本设备的覆盖记录，与数据本身无关
+ * 详见 docs/PHASE_3B_IMPLEMENTATION_PLAN.md §6
+ * ==================================================================== */
+
+/** 参与同步的实体种类。刻意不含 assets / appMeta（见 3A 设计 §5）。 */
+export type SyncEntity = 'item' | 'category' | 'tag'
+
+export interface SyncState {
+  /** 固定为 'sync'，单行 */
+  key: string
+  /** 本机设备标识（ULID），用于在 D1 侧标记「谁写的」，以及冲突可查的胜方 */
+  deviceId: string | null
+  /** 同步是否已启用。默认 false —— 未显式启用前完全不影响既有行为。 */
+  enabled: boolean
+  /** 服务端分配的公开 key id（非秘密），便于日后轮换 secret */
+  keyId: string | null
+  /**
+   * Bearer secret 明文。只存 IndexedDB，**不进备份、不进 URL、不写日志**。
+   * D1 侧只保存它的 SHA-256。
+   */
+  secret: string | null
+  /**
+   * 已成功应用的最大服务端 revision。pull 的游标。
+   * 0 = 从未同步过（也是「恢复备份后」重置的值）
+   */
+  lastPulledRevision: number
+  /** 上次成功同步时间（ISO），仅用于 UI 展示 */
+  lastSyncAt: string | null
+  /** 上次失败的原因，仅用于 UI 展示；不阻塞任何本地操作 */
+  lastError: string | null
+  /** outbox 中的待发条数，仅用于 UI 展示（真实值以 count 查询为准） */
+  pendingCount: number
+}
+
+/**
+ * outbox 条目。
+ *
+ * ⚠️ 刻意**不存 payload** —— push 时才从业务表现读。
+ * 这样同一实体改了 5 次只会推 1 条，也不会出现「outbox 与业务表内容不一致」。
+ */
+export interface SyncQueueEntry {
+  id: string
+  entity: SyncEntity
+  entityId: string
+  createdAt: string
+}
+
+/**
+ * 「冲突事后可查」的落点（3B 规格：本地表，只在**覆盖方**设备落库）。
+ *
+ * 只存**摘要**而非全量 payload，避免这张表随冲突数无限膨胀。
+ * 生命周期：保留最近 50 条。
+ */
+export interface SyncConflict {
+  id: string
+  entity: SyncEntity
+  entityId: string
+  /** 冲突被服务端判定的时间（ISO） */
+  detectedAt: string
+  /** 被覆盖方的原始 updatedAt（谁被盖掉了） */
+  loserUpdatedAt: string | null
+  /** 胜出设备 */
+  winnerDeviceId: string | null
+  /** 胜出方的 updatedAt */
+  winnerUpdatedAt: string | null
+  /** 被覆盖内容的可读摘要，如物品的 name / note 前 80 字 */
+  loserSummary: string | null
+  /** 胜出内容的可读摘要 */
+  winnerSummary: string | null
+}

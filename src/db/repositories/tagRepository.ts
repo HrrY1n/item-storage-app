@@ -2,6 +2,7 @@ import { ulid } from 'ulid'
 import { db } from '../db'
 import type { Tag } from '../../domain/types'
 import { normalizeTagName } from '../../domain/tagNormalize'
+import { syncRepository } from './syncRepository'
 
 /**
  * Tag repository —— 标签 CRUD + 合并。
@@ -33,7 +34,11 @@ export const tagRepository = {
       createdAt: now,
       updatedAt: now,
     }
-    await db.tags.add(tag)
+    // Phase 3B：标签创建与 outbox 入队同事务
+    await db.transaction('rw', [db.tags, db.syncQueue], async (tx) => {
+      await db.tags.add(tag)
+      await syncRepository.enqueueWithTx('tag', tag.id, tx)
+    })
     return tag
   },
 
@@ -53,28 +58,41 @@ export const tagRepository = {
     if (conflict && conflict.id !== id) {
       throw new Error(`标签 #${conflict.name} 已存在，可考虑使用「合并」`)
     }
-    await db.tags.update(id, {
-      name: normalized.display,
-      nameNormalized: normalized.key,
-      updatedAt: new Date().toISOString(),
+    await db.transaction('rw', [db.tags, db.syncQueue], async (tx) => {
+      await db.tags.update(id, {
+        name: normalized.display,
+        nameNormalized: normalized.key,
+        updatedAt: new Date().toISOString(),
+      })
+      await syncRepository.enqueueWithTx('tag', id, tx)
     })
   },
 
-  /** 删除标签并移除全部物品关联 */
+  /**
+   * 删除标签并移除全部物品关联。
+   *
+   * Phase 3B：标签消失会**改变物品的 tagIds**，所以受影响物品必须重新入队，
+   * 否则另一台设备上的物品还挂着这个已删标签。
+   */
   async delete(id: string): Promise<void> {
-    await db.transaction('rw', [db.tags, db.itemTags], async () => {
+    const affected = (await db.itemTags.where('tagId').equals(id).toArray()).map((l) => l.itemId)
+    await db.transaction('rw', [db.tags, db.itemTags, db.syncQueue], async (tx) => {
       await db.tags.delete(id)
       await db.itemTags.where('tagId').equals(id).delete()
+      for (const itemId of affected) {
+        await syncRepository.enqueueWithTx('item', itemId, tx)
+      }
     })
   },
 
   /** 合并：把 source 的全部物品关联转移给 target，然后删除 source */
   async merge(sourceId: string, targetId: string): Promise<void> {
     if (sourceId === targetId) throw new Error('不能合并到自身')
-    await db.transaction('rw', [db.tags, db.itemTags], async () => {
+    const links = await db.itemTags.where('tagId').equals(sourceId).toArray()
+    const affected = links.map((l) => l.itemId)
+    await db.transaction('rw', [db.tags, db.itemTags, db.syncQueue], async (tx) => {
       const [source, target] = await Promise.all([db.tags.get(sourceId), db.tags.get(targetId)])
       if (!source || !target) throw new Error('标签不存在')
-      const links = await db.itemTags.where('tagId').equals(sourceId).toArray()
       for (const link of links) {
         const exists = await db.itemTags.get([link.itemId, targetId])
         if (exists) {
@@ -85,6 +103,12 @@ export const tagRepository = {
       }
       await db.tags.delete(sourceId)
       await db.itemTags.where('tagId').equals(sourceId).delete()
+      // 被合并进来的物品，其 tagIds 变了 → 必须重新入队
+      for (const itemId of affected) {
+        await syncRepository.enqueueWithTx('item', itemId, tx)
+      }
+      // target 标签本身没变字段，但它是被引用的那一端，刷新一次以确保上云
+      await syncRepository.enqueueWithTx('tag', targetId, tx)
     })
   },
 

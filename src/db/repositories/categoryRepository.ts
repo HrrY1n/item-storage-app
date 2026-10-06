@@ -3,6 +3,7 @@ import { db } from '../db'
 import type { Category } from '../../domain/types'
 import { collectSubtreeIds, wouldCreateCycle } from '../../domain/categoryTree'
 import { itemRepository } from './itemRepository'
+import { syncRepository } from './syncRepository'
 
 /**
  * Category repository —— 分类树 CRUD。
@@ -38,14 +39,21 @@ export const categoryRepository = {
       updatedAt: now,
       deletedAt: null,
     }
-    await db.categories.add(category)
+    // Phase 3B：分类变化与 outbox 入队同事务
+    await db.transaction('rw', [db.categories, db.syncQueue], async (tx) => {
+      await db.categories.add(category)
+      await syncRepository.enqueueWithTx('category', category.id, tx)
+    })
     return category
   },
 
   async rename(id: string, name: string): Promise<void> {
     const trimmed = name.trim()
     if (!trimmed) throw new Error('分类名称不能为空')
-    await db.categories.update(id, { name: trimmed, updatedAt: new Date().toISOString() })
+    await db.transaction('rw', [db.categories, db.syncQueue], async (tx) => {
+      await db.categories.update(id, { name: trimmed, updatedAt: new Date().toISOString() })
+      await syncRepository.enqueueWithTx('category', id, tx)
+    })
   },
 
   /**
@@ -62,10 +70,13 @@ export const categoryRepository = {
       throw new Error('不能移动到自身或其子分类下')
     }
     const siblings = all.filter((c) => c.parentId === newParentId)
-    await db.categories.update(id, {
-      parentId: newParentId,
-      sortOrder: siblings.length + 1,
-      updatedAt: new Date().toISOString(),
+    await db.transaction('rw', [db.categories, db.syncQueue], async (tx) => {
+      await db.categories.update(id, {
+        parentId: newParentId,
+        sortOrder: siblings.length + 1,
+        updatedAt: new Date().toISOString(),
+      })
+      await syncRepository.enqueueWithTx('category', id, tx)
     })
   },
 
@@ -82,9 +93,12 @@ export const categoryRepository = {
     if (neighborIndex < 0 || neighborIndex >= siblings.length) return
     const neighbor = siblings[neighborIndex]
     const now = new Date().toISOString()
-    await db.transaction('rw', db.categories, async () => {
+    // Phase 3B：排序交换影响两个分类，两个都要入队，否则云端顺序会与本地不一致
+    await db.transaction('rw', [db.categories, db.syncQueue], async (tx) => {
       await db.categories.update(self.id, { sortOrder: neighbor.sortOrder, updatedAt: now })
       await db.categories.update(neighbor.id, { sortOrder: self.sortOrder, updatedAt: now })
+      await syncRepository.enqueueWithTx('category', self.id, tx)
+      await syncRepository.enqueueWithTx('category', neighbor.id, tx)
     })
   },
 
@@ -107,7 +121,11 @@ export const categoryRepository = {
     }
     if (itemCount > 0) throw new Error(`该分类下还有 ${itemCount} 件物品，请先移动或删除这些物品`)
 
-    await db.categories.update(id, { deletedAt: new Date().toISOString() })
+    // Phase 3B：软删分类与 outbox 入队同事务
+    await db.transaction('rw', [db.categories, db.syncQueue], async (tx) => {
+      await db.categories.update(id, { deletedAt: new Date().toISOString() })
+      await syncRepository.enqueueWithTx('category', id, tx)
+    })
   },
 
   /** 收集含后代在内的分类 id 集合（供查询物品用） */
