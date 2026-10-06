@@ -1,6 +1,8 @@
 # Private Item Library · 私人数字物品库
 
-一个 **local-first（本地优先）** 的个人物品管理 PWA。所有数据存放在浏览器 IndexedDB 中，**没有后端、没有账号、没有云端同步**——你的物品清单完全属于你自己。
+一个 **local-first（本地优先）** 的个人物品管理 PWA。所有数据存放在浏览器 IndexedDB 中，**没有账号、没有云服务商**——你的物品清单完全属于你自己。数据始终先写本机，保存后不依赖任何网络。
+
+可选地开启**私人云端同步**（Phase 3B，默认关闭）：数据会镜像到你自己独占的 Cloudflare D1，用于**换机恢复**，也可以连接其他设备。它需要你自己部署，不接入任何第三方账号体系。
 
 通过**分类、标签、搜索与 156 个内置物品图标**整理与找到自己的物品记录；支持**浅色 / 深色 / 跟随系统**三态主题，可安装到手机主屏并离线使用。
 
@@ -69,7 +71,7 @@
 
 ## 当前状态
 
-**当前版本：`0.6.1`**（版本号唯一来源是 `src/appInfo.ts` 的 `APP_VERSION`；设置 → 关于页可读，改版本需同步 `package.json` 与 `package-lock.json`）
+**当前版本：`0.7.0`**（版本号唯一来源是 `src/appInfo.ts` 的 `APP_VERSION`；设置 → 关于页可读，改版本需同步 `package.json` 与 `package-lock.json`）
 
 | 阶段 | 版本 | 内容 | 状态 |
 |---|---|---|---|
@@ -81,10 +83,14 @@
 | Phase 2F | 0.4.0 | 物品图标体系（12 → 73）、图标选择器、三态主题、preset 资产幂等同步、整体视觉精修 | ✅ 完成 |
 | Phase 2G | 0.5.0 | 导航重构（4 Tab + 独立 +）、概览 Dashboard、完整物品列表、**心愿→持有→处置生命周期**、出售金额与实际持有成本、保修追踪、图标 73 → 156 | ✅ 完成 |
 | Phase 2H | 0.6.0 | 视觉系统精修：MarkItem-inspired + award-winning iOS design study —— 明暗两套独立材质、Hero Surface、Large Title → Compact Header、Grouped Sections、列表卡片与编辑体验重做 | ✅ 完成 |
-| **Phase 2H.1** | **0.6.1** | PWA 更新体验修复：主动 SW update check、前台恢复检查、表单期间绝不 reload、安全自动更新、设置页「检查更新」 | ✅ 完成 |
+| Phase 2H.1 | 0.6.1 | PWA 更新体验修复：主动 SW update check、前台恢复检查、表单期间绝不 reload、安全自动更新、设置页「检查更新」 | ✅ 完成 |
+| **Phase 3B** | **0.7.0** | **可选的私人云端同步**（Cloudflare Workers + D1）：本地优先不变，云端只存同步状态与数据镜像；含 outbox、revision 协议、tombstone 单调性、冲突记录、tag 跨设备去重 | ✅ 完成 |
+| **Phase 3B.1** | **0.7.0** | **主力手机场景细化**：本地保存后自动后台同步（2.5s debounce）、产品语义改为「云端同步」、Pairing Code 明确为**恢复码**（换机 / 清数据后靠它连回云端）、新设备以云端为准恢复 | ✅ 完成 |
 
-**测试**：**295** 个单元测试全部通过（domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + **生命周期与成本口径** + 数据库迁移 + 备份兼容 + **Phase 2H 主题 token 对称性、保修进度与卡片金额格式** + **Phase 2H.1 PWA 更新决策与管理器的纯逻辑**）。
+**测试**：**594** 个单元测试全部通过（37 个文件）。覆盖 domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + 生命周期与成本口径 + 数据库迁移 + 备份兼容 + PWA 更新决策 + **同步引擎（假云端端到端：push/pull 收敛、tombstone 不被复活、outbox 回声防护、tag 去重）** + **Worker 装配层（真 node:sqlite 驱动 `executePush`：bind 参数逐位对应、整批事务、tag 并发冲突后重试、`revision_seq == MAX(revision)` 不变量）** + **local-change 自动同步（debounce 聚合、关闭/离线零网络、恢复码不进 ZIP、换机恢复）**）。
 **验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **175** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8 · Phase 2H 32；生产冒烟 8/8；**Phase 2H.1 PWA 更新端到端 23/23**）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
+
+> **Phase 3B 说明**：同步是**可选功能，默认关闭**。业务数据 100% 存本地 IndexedDB，云端只作为"远端镜像 + 换机恢复"的用途。Worker 侧的写入路径经四轮审查（含真SQLite 装配层测试与变异验证），数据库 Schema 已冻结。完整设计与逐轮审查记录见 [`docs/PHASE_3B_IMPLEMENTATION_PLAN.md`](docs/PHASE_3B_IMPLEMENTATION_PLAN.md)。
 
 > **Phase 2H 说明**：本轮是设计升级，学习目标来自竞品拆解（MarkItem 的视觉与层级原则）、Apple Design Awards 2025/2026 获奖与入围 App（Moonlitt / Tide Guide / Structured / Play / Vocabulary / Mela / Speechify / Guitar Wiz）以及 Apple HIG。**不复制任何竞品的品牌、图标、文案或业务字段**，也**没有引入容器系统、总价值、多货币、数量、Timeline Event 库**等无产品价值的功能；完整拆解与决策过程见 [`docs/PHASE_2H_DESIGN_AUDIT.md`](docs/PHASE_2H_DESIGN_AUDIT.md)。数据库 Schema 未改动，用户数据 100% 兼容。
 
@@ -125,9 +131,10 @@ npm run browser:stop -- --port=9222
 | 备份打包 | JSZip（**按需动态加载**，不进入首屏） |
 | PWA | vite-plugin-pwa（Workbox `generateSW`） |
 | ID | ulid（可排序、URL 安全） |
-| 测试 | Vitest + fake-indexeddb |
+| 同步（可选） | Cloudflare Workers + D1，Wrangler 4（`wrangler.jsonc`；绑定名 `SYNC_DB`） |
+| 测试 | Vitest + fake-indexeddb + node:sqlite（Worker 侧用真 SQLite 验证事务原子性） |
 
-刻意**不引入**状态管理库、动画库、图表库、UI 组件库与任何后端 SDK——这是一个纯前端、少依赖、可长期维护的项目。
+刻意**不引入**状态管理库、动画库、图表库、UI 组件库与任何后端 SDK——除了**可选的云端同步**（Phase 3B，纯标准 fetch + 自建 Worker，无第三方 SDK）。这是一个少依赖、可长期维护的项目。
 
 ---
 
@@ -301,6 +308,7 @@ Phase 2G 新增 **83** 个，并开出「护理」「厨房」两个新分类，
 - **购买信息**：记录购买日期 / 价格 / 附加花费 / 平台，自动算出**总投入**与**日均使用成本**
 - **出售与净成本**：出售 / 丢弃 / 其他三种处置方式；出售后按「总投入 − 出售金额」计算**实际持有成本**
 - **备份与恢复**：导出完整 ZIP 备份，从备份原子替换恢复
+- **云端同步（可选，默认关闭）**：保存后自动后台同步（2.5s 聚合），支持换机恢复；详见下方章节
 - **PWA**：可安装到主屏幕，App Shell 离线可用
 - **存储持久化**：启动时尽力申请 `navigator.storage.persist()`
 
@@ -408,6 +416,73 @@ assets/          仅真实用户二进制资产（preset 静态图标随包交�
 3. 用户确认后，在**单个 Dexie transaction** 中完整替换
 
 任何一步失败都会**拒绝导入并保持当前数据库完全不变**，不会出现"清空一半后失败"的中间状态。第一版仅实现 **Replace Restore**，不做合并。
+
+---
+
+## 云端同步（可选 · Phase 3B / 3B.1）
+
+> **同步 ≠ 备份。** 两者用途完全不同，名字也不混用：
+> - **ZIP 备份** = 真正的历史备份，用户手动导出、含图片、**不含任何凭据**
+> - **云端同步** = 活的远端镜像，用于换机恢复与（将来）连接其他设备
+
+### 什么时候需要它
+
+日常只有一台主力手机时，它解决的是三件事：
+
+1. **手机数据的远端镜像** —— 换手机 / Safari 清了网站数据后能恢复
+2. **换机恢复** —— 新手机输入恢复码即可把云端数据拉回来
+3. **将来连接其他设备** —— 同一份数据在别处也能编辑
+
+### 默认关闭，且不改变 local-first
+
+- 业务数据**始终首先写入本机** IndexedDB；云端只是镜像
+- 同步**关闭时零网络请求**，界面与功能完全不变
+- 保存按钮**不等网络**：本地事务先提交，UI 立即完成，同步在后台静默进行
+- 网络失败 / 离线**绝不**让本地保存失败，pending 条目留在 outbox 等下次追赶
+
+### 什么时候会同步
+
+| 触发 | 时机 |
+|---|---|
+| **`local-change`** | 本地保存后 **2.5 秒**自动后台同步（连续操作会聚合为一次） |
+| `boot` | App 启动 |
+| `visible` | 从后台切回前台（60 秒节流） |
+| `online` | 网络恢复，自动追赶积压 |
+| `manual` | 设置页「立即同步」 |
+
+触发链路严格单向，且**绝不在业务事务内发起网络**：
+
+```
+repository 事务提交 → markSyncDirty() → 2.5s debounce → push/pull
+```
+
+### 🔑 恢复码（换机时唯一的东西）
+
+设置 → 应用 → 云端同步 → 开启后会给你一段**恢复码**，它同时也是连接码。
+
+**请务必保存。** 手机丢失、或Safari 清除网站数据后，本机的凭据会一起消失——
+即使云端数据还在，也**认证不回原来的空间**。恢复码是唯一能重新连回去的东西。
+
+- 它等同于同步凭据，**不要公开分享**
+- 可以随时在设置里「查看恢复码」（由本地凭据重建，刷新后依然可用）
+- **不会**出现在 ZIP 备份里（备份经常会被传到网盘 / 微信）
+- 底层格式未变（`keyId` + `secret`），只是把用途说清楚
+
+### 换新手机的恢复流程
+
+设置 → 云端同步 → 粘贴恢复码 → 认证 → **「使用云端数据恢复此设备」**
+
+本机会先清空业务数据再从云端完整拉取，因此未备份的本地改动会丢失（界面会明确提示）。
+底层同时保留「以本机数据为准」这条路径，但真实场景主要是换机恢复，因此不作为推荐项。
+
+### 部署与边界
+
+- Worker 与 App **同源**，前端不需要配置任何地址
+- 需要一个 Cloudflare D1 数据库（`wrangler.jsonc` 里绑定为 **`SYNC_DB`**，Schema 已冻结）
+- 认证是「单用户 · 单同步空间 · 一个共享随机 secret」——**不宣称可以单独吊销某台设备**
+- ⚠️ 只有 Worker 会碰数据库。**备份 ZIP 永远不包含凭据**
+
+设计与逐轮审查记录见 [`docs/PHASE_3B_IMPLEMENTATION_PLAN.md`](docs/PHASE_3B_IMPLEMENTATION_PLAN.md)。
 
 ---
 
@@ -590,44 +665,69 @@ src/
 ├── theme/          # 三态主题：偏好解析（纯逻辑）+ Provider
 ├── features/
 │   ├── data/       # useLiveQuery 封装与视图模型
-│   └── ui/         # 视图过渡、最近使用等 UI 逻辑
-├── db/             # Dexie 实例与 repositories（唯一数据库调用方）
+│   ├── ui/         # 视图过渡、最近使用等 UI 逻辑
+│   ├── pwa/        # PWA 更新决策（纯函数）与更新管理器
+│   └── sync/       # 同步编排：触发策略(纯逻辑) / 引擎 / 传输 / 本地改动 debounce / 设置页 Context
+├── db/             # Dexie 实例与 repositories（唯一数据库调用方）+ syncDirty 事件总线
 ├── domain/         # 纯函数与业务逻辑（生命周期 / 成本口径 / 保修 / 搜索打分 / 分类树 / 备份校验）
-├── services/       # 跨层编排（备份恢复、PWA 能力检测）
+├── services/       # 跨层编排（备份恢复、PWA 能力检测、同步装配、base64url 编解码）
 ├── data/           # 物品图标注册表（元数据唯一来源）
 ├── mock/           # 演示数据（仅开发环境手动调用）
 └── types/
-根目录：main.tsx（入口）、App.tsx（路由）、index.css（双主题 token）、tailwind.config.js、appInfo.ts（版本号唯一来源）
+worker/             # ⭐ 可选云端同步的 Worker（Cloudflare Workers + D1）
+├── index.ts            # 只做 HTTP 装配：认证 / 解析 / 响应
+├── pushPipeline.ts     # push 编排：预加载 → 判定 → 整批事务（最多重试一次）
+├── syncSql.ts          # 全部 SQL 与 bind 参数的唯一装配入口
+├── syncLogic.ts        # 编解码 / 认证 / 判定纯逻辑
+├── limitsContract.ts   # D1 平台限制（50 queries、100 bound params）
+└── migrations/0001_init.sql   # 建表脚本（Schema 已冻结）
+根目录：main.tsx（入口）、App.tsx（路由）、index.css（双主题 token）、tailwind.config.js、appInfo.ts（版本号唯一来源）、wrangler.jsonc（部署与 D1 绑定）
 docs/               # 架构设计、产品目标、竞品分析、各阶段截图
 scripts/            # 物品图标生成、PWA 图标生成
 ```
 
 分层原则：`domain` 层是纯函数且**全部有测试覆盖**，`db/repositories` 是**唯一**允许直接操作 Dexie 的地方，页面层不接触数据库细节。
 
+`worker/` 是独立的 Worker 入口，**不参与前端打包**（由 `wrangler.jsonc` 的 `main` 字段单独部署）。前端通过同源 `/api/sync/*` 访问它，因此不需要配置任何地址。
+
 ---
 
 ## 数据说明
 
-Dexie Schema 现为 **v3**，共 6 张表：
+Dexie Schema 现为 **v4**，共 **9** 张表（6 张业务表 + 3 张同步状态表）：
 
 ```ts
-db.version(3).stores({
+db.version(4).stores({
   items:      'id, categoryId, name, createdAt, updatedAt, deletedAt',
   categories: 'id, parentId, name, sortOrder, deletedAt',
   tags:       'id, &nameNormalized, createdAt',
   itemTags:   '[itemId+tagId], itemId, tagId',
   assets:     'id, kind, createdAt',
   appMeta:    'key',
+
+  // ↓ Phase 3B 新增。三张表都是本地同步状态，均不参与 ZIP 备份。
+  syncState:     'key',
+  syncQueue:     'id, entity, [entity+entityId], createdAt',
+  syncConflicts: 'id, detectedAt',
 })
 ```
 
-| 表 | 说明 |
-|---|---|
-| `items` | 物品主表，`deletedAt` 软删除 |
-| `categories` | 两级分类树，`parentId` 自引用 |
-| `tags` / `itemTags` | 标签与多对多关联，`&nameNormalized` 唯一索引防重复 |
-| `assets` | 物品图标资产。`kind='preset'` 指向包内路径；`ai_generated` / `from_photo` 已保留数据结构但 UI 未开放入口 |
-| `appMeta` | 种子标记与 schema 版本等元信息 |
+| 表 | 说明 | 进 ZIP 备份 |
+|---|---|---|
+| `items` | 物品主表，`deletedAt` 软删除 | ✅ |
+| `categories` | 两级分类树，`parentId` 自引用 | ✅ |
+| `tags` / `itemTags` | 标签与多对多关联，`&nameNormalized` 唯一索引防重复 | ✅ |
+| `assets` | 物品图标资产。`kind='preset'` 指向包内路径；`ai_generated` / `from_photo` 已保留数据结构但 UI 未开放入口 | ✅ |
+| `appMeta` | 种子标记与 schema 版本等元信息 | ✅ |
+| `syncState` | 同步凭据（**Bearer secret 明文**）、游标、启用开关 | ❌ |
+| `syncQueue` | outbox：待推送的变更队列 | ❌ |
+| `syncConflicts` | 本机的覆盖记录（设置页「最近的覆盖记录」） | ❌ |
+
+> ⚠️ **三张同步表绝不进 ZIP 备份**，这是安全底线：`syncState` 存的是 secret 明文，
+> 而备份 ZIP 会被用户发到微信 / 网盘 / 邮件；一旦 secret 跟着备份扩散，
+> 且"恢复旧备份会把旧 secret 带回来"会与已轮换的密钥冲突。
+> 该保证由 `src/db/repositories/backupSyncExclusion.test.ts` 锁定。
+> **恢复码（内含 secret）同样不会出现在导出的 ZIP 里。**
 
 版本演进：
 
@@ -636,6 +736,7 @@ db.version(3).stores({
 | v1 | 初始 6 张表 |
 | v2 | `Item` 增加购买信息字段（含附加花费）；均为非索引字段，无需改动 `stores`，由 `upgrade` 把旧记录补为 `null` |
 | v3 | `Item` 增加生命周期与保修字段（见下）；同样是非索引字段，`upgrade` 把既有记录一律补为 `status='owned'` + 其余 `null` |
+| v4 | **只新增** `syncState` / `syncQueue` / `syncConflicts` 三张表；6 张既有表的索引串**逐字符未变**，因此不会触发任何表重建 |
 
 **v2 → v3 的迁移是加法式的**：`upgrade` 只往旧记录上补字段，**不读、不改、不删任何已有值**（`id` / `categoryId` / `iconAssetId` / `name` / `note` / 购买信息 / `createdAt` / `updatedAt` 全部原样保留）。**不需要清库、不需要重置。** `src/db/migration.test.ts` 用一个真实的 v2 旧库升级到 v3 并逐字段断言。
 
@@ -673,7 +774,13 @@ export interface Item {
 
 ## 持续集成
 
-`.github/workflows/ci.yml`（Node 22）在每次 push 与 PR 时执行 `npm ci` → `npm run test` → `npm run build`，确保主分支始终处于可构建、测试通过的状态。
+`.github/workflows/ci.yml`（Node 22，干净 Ubuntu）在每次 push 与 PR 时执行 `npm ci` → `npm run test` → `npm run build`，确保主分支始终处于可构建、测试通过的状态。
+
+其中 `npm run build` 会先跑 `tsc -b`，而根 `tsconfig.json` 通过 project references **同时类型检查 `worker/`**（app / node / worker 三个 project），因此 Worker 代码也在 CI 的检查范围内。`worker/**/*.test.ts` 与 `src/**/*.test.ts` 一并被 Vitest 收集。
+
+> 踩过的坑：`npm ci` 装出来的依赖树才是 CI 的真实环境。本地 `node_modules` 里
+> 残留的、lockfile 之外的包（例如 `@types/node`）会让浏览器目标意外解析到 Node 全局，
+> 造成**本地全绿、CI 报错**。声称"CI 会过"之前请先 `npm ci` 重建依赖树再验证。
 
 ---
 
