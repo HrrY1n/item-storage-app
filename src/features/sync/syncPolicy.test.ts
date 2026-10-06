@@ -222,9 +222,16 @@ describe('base64url 编解码（配对码的成败取决于此）', () => {
   })
 
   it('encode 结果与标准 base64url 一致（无 padding）', () => {
-    // 用 Node 的 Buffer 作为对照真值
+    // 对照真值用**平台标准** `btoa()`（Web 标准 API，DOM lib 里有声明）。
+    // ⚠️ 刻意不用 Node 的 `Buffer`：本项目是浏览器目标（lib = ES2022 + DOM），
+    //    而 `@types/node` **不在** package-lock 里 —— CI 的 `npm ci` 不会装它，
+    //    于是 `Buffer` 在那边是未定义的名字，构建直接 TS2580 失败。
+    //    （本地若曾残留 node_modules/@types/node 会误判为通过，务必用 npm ci 验证。）
     const bytes = new TextEncoder().encode('hello world!')
-    const expected = Buffer.from(bytes).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    const expected = btoa(String.fromCharCode(...bytes))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '')
     expect(toBase64Url(bytes)).toBe(expected)
   })
 
