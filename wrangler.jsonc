@@ -1,14 +1,33 @@
 {
-  // Cloudflare Workers —— 纯静态资产部署（Static Assets）
-  // 本项目没有后端：没有 Worker 入口（无 main / 无 functions），不做任何 API。
+  // Cloudflare Workers —— 静态资产（Static Assets）+ 同步 API（Phase 3B）
+  //
+  // ⚠️ assets.not_found_handling 的 SPA 回落只对**导航请求**生效
+  //    （Sec-Fetch-Mode: navigate），`fetch('/api/...')` 会正常进入 Worker ——
+  //    已核实 Cloudflare 官方 SPA 文档；Phase 3B 有回归断言锁住这个行为。
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "item-storage-app",
   "compatibility_date": "2026-10-03",
+
+  // Phase 3B：同步 Worker 入口。此前本项目没有 main、没有任何 API。
+  "main": "./worker/index.ts",
+
   "assets": {
     // 构建产物目录，与 vite build 的 outDir 保持一致
     "directory": "./dist",
     // SPA fallback：/search、/items/:id、/categories/:id 等深链一律回落到 index.html
     // 完全由 Cloudflare 资产路由负责；dist 中不放置任何 Pages 专属的重写规则文件
     "not_found_handling": "single-page-application"
-  }
+  },
+
+  // D1 绑定。⚠️ database_id 是占位符，待用户在 Cloudflare 面板创建 item-sync 后回填。
+  //    绑定名统一为 SYNC_DB（不使用泛化的 DB），对应代码里的 env.SYNC_DB。
+  //    建库与建表都不需要命令行认证：建库用面板 Create database，
+  //    建表在面板 Console 里粘贴 worker/migrations/0001_init.sql 执行。
+  "d1_databases": [
+    {
+      "binding": "SYNC_DB",
+      "database_name": "item-sync",
+      "database_id": "PLACEHOLDER_REPLACE_WITH_ACTUAL_ID"
+    }
+  ]
 }
