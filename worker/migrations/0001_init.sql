@@ -137,14 +137,14 @@ CREATE TABLE IF NOT EXISTS sync_auth (
 -- =====================================================================
 -- 执行后的校验（可选，在 Console 里跑一次看看结果）
 --
--- 应看到 **4** 项：3 张业务表 + SQLite 自动创建的 `sqlite_sequence`
---   SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
---   → sqlite_sequence, sync_auth, sync_records, sync_revision_seq
+-- ★ 成功条件：**3 张业务表都在**。
+--   SELECT name FROM sqlite_master WHERE type='table'
+--    AND name IN ('sync_auth','sync_records','sync_revision_seq');
+--   → sync_auth, sync_records, sync_revision_seq
 --
--- ⚠️ `sqlite_sequence` 由 SQLite 自动维护，**只要用了 AUTOINCREMENT 就会存在**。
---   本schema 刻意不用 AUTOINCREMENT（revision 由 sync_revision_seq 显式分配），
---   但 D1 可能在某些路径下自行创建该表 —— 看到它属正常，不是建表出错。
---   校验时只需确认 **3 张业务表都在**即可。
+-- `sqlite_sequence` **不是成功条件**：它只在用了 AUTOINCREMENT 时出现，
+--   而本 schema 刻意不用 AUTOINCREMENT（revision 由 sync_revision_seq 显式分配）。
+--   D1 可能在某些内部路径下自行创建该表 —— 看到它属正常，可直接忽略。
 --
 -- 计数器初始值：
 --   SELECT revision FROM sync_revision_seq WHERE id = 1;

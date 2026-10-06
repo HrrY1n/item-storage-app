@@ -22,25 +22,28 @@
  *
  * 每条 upsert 的 revision 值**在 SQL 内部计算**：
  *   revision = (SELECT revision FROM sync_revision_seq) + 1 + offset
- * 此时计数器已被批内第一条 UPDATE 推进过，读到的正是本批基线。
- * `offset` 是批内序号（0,1,2…），纯客户端算，不依赖任何读取。
+ * 因为 bump 放在批的**最后**，每条 upsert 执行时计数器里存的仍是
+ * 「上一批已提交的最大 revision」= 本批基线；`offset` 是批内序号（0,1,2…），
+ * 纯客户端算，不依赖任何读取。
  *
  * → **提交顺序与 revision 可见顺序必然一致**，不存在悬空区间。
+ *
+ * ⚠️ 顺序是 `[...upserts, bump]`，**只有这一个正确顺序**。
+ *   若把 bump 放在最前面，计数器会先跳到 基线+N，
+ *   再加上 `+1+offset` 就会整体偏移 N+1 —— 这正是第一版修复踩到的坑。
+ *   任何"逐条重试"的写法也一律禁止：那会让成功的 upsert 与计数器推进
+ *   分属不同 transaction，重新引入悬空区间。见 pushPipeline.ts 的单一重试路径。
  */
 
 // 平台限制数值统一在 limitsContract（单一定义源）
 export { MAX_PULL, MAX_PUSH, PRELOAD_CHUNK } from './limitsContract'
 
+import type { PushChange } from './syncLogic'
+
 /**
  * 推进全局 revision 计数器。
  *
- * ⚠️ **必须放在批的最后一条**（顺序：`[...upserts, bump]`）——
- *   这样每条 upsert 执行时，计数器里存的仍是"上一批已提交的最大 revision"，
- *   公式 `(SELECT revision FROM sync_revision_seq) + 1 + offset` 才能得到
- *   连续的 基线+1 .. 基线+N。
- *
- *   若把 bump 放在最前面，计数器会先跳到 基线+N，
- *   再加上 `+1+offset` 就会整体偏移 N+1 —— 这正是第一版修复踩到的坑。
+ * ⚠️ **必须放在批的最后一条**（顺序：`[...upserts, bump]`，见文件顶部推导）。
  */
 export const BUMP_REVISION_SQL =
   'UPDATE sync_revision_seq SET revision = revision + ?1 WHERE id = 1'
@@ -82,6 +85,44 @@ WHERE sync_records.deleted_at IS NULL
 
 /** 读取当前 revision 末值（仅用于响应里的 currentRevision 提示，不参与分配） */
 export const CURRENT_REVISION_SQL = 'SELECT revision FROM sync_revision_seq WHERE id = 1'
+
+/**
+ * ⭐ UPSERT_SQL 的绑定值 —— **唯一**的装配入口。
+ *
+ * 返回数组的顺序**必须**与 UPSERT_SQL 里 `?1..?8` 的定义严格一致：
+ *   ?1 offsetInBatch · ?2 entity · ?3 entityId · ?4 payload
+ *   ?5 deletedAt · ?6 clientUpdatedAt · ?7 deviceId · ?8 undeleteIntent(0/1)
+ *
+ * ## 为什么必须抽成helper
+ *
+ * `?N` 是 SQLite 的**编号参数**，不是位置参数 —— `stmt.bind(v1,…,v8)`
+ * 按下标把值交给 `?1..?8`。一旦调用方手写 bind 时顺序写错（比如漏了 offset、
+ * 把它放到最后），SQL 本身毫无察觉，错误只在**运行时**以
+ * `payload NOT NULL` 之类的间接症状爆出来，极难定位。
+ *
+ * 本项目已经真实踩过一次：worker/index.ts 的 bind 顺序是
+ * `entity, entityId, payload, …, offset`，而 SQL 期望 `offset` 在 `?1`，
+ * 于是 payload 收到 null —— 那次真实 Worker push 会直接失败。
+ *
+ * → 现在 Worker 装配层与所有测试**共用这一个函数**，顺序只有一处定义。
+ *   workerPushAssembly.test.ts 里有针对`?1..?8` 逐位的回归断言。
+ */
+export function buildUpsertBindValues(
+  change: Pick<PushChange, 'entity' | 'entityId' | 'payload' | 'deletedAt' | 'clientUpdatedAt' | 'undeleteIntent'>,
+  deviceId: string,
+  offsetInBatch: number,
+): unknown[] {
+  return [
+    offsetInBatch, // ?1
+    String(change.entity), // ?2
+    String(change.entityId), // ?3
+    JSON.stringify(change.payload ?? {}), // ?4 —— 必须是 JSON 字符串，绝不能是 null
+    change.deletedAt ?? null, // ?5
+    change.clientUpdatedAt, // ?6
+    deviceId, // ?7
+    change.undeleteIntent === true ? 1 : 0, // ?8
+  ]
+}
 
 /** 读取认证记录（id 固定为 1 —— schema 用 CHECK(id=1) 表达单空间） */
 export const SELECT_AUTH_SQL = 'SELECT key_id, secret_hash FROM sync_auth WHERE id = 1'

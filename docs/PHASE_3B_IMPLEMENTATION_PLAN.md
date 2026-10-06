@@ -400,7 +400,7 @@ GET  /api/sync/status                → { currentRevision, recordCount }
 | 4 | join 在用户决策前零副作用 | ✅ 拆成 `validateJoinPairingCode()`（只认证，不写任何本地状态）与 `commitJoin()`（确认后才落凭据） |
 | 5 | 「以云端为准」要真清数据 | ✅ `wipeSyncableLocalData()` 清 items/categories/tags/itemTags + `clearQueue()`（assets/appMeta 刻意保留）；**取消「以本机覆盖整个云端」的虚假承诺**（第一版无 server-side replace） |
 | 6 | tag 并发唯一性 | ✅ **方案 A**：D1 加部分唯一索引（数据库层保证）；Worker 对索引冲突降级为合并指令 |
-| 7 | 文档清理 | ✅ `syncPolicy` 的「500 条/批」改为 32；SQL 校验说明改为「4 项（含 sqlite_sequence）」 |
+| 7 | 文档清理 | ✅ `syncPolicy` 的「500 条/批」改为 32；SQL 校验说明改为「3 张业务表」（sqlite_sequence 不作为成功条件） |
 
 ### 本轮修掉的两个真实 bug（都属于"看起来实现了"）
 
@@ -437,7 +437,7 @@ Worker SQL 测试改用 **node:sqlite（真实 SQLite）**，而非手写的假 
 | 4 | join 在用户决策前零副作用 | ✅ 拆成 `validateJoinPairingCode()`（只认证，不写任何本地状态）与 `commitJoin()`（确认后才落凭据） |
 | 5 | 「以云端为准」要真清数据 | ✅ `wipeSyncableLocalData()` 清 items/categories/tags/itemTags + `clearQueue()`（assets/appMeta 刻意保留）；**取消「以本机覆盖整个云端」的虚假承诺**（第一版无 server-side replace） |
 | 6 | tag 并发唯一性 | ✅ **方案 A**：D1 加部分唯一索引（数据库层保证）；Worker 对索引冲突降级为合并指令 |
-| 7 | 文档清理 | ✅ `syncPolicy` 的「500 条/批」改为 32；SQL 校验说明改为「4 项（含 sqlite_sequence）」 |
+| 7 | 文档清理 | ✅ `syncPolicy` 的「500 条/批」改为 32；SQL 校验说明改为「3 张业务表」（sqlite_sequence 不作为成功条件） |
 
 ### 本轮修掉的两个真实 bug（都属于"看起来实现了"）
 
@@ -461,3 +461,76 @@ Worker SQL 测试改用 **node:sqlite（真实 SQLite）**，而非手写的假 
   实测确认 AUTOINCREMENT 在**显式赋值后仍会推进 sqlite_sequence**，
   既污染出 `sqlite_sequence` 表，也让"revision 完全由我们控制"不直观。
 - 新增 `idx_sync_tag_normalized` 部分唯一索引（见 §6 方案 A）。
+
+---
+
+## 附：最终审查（第四轮）—— 最后两个 runtime correctness 问题
+
+前一轮把"revision 与写入同事务"和"SQL 级 tombstone"都做对了，
+但**装配层与重试路径**上还有两个只有真实运行才会暴露的错误。
+
+### 1. UPSERT 的 bind 顺序与 `?1..?8` 定义完全错位
+
+`UPSERT_SQL` 用 SQLite 的**编号参数** `?1..?8`：
+
+```
+?1 offsetInBatch · ?2 entity · ?3 entityId · ?4 payload
+?5 deletedAt · ?6 clientUpdatedAt · ?7 deviceId · ?8 undeleteIntent
+```
+
+而 `worker/index.ts` 当时的 bind 顺序是
+`entity, entityId, payload, …, undeleteIntent, offset` —— offset 落在最后一位。
+后果是 `payload` 收到 `null`，撞 `payload TEXT NOT NULL` →
+**真实 Worker 的每一次 push 都会失败**，而整套测试全绿。
+
+为什么没被测出来：上一轮的测试全部在断言 `UPSERT_SQL` **字符串**，
+而 bind 顺序根本不在 SQL 文本里 —— 断言字符串与断言装配是**两件事**。
+
+修法（结构性，不是改一行）：
+
+- 抽出 `buildUpsertBindValues(change, deviceId, offset)` 作为**唯一**装配入口，
+  顺序只定义一次；`pushPipeline.ts` 与两个测试文件全部共用它。
+- 新增 `worker/workerPushAssembly.test.ts`：用**真实 node:sqlite** 驱动
+  真实的 `executePush()`，逐位断言 `?1..?8` 的实际取值与最终落库行。
+  **变异测试确认有效性**：把 bind 顺序改回旧版，这套测试立刻产生 15 处失败。
+
+### 2. `pushIndividually` 逐条回退破坏了 revision 原子性
+
+tag 唯一索引冲突后，旧代码退化成逐条 `statement.run()`：
+
+- 成功的 upsert 已写入 revision，但 `sync_revision_seq` **只在 catch 分支才推进**；
+- 于是下一批 push 会**重新分配已经用过的 revision** → 主键冲突或永久漏同步。
+- 更糟的是它用的是 batch 开始**之前**预加载的旧 `tagKeys` ——
+  若冲突正是由并发请求新写入的 canonical tag 引起的，旧 `tagKeys` 里根本没有它，
+  因此**根本生成不出** `merge-tag-into`。
+
+修法（不加补丁，改结构）：删除 `pushIndividually`，只保留一条路径
+
+```
+preload → 判定 → 构建 upserts → db.batch([...upserts, bump])
+              ↓ 撞 tag 唯一索引（整批已回滚）
+     重新 preload → 重新判定 → offset 从 0 重建 → 再来一个完整的 batch
+              ↓ 仍失败
+           push-failed
+```
+
+**最多重试一次**，且**每次尝试都是完整的一个 transaction**。
+重试必须重新 preload 是关键：冲突恰恰说明预加载已过期。
+
+同时把判定收紧为 `isTagUniqueConflict()`：只有
+`UNIQUE constraint failed … idx_sync_tag_normalized` 才重试；
+`NOT NULL` / `CHECK` / 其他 `UNIQUE` 一律直接 `push-failed`
+（重试只是把同一个 bug 再撞一遍，并白烧 50 queries/invocation 的额度）。
+
+### 本轮新增的不变量测试
+
+| # | 断言 |
+|---|---|
+| A | 第一条真实 item push：bind 值与 `?1..?8` 逐位对应；`deletedAt=null` 时 payload 仍是 JSON 字符串；offset 0/1/31 正确进 `?1`；undeleteIntent 正确进 `?8`；落库行 revision=1 |
+| B | 3 条记录 → revision 1,2,3 且计数器=3；**一次 batch 就是一次事务**（batch 调用次数为 1）；bump 是批内最后一条 |
+| C | tag 并发冲突 → 整批回滚 → 重读 → 云端只剩一个 active apple → 客户端拿到正确 canonicalId；**seq == MAX(revision)**、无重复 revision；同批的非冲突项在重试批次里被写入；持续冲突（模拟读副本滞后）→ `push-failed` 且恰好 2 次尝试 |
+| D | 冲突之后再正常 push：revision 必须 > 当前 MAX，不发生 PRIMARY KEY 冲突，全局连续无重复 |
+
+**核心不变量**：`sync_revision_seq == MAX(sync_records.revision)`。
+seq 更大 = 悬空区间（客户端游标推过就永久漏同步）；
+seq 更小 = 下一批会重新分配已用过的 revision。这条断言在每个测试末尾都会检查。

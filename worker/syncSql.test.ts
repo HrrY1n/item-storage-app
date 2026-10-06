@@ -1,7 +1,8 @@
 import { DatabaseSync } from 'node:sqlite'
 import { describe, expect, it } from 'vitest'
-import { BUMP_REVISION_SQL, UPSERT_SQL, preloadSql, readNameNormalizedOf } from './syncSql'
+import { BUMP_REVISION_SQL, UPSERT_SQL, buildUpsertBindValues, preloadSql, readNameNormalizedOf } from './syncSql'
 import { MAX_PUSH, PRELOAD_CHUNK } from './limitsContract'
+import type { SyncEntity } from './syncLogic'
 
 /**
  * Worker 侧 SQL 的行为测试 —— 用**真实的 SQLite** 执行，而不是手写的假 D1。
@@ -40,7 +41,7 @@ function newDb(): DatabaseSync {
 }
 
 interface PushRow {
-  entity: string
+  entity: SyncEntity
   entityId: string
   payload: string
   deletedAt: string | null
@@ -50,46 +51,50 @@ interface PushRow {
 }
 
 /**
- * 模拟 Worker 的一次 push：**一个事务**里先推进计数器，再逐条 upsert。
- * 与 worker/index.ts 的 `env.SYNC_DB.batch([bump, ...upserts])` 完全对应。
+ * 模拟 Worker 的一次 push：**一个事务**里先逐条 upsert、最后推进计数器。
+ * 与 pushPipeline.ts 的 `db.batch([...upserts, bump])` 完全对应。
  *
- * ⚠️ 绑定顺序必须与 UPSERT_SQL 里的匿名 `?` 出现顺序严格一致 ——
- *   这正是 D1 的 `stmt.bind(...)` 语义（位置绑定）。
- *   SQL里用 `?N` 编号形式是**错的**：带子查询时 SQLite 会按出现顺序重新编号，
- *   `?1` 会被解析成子查询的绑定参数（未绑定 → NULL），
- *   实测导致 revision 恒等于 offset、完全错乱。
+ * ⭐ 绑定值一律经由 `buildUpsertBindValues()` 生成 —— 与真实装配层**同一个函数**。
+ *   以前这里手写了一遍 bind 顺序，于是"SQL 改了、测试的 bind 顺序没跟着改"
+ *   这类漂移无法被发现。现在两处共用一个定义。
+ *
+ *   （`?N` 是 SQLite 的**编号参数**语义，不是位置顺序；
+ *     顺序必须与 UPSERT_SQL 顶部注释里的 ?1..?8 定义严格一致。）
  */
 function push(db: DatabaseSync, rows: PushRow[]): void {
   db.exec('BEGIN')
   try {
-    // ⚠️ 与 worker/index.ts 一致：先 upsert，最后才推进计数器
+    // ⚠️ 与 pushPipeline 一致：先 upsert，最后才推进计数器
     rows.forEach((r, offset) => {
-      // 顺序对应 UPSERT_SQL 的 ?1..?8：
-      //   offset, entity, entityId, payload, deletedAt, clientUpdatedAt, deviceId, undelete
       db.prepare(UPSERT_SQL).run(
-        offset,
-        r.entity,
-        r.entityId,
-        r.payload,
-        r.deletedAt,
-        r.clientUpdatedAt,
-        r.deviceId,
-        r.undelete,
+        ...buildUpsertBindValues(
+          {
+            entity: r.entity,
+            entityId: r.entityId,
+            // PushRow.payload 已是 JSON 文本，解析后交给 helper 重新序列化
+            payload: JSON.parse(r.payload) as unknown,
+            deletedAt: r.deletedAt,
+            clientUpdatedAt: r.clientUpdatedAt,
+            undeleteIntent: r.undelete === 1,
+          },
+          r.deviceId,
+          offset,
+        ),
       )
     })
     db.prepare(BUMP_REVISION_SQL).run(rows.length)
-    db.exec('COMMIT')
+    db.exec("COMMIT")
   } catch (e) {
     try {
       db.exec('ROLLBACK')
     } catch {
-      // SQLite 在约束冲突时已自动回滚，这里再ROLLBACK 会报"无活动事务"
+      // 无活动事务时忽略
     }
     throw e
   }
 }
 
-const row = (entity: string, deletedAt: string | null, deviceId = 'D', undelete: 0 | 1 = 0): PushRow => ({
+const row = (entity: SyncEntity, deletedAt: string | null, deviceId = 'D', undelete: 0 | 1 = 0): PushRow => ({
   entity,
   entityId: 'x',
   payload: '{}',
