@@ -1,9 +1,9 @@
 {
   // Cloudflare Workers —— 静态资产（Static Assets）+ 同步 API（Phase 3B）
   //
-  // ⚠️ assets.not_found_handling 的 SPA 回落只对**导航请求**生效
-  //    （Sec-Fetch-Mode: navigate），`fetch('/api/...')` 会正常进入 Worker ——
-  //    已核实 Cloudflare 官方 SPA 文档；Phase 3B 有回归断言锁住这个行为。
+  // ⚠️ 路由优先级（已显式化，见 assets.run_worker_first）：
+  //    /api/*   → **先**进 Worker（任何请求类型，包括地址栏直接访问的 navigation）
+  //    其它路径 → 资产路由；未命中静态资源时按 SPA 回落 index.html
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "item-storage-app",
   "compatibility_date": "2026-10-03",
@@ -16,7 +16,18 @@
     "directory": "./dist",
     // SPA fallback：/search、/items/:id、/categories/:id 等深链一律回落到 index.html
     // 完全由 Cloudflare 资产路由负责；dist 中不放置任何 Pages 专属的重写规则文件
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    //
+    // ⭐ 必须**显式**声明，否则 /api/* 会被 SPA 回落吃掉。
+    //    默认行为下 `single-page-application` 的优先级高于 Worker：
+    //    在地址栏直接访问 `/api/sync/status`（navigation 请求）会拿到 **index.html**，
+    //    只有 `fetch('/api/...')` 这类子资源请求才会进 Worker ——
+    //    线上实测正是这个现象，排查时极易误判成"Worker 没部署"。
+    //
+    // ⚠️ 只用路径数组，不要用 `true`：
+    //    `true` 会让**所有**请求（含 .js/.css/.svg 等静态资源）都绕道 Worker，
+    //    白白增加 Worker 调用量与首屏延迟。数组形式只放行 /api/*，其余照旧走资产路由。
+    "run_worker_first": ["/api/*"]
   },
 
   // D1 绑定。数据库已由用户在 Cloudflare 面板创建（Create database → item-sync）。
