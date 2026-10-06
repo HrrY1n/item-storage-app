@@ -243,7 +243,7 @@ private-item-library-backup-YYYY-MM-DD.zip
 - Workbox：`globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}']` 预缓存 App Shell 与全部静态资源；`navigateFallback: '/index.html'` 实现单页离线导航；`cleanupOutdatedCaches` + `clientsClaim` + `skipWaiting`
 - iOS 适配：`viewport-fit=cover` + `env(safe-area-inset-*)`（顶栏与底部导航）、`apple-touch-icon`、`apple-mobile-web-app-capable`、`apple-mobile-web-app-title`
 - 存储：`navigator.storage.persist()` 尽力申请（`services/pwa.ts`），失败静默降级；长期安全仍依赖定期导出备份
-- 部署：Cloudflare Pages（构建 `npm run build`、输出 `dist`、Node 22）；`public/_redirects` 提供 SPA fallback，保证深链刷新不 404
+- 部署：**Cloudflare Workers（Static Assets）** —— 构建 `npm run build`、资产目录 `dist`、Node 22。SPA fallback 与 API 路由都由 `wrangler.jsonc` 的 `assets` 段负责：`not_found_handling: "single-page-application"` 让深链刷新回落到 `index.html`，`run_worker_first: ["/api/*"]` 保证 `/api/*` 先进 Worker（否则地址栏访问会被 SPA 回落吃掉）。⚠️ 仓库内**没有** `public/_redirects` —— 那是 Pages 专属机制，对 Workers 无效
 
 ## 11. CI
 

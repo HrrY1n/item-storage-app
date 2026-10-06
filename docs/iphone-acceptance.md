@@ -1,7 +1,7 @@
 # iPhone 实机验收清单（Phase 2F）
 
 目标版本：App v0.3.0 · 数据契约 schemaVersion 2 · 备份格式 v2
-验收对象：部署到 Cloudflare Pages 后的 **HTTPS 站点**，用 iPhone Safari 打开并「添加到主屏幕」。
+验收对象：部署到 Cloudflare Workers（Static Assets）后的 **HTTPS 站点**，用 iPhone Safari 打开并「添加到主屏幕」。
 
 > 建议：全程用**Safari**（Chrome/微信内置浏览器无法添加 PWA 到主屏幕）。
 > 验收前把浏览器数据清空（设置 → Safari → 清除历史记录与网站数据），确保是**首次安装**状态。
@@ -17,7 +17,8 @@
 | 构建命令 | `npm run build` |
 | 输出目录 | `dist` |
 | Node 版本 | 22（环境变量 `NODE_VERSION=22`） |
-| SPA fallback | 仓库内 `public/_redirects` 已含 `/* /index.html 200`，无需额外配置 |
+| SPA fallback | 由 `wrangler.jsonc` 的 `assets.not_found_handling: "single-page-application"` 提供，无需额外配置。⚠️ 仓库内没有 `public/_redirects`（Pages 专属，对 Workers 无效） |
+| API 路由 | 同上文件的 `assets.run_worker_first: ["/api/*"]`。**地址栏直接访问 `/api/sync/status` 应返回 JSON（未认证时为 401），而不是首页 HTML** —— 这条能验出路由配错 |
 
 ---
 
