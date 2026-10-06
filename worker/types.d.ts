@@ -39,8 +39,14 @@ interface D1Result<T = unknown> {
 /** D1 数据库绑定 */
 interface D1Database {
   prepare(query: string): D1PreparedStatement
-  /** 批处理：所有语句一次提交（D1 免费版单次调用有 50 条查询上限） */
-  batch<T = unknown>(statements: D1PreparedStatement[]): Promise<T[]>
+  /**
+   * 批处理：**一个SQL transaction**（语句顺序执行，任一失败整批回滚）。
+   *
+   * ⚠️ Phase 3B 最终审查第 1 条的修复依赖这个语义：
+   * revision 计数器的推进与本批全部 upsert 放在同一次 batch 里，
+   * 才不会出现"预留了 revision 却没写进去"的悬空区间。
+   */
+  batch(statements: D1PreparedStatement[]): Promise<D1Result[]>
 }
 
 /**
@@ -95,4 +101,26 @@ declare const console: {
   log(...args: unknown[]): void
   error(...args: unknown[]): void
   warn(...args: unknown[]): void
+}
+/* --- node:sqlite（仅测试用）------------------------------------------ *
+ * 本环境无法安装 @types/node（历史记录：网络超时），
+ * 而 Worker SQL 测试需要**真实 SQLite** 来验证事务原子性 ——
+ * 假实现会掩盖竞态。故手工声明用到的那几个方法。
+ * -------------------------------------------------------------------- */
+declare module 'node:sqlite' {
+  interface StatementResultingChanges {
+    changes: number | bigint
+    lastInsertRowid: number | bigint
+  }
+  interface StatementSync {
+    run(...params: unknown[]): StatementResultingChanges
+    all(...params: unknown[]): Array<Record<string, unknown>>
+    get(...params: unknown[]): Record<string, unknown> | undefined
+  }
+  export class DatabaseSync {
+    constructor(path: string)
+    exec(sql: string): void
+    prepare(sql: string): StatementSync
+    close(): void
+  }
 }

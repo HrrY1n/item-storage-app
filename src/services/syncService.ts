@@ -127,11 +127,36 @@ function randomKeyId(): string {
  * 因此改为：A 立即启用（自己的数据就是权威），B 加入时才会遇到
  * "云端已有数据"的抉择，由 B 侧显式询问用户。
  */
+/** 把 (secret, keyId) 编码成配对码字符串（纯函数，刷新后可重复调用） */
+export function encodePairingCode(secret: string, keyId: string): string {
+  const payload: PairingPayload = { v: 1, keyId, secret }
+  return toBase64Url(new TextEncoder().encode(JSON.stringify(payload)))
+}
+
+/**
+ * 入口 A：**创建新的同步空间**。
+ *
+ * 这是**唯一**会调用 bootstrap 的地方 —— 空间已存在时服务端必然返回 409。
+ * "显示/复制配对码"请用 `currentPairingCode()`，它不碰网络。
+ *
+ * 流程：
+ *   1. 生成 secret + keyId，向 Worker 登记
+ *   2. 本机**立即启用**同步并把全部本地数据入队推送
+ *   3. 返回配对码（之后随时可用 currentPairingCode() 重新取到）
+ *
+ * ## 为什么不再"等 B 接入后自动启用"
+ *
+ * 旧设计让 A 停在"等 B 接入"状态，靠"收到首次成功 pull"来触发启用。
+ * 复核后认为这有两个问题：
+ *   ① **没有触发机制** —— 谁来判断"A 收到了 B 的数据"？需要额外状态标记与检查点。
+ *   ② A 本来就是数据的来源方，它的云端数据由自己建立，
+ *      不存在"推空库覆盖 B 的老数据"这种风险 —— 那风险在**B 单边加入**的方向。
+ * 因此改为：A 立即启用（自己的数据就是权威），B 加入时才需要显式抉择。
+ */
 export async function createSyncSpace(): Promise<{ code: string; keyId: string; secret: string }> {
   const secret = generateSecret()
   const keyId = randomKeyId()
-  const payload: PairingPayload = { v: 1, keyId, secret }
-  const code = toBase64Url(new TextEncoder().encode(JSON.stringify(payload)))
+  const code = encodePairingCode(secret, keyId)
 
   // 先向 Worker 登记哈希。失败就不要把配对码给出去（否则对方拿到的是一个
   // 服务端并不认识的 secret，表现为"配对码无效"，很难排查）。
@@ -173,20 +198,41 @@ export function parsePairingCode(code: string): PairingPayload | null {
 }
 
 /**
- * 入口 B：**加入已有同步空间**。
+ * 从**本地已有凭据**重建配对码 —— 不发任何网络请求。
  *
- * ⭐ B 设备**绝不调用 bootstrap** —— 那个端点是"创建空间"，B 调用它会：
- *   · 在空间已存在时收到 409（无害，但语义混乱）
- *   · 更糟：若空间为空（异常状态）就会**抢占**创建权
- * B 只做一件事：携带 secret 调**已认证的** `/status`：
- *   200 → secret 有效 → 此时才落本地凭据
- *   401 → secret 无效 → **不写入任何本地凭据**
+ * Phase 3B 最终审查第 3 条：配对码此前只存在 React useState 里，
+ * 刷新/重启后就丢了，而"生成配对码"按钮又会去调 bootstrap（必然 409）。
+ * 现在 secret 与 keyId 本来就持久在 syncState，因此直接重新编码即可。
  *
- * @param payload 配对码
- * @param cloud 云端当前记录数（用于询问用户如何处理已有数据）
+ * @returns 配对码字符串；本机尚未创建同步空间时返回 null
  */
-export async function joinSyncSpace(payload: PairingPayload): Promise<
-  { ok: true; recordCount: number; currentRevision: number } | { ok: false; reason: 'rejected' | 'offline' }
+export async function currentPairingCode(): Promise<string | null> {
+  const state = await syncRepository.getState()
+  if (state === null || state.secret === null || state.keyId === null) return null
+  return encodePairingCode(state.secret, state.keyId)
+}
+
+/** 本机是否已经创建过同步空间（有凭据） */
+export async function hasSyncSpace(): Promise<boolean> {
+  const state = await syncRepository.getState()
+  return state !== null && state.secret !== null && state.keyId !== null
+}
+
+/**
+ * 入口 B 步骤 1：**只校验配对码**，绝不修改任何本地状态。
+ *
+ * Phase 3B 最终审查第 4 条：旧实现在校验通过后立刻
+ * `initCredentials` + `enabled=true` + `enqueueAll` ——
+ * 但那时用户**还没决定数据方向**。此刻若触发同步，
+ * 就可能把本地数据推上去、或拉到云端数据，污染用户尚未确认的状态。
+ *
+ * ⭐ B 设备**绝不调用 bootstrap** —— 那是"创建空间"入口，
+ *   B 调用会语义混乱（空间已存在 → 409；空间为空 → 抢占创建权）。
+ *
+ * @returns 成功时带上云端记录数，供 UI 询问用户数据方向
+ */
+export async function validateJoinPairingCode(payload: PairingPayload): Promise<
+  { ok: true; recordCount: number } | { ok: false; reason: 'rejected' | 'offline' }
 > {
   const transport = new SyncTransport(createHost(), {
     baseUrl: WORKER_BASE,
@@ -194,18 +240,61 @@ export async function joinSyncSpace(payload: PairingPayload): Promise<
     secret: payload.secret,
   })
   // 已认证的 status：secret 错就是 401 → 'rejected'
-  // B 全程不调 bootstrap，所以这里不需要再解析配对码（调用方已 parse 过）
   const status = await transport.status()
   if (!status.ok) {
     return { ok: false, reason: status.kind === 'offline' ? 'offline' : 'rejected' }
   }
+  // ⚠️ 此刻**不写任何本地状态**：enabled 仍是 false，绝不会自动 push/pull。
+  return { ok: true, recordCount: status.recordCount }
+}
 
-  // ✅ 只有校验通过才落本地凭据并启用；401 路径上一个字节都没写
+/**
+ * 入口 B 步骤 2：**用户确认数据方向之后**才落凭据并启用。
+ *
+ * @param payload 已通过 validateJoinPairingCode 的配对码
+ * @param direction 数据方向
+ *   - `'cloud'`：以云端为准 → **显式清空本地业务数据**，再从 revision=0 完整拉取
+ *   - `'local'`：以本机为准 → 本地全量入队并推送（服务端按 revision 逐条覆盖，
+ *     云端独有的记录不会被删除 —— 第一版不提供真正的 server-side replace）
+ */
+export async function commitJoin(
+  payload: PairingPayload,
+  direction: 'cloud' | 'local',
+): Promise<void> {
+  if (direction === 'cloud') {
+    // 清空**需要同步的**本地业务数据（assets / appMeta / 同步表保持不动）：
+    // 否则云端不存在的数据会留在本机，"以云端为准"名不副实。
+    await wipeSyncableLocalData()
+    // ⚠️ outbox 也必须清：里面是**已被清掉的那些实体**的待推条目。
+    //   若留着，启用后会把刚被删掉的本地数据又推回云端 —— 语义完全相反。
+    await syncRepository.clearQueue()
+    // 游标归零 → 下一轮从 revision=0 完整拉取云端全量
+    await syncRepository.setState({ lastPulledRevision: 0 })
+  }
+
   await syncRepository.initCredentials(payload.secret, payload.keyId)
   await syncRepository.setState({ enabled: true })
-  await syncRepository.enqueueAll()
+  if (direction === 'local') {
+    await syncRepository.enqueueAll()
+  }
+}
 
-  return { ok: true, recordCount: status.recordCount, currentRevision: status.currentRevision }
+/**
+ * 清空需要同步的本地业务数据（items / categories / tags / itemTags）。
+ *
+ * ⚠️ 刻意**不动** assets 与 appMeta：
+ *   - assets：preset 资产由 syncPresetAssets 幂等补齐，用户的照片/AI 图标不该被清
+ *   - appMeta：本地状态（seeded / schemaVersion），清掉会导致 App 重新 seed
+ *     并覆盖用户整理过的分类名 —— 项目既有硬不变量。
+ */
+export async function wipeSyncableLocalData(): Promise<void> {
+  const { db } = await import('../db/db')
+  await db.transaction('rw', [db.items, db.itemTags, db.categories, db.tags], async () => {
+    await db.items.clear()
+    await db.itemTags.clear()
+    await db.categories.clear()
+    await db.tags.clear()
+  })
 }
 
 export { WORKER_BASE }

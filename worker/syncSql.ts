@@ -1,101 +1,133 @@
 /**
- * Worker 侧的 D1 SQL 片段（可单测）。
+ * Worker 侧的 D1 语句（纯 SQL 字符串 + 可单测的辅助函数）。
  *
- * 之所以从 index.ts 里拆出来：revision 分配是**并发正确性**的关键路径，
- * 必须能被直接测到，而不必去mock 整个 Worker 环境。
+ * ⭐ 本文件存在的核心理由：**把"revision 分配"与"记录写入"放进同一个事务**，
+ * 并让 tombstone 保护落在**最终执行的 SQL** 上，而不是只靠写前的 preload 判断。
+ * 这两点是 Phase 3B 最终审查（第 1、2 条）指出的问题。
+ *
+ * ## 为什么不能"先分配 revision，再另一个事务写记录"
+ *
+ * 那样会出现：
+ *   A 取到 revision=1 → A 被挂起
+ *   B 取到 revision=2 → B 先提交 → 客户端 pull 到 2 并把 cursor 推到 2
+ *   A 恢复后提交 revision=1 → **永久位于 cursor 之后，客户端再也不会拉到它**
+ *
+ * 即使两个区间**不重叠**，提交顺序与 revision 顺序不一致仍会产生漏同步。
+ *
+ * ## 解法
+ *
+ * 把 `UPDATE sync_revision_seq SET revision = revision + N`（推进 N）
+ * 与本批 N 条 upsert 放进**同一个 `db.batch()`** —— Cloudflare 官方文档明确说明
+ * batch 是 SQL transaction：语句顺序执行，任一失败整批回滚。
+ *
+ * 每条 upsert 的 revision 值**在 SQL 内部计算**：
+ *   revision = (SELECT revision FROM sync_revision_seq) + 1 + offset
+ * 此时计数器已被批内第一条 UPDATE 推进过，读到的正是本批基线。
+ * `offset` 是批内序号（0,1,2…），纯客户端算，不依赖任何读取。
+ *
+ * → **提交顺序与 revision 可见顺序必然一致**，不存在悬空区间。
  */
 
-interface D1Like {
-  prepare(sql: string): {
-    bind(...values: unknown[]): {
-      run(): Promise<{ results?: unknown[] }>
-      first<T = unknown>(): Promise<T | null>
-    }
-  }
-}
-
-/** 取出 bind() 之后的语句形状（D1 的 bind 返回新对象） */
-type BoundStmt = ReturnType<D1Like['prepare']>['bind'] extends (
-  ...args: unknown[]
-) => infer R
-  ? R
-  : never
+// 平台限制数值统一在 limitsContract（单一定义源）
+export { MAX_PULL, MAX_PUSH, PRELOAD_CHUNK } from './limitsContract'
 
 /**
- * ⭐ 原子分配一段连续的 revision，返回**起始值**。
+ * 推进全局 revision 计数器。
  *
- * ## 为什么必须原子（复审第 2 条）
+ * ⚠️ **必须放在批的最后一条**（顺序：`[...upserts, bump]`）——
+ *   这样每条 upsert 执行时，计数器里存的仍是"上一批已提交的最大 revision"，
+ *   公式 `(SELECT revision FROM sync_revision_seq) + 1 + offset` 才能得到
+ *   连续的 基线+1 .. 基线+N。
  *
- * 旧实现是两条独立语句：
- * ```
- * UPDATE sync_revision_seq SET revision = revision + N WHERE id = 1
- * SELECT revision FROM sync_revision_seq WHERE id = 1
- * ```
- * 并发的两个 push 会交错成A.UPDATE → B.UPDATE → A.SELECT → B.SELECT，
- * **两者读到同一个末值，于是拿到完全重叠的 revision 区间**。
- * 后写的记录覆盖先写的，客户端推进游标后会漏掉数据。
- *
- * ## 解法：UPDATE ... RETURNING，且**真的从它的返回值里读**
- *
- * ⚠️ 第一版修复时踩过的坑，值得记下来：
- *   我写了 `UPDATE ... RETURNING`，却仍然用**随后一条 SELECT** 去读末值。
- *   那跟旧的 bug 是**同一个交错模式**，只是换了条 UPDATE 语句 ——
- *   单元测试（20 个并发分配）立刻暴露了大量重叠区间。
- *
- *   正确做法：把RETURNING 的结果**直接从这次写入里取出来**。
- *   `UPDATE ... RETURNING` 是单条语句，自增与取值在同一原子操作内完成，
- *   不存在任何"取到别人的值"的可能。
- *
- * ## D1 的一个坑
- *
- * D1 把 `INSERT/UPDATE/DELETE` 当作**写**操作，`RETURNING` 的行要通过
- * **`.run()`** 的 `results` 拿；用 `.first()` 对写语句会返回空 —— 那样会写出
- * "写入成功但读到 undefined"的假象。因此这里必须用 run() 并读 results。
- *
- * @param count 本批需要预留的条数
- * @returns 分配到的区间起始 revision
+ *   若把 bump 放在最前面，计数器会先跳到 基线+N，
+ *   再加上 `+1+offset` 就会整体偏移 N+1 —— 这正是第一版修复踩到的坑。
  */
-export async function allocateRevisions(db: D1Like, count: number): Promise<number> {
-  if (count <= 0) {
-    return currentRevision(db)
-  }
-
-  // 单语句原子自增；末值直接从 RETURNING 的结果读出。
-  // ⚠️ 用 run() 而非 first()：D1 对写语句的 first() 返回空。
-  const result = await db
-    .prepare('UPDATE sync_revision_seq SET revision = revision + ?1 WHERE id = 1 RETURNING revision')
-    .bind(count)
-    .run()
-
-  const row = (result.results ?? [])[0] as { revision?: unknown } | undefined
-  const end = typeof row?.revision === 'number' ? row.revision : null
-
-  if (end === null) {
-    // RETURNING 没拿到结果。理论上 D1 不会走到这里；真走到了宁可保守处理 ——
-    // **绝不能**退回"UPDATE 后再 SELECT"那条交错路径。
-    throw new Error('revision allocation failed: D1 did not return the updated revision')
-  }
-
-  return end - count + 1
-}
-
-/** 读取当前 revision 末值 */
-export async function currentRevision(db: D1Like): Promise<number> {
-  const stmt: BoundStmt = db
-    .prepare('SELECT revision FROM sync_revision_seq WHERE id = 1')
-    .bind()
-  const row = await stmt.first()
-  const revision = (row as { revision?: unknown } | null)?.revision
-  return typeof revision === 'number' ? revision : 0
-}
+export const BUMP_REVISION_SQL =
+  'UPDATE sync_revision_seq SET revision = revision + ?1 WHERE id = 1'
 
 /**
- * 同步空间是否已存在。
+ * 单条 upsert（批内 offset 递增，revision 因此连续）。
  *
- * 第一版只有单空间：sync_auth 里最多一行（schema 用 CHECK(id=1) 表达）。
- * 这个查询用于 bootstrap 前给出友好提示；**真正的保证是 INSERT 的 CHECK 约束**。
+ * 绑定参数（用 SQLite 的 **?N 编号形式**，编号互不干扰）：
+ *   ?1 offsetInBatch · ?2 entity · ?3 entityId · ?4 payload
+ *   ?5 deletedAt · ?6 clientUpdatedAt · ?7 deviceId · ?8 undeleteIntent(0/1)
+ *
+ * ⚠️ **编号不能从 ?1 开始**：`?1` 已经用在 revision 公式里。
+ *   若把 entity 写成 ?1，就会有两个 `?1` → 后者覆盖前者，参数整体错位
+ *   （实测表现为 `payload` 收到 NULL，触发 NOT NULL 约束错误）。
+ *   用递增的独立编号可以彻底避免这种歧义。
+ *
+ * ⭐ `ON CONFLICT ... DO UPDATE ... WHERE` 就是 **tombstone 的最终防线**：
+ * 只在「现有记录未删除」或「本次也是删除」或「显式恢复」时才覆盖。
+ * stale upsert（拿着 preload 时的旧快照）**无法**把 tombstone 清掉——
+ * 该不变量由真正执行写入的 SQL 保证，不依赖 preload 是否及时。
  */
-export async function hasAnyAuth(db: D1Like): Promise<boolean> {
-  const row = await db.prepare('SELECT id FROM sync_auth LIMIT 1').bind().first<{ id: number }>()
-  return row !== null
+export const UPSERT_SQL = `
+INSERT INTO sync_records
+  (revision, entity, entity_id, payload, deleted_at, client_updated_at, device_id)
+VALUES (
+  (SELECT revision FROM sync_revision_seq) + 1 + ?1,
+  ?2, ?3, ?4, ?5, ?6, ?7
+)
+ON CONFLICT(entity, entity_id) DO UPDATE SET
+  revision = excluded.revision,
+  payload = excluded.payload,
+  deleted_at = excluded.deleted_at,
+  client_updated_at = excluded.client_updated_at,
+  device_id = excluded.device_id
+WHERE sync_records.deleted_at IS NULL
+   OR excluded.deleted_at IS NOT NULL
+   OR ?8 = 1
+`.trim()
+
+/** 读取当前 revision 末值（仅用于响应里的 currentRevision 提示，不参与分配） */
+export const CURRENT_REVISION_SQL = 'SELECT revision FROM sync_revision_seq WHERE id = 1'
+
+/** 读取认证记录（id 固定为 1 —— schema 用 CHECK(id=1) 表达单空间） */
+export const SELECT_AUTH_SQL = 'SELECT key_id, secret_hash FROM sync_auth WHERE id = 1'
+
+export const HAS_ANY_AUTH_SQL = 'SELECT id FROM sync_auth LIMIT 1'
+
+export const INSERT_AUTH_SQL =
+  'INSERT INTO sync_auth (id, key_id, secret_hash, created_at) VALUES (1, ?1, ?2, ?3)'
+
+/** pull：恒为「主键有序 + WHERE revision > ?」，禁止 SELECT * */
+export const PULL_SQL = `
+SELECT revision, entity, entity_id, payload, deleted_at, client_updated_at, device_id
+FROM sync_records
+WHERE revision > ?1
+ORDER BY revision
+LIMIT ?2
+`.trim()
+
+export const COUNT_RECORDS_SQL = 'SELECT COUNT(*) AS n FROM sync_records'
+
+/** tag nameNormalized 预加载（扫描 entity='tag'，规模远小于 items） */
+export const PULL_TAG_KEYS_SQL =
+  "SELECT entity_id, payload FROM sync_records WHERE entity = 'tag' AND deleted_at IS NULL"
+
+/**
+ * 预加载本批涉及的现有记录。**必须按 id 分片**以避开 100 绑定参数上限。
+ */
+export function preloadSql(entityCount: number, idCount: number): string {
+  const entities = new Array(entityCount).fill('?').join(',')
+  const ids = new Array(idCount).fill('?').join(',')
+  return `
+SELECT entity, entity_id, revision, deleted_at, client_updated_at, device_id, payload
+FROM sync_records
+WHERE entity IN (${entities})
+  AND entity_id IN (${ids})
+`.trim()
+}
+
+/** 从 payload JSON 里取 nameNormalized（仅 tag 用；坏 JSON 返回 null） */
+export function readNameNormalizedOf(payload: string): string | null {
+  try {
+    const p = JSON.parse(payload) as unknown
+    if (typeof p !== 'object' || p === null) return null
+    const v = (p as Record<string, unknown>).nameNormalized
+    return typeof v === 'string' && v !== '' ? v : null
+  } catch {
+    return null
+  }
 }

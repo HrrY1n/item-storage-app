@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { fromBase64Url, toBase64Url } from '../../services/syncBytes'
 import {
   backoffDelay,
   chunk,
@@ -201,5 +202,60 @@ describe('summarizeSync', () => {
       kind: 'pending',
       pendingCount: 5,
     })
+  })
+})
+/* ==================================================================== *
+ * base64url 双向编解码（syncBytes）
+ *
+ * ⚠️ 这里曾有一个**让B 设备完全无法加入**的真实 bug：
+ *   `fromBase64Url` 先把 `-_` 换成 `+/`，却仍用 URL-safe 字母表 indexOf，
+ *   再加上第三字节掩码写成 `& 0x0f` 而非 `& 0x03` —— 双重错误叠加成乱码，
+ *   `JSON.parse` 必然失败。
+ *   为什么第一版没发现：当时只测了 encode（对照标准 base64 一致），
+ *   **decode 从未被独立测过**，而"encode 正确"并不能推出"decode 正确"。
+ * ==================================================================== */
+describe('base64url 编解码（配对码的成败取决于此）', () => {
+  it('★ 往返一致：ASCII 载荷', () => {
+    const json = JSON.stringify({ v: 1, keyId: 'key-1', secret: 's'.repeat(40) })
+    const code = toBase64Url(new TextEncoder().encode(json))
+    expect(new TextDecoder().decode(fromBase64Url(code))).toBe(json)
+  })
+
+  it('encode 结果与标准 base64url 一致（无 padding）', () => {
+    // 用 Node 的 Buffer 作为对照真值
+    const bytes = new TextEncoder().encode('hello world!')
+    const expected = Buffer.from(bytes).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    expect(toBase64Url(bytes)).toBe(expected)
+  })
+
+  it('★ 逐长度 0..64 往返（含 1/2 字节边界）', () => {
+    for (let n = 0; n <= 64; n += 1) {
+      const bytes = new Uint8Array(n)
+      for (let i = 0; i < n; i += 1) bytes[i] = (i * 31 + n * 7) % 256
+      const back = fromBase64Url(toBase64Url(bytes))
+      expect(Array.from(back), `长度 ${n} 往返不一致`).toEqual(Array.from(bytes))
+    }
+  })
+
+  it('URL-safe 字符集：只含 A-Za-z0-9_-，无 + / =', () => {
+    const code = toBase64Url(new TextEncoder().encode(JSON.stringify({ v: 1, keyId: 'k', secret: 'x'.repeat(32) })))
+    expect(code).toMatch(/^[A-Za-z0-9_-]+$/)
+  })
+
+  it('能正确解出含 + / 的标准 base64（URL-safe 变体）', () => {
+    // 选一些会产生 +/ 的字节
+    const bytes = new Uint8Array([0xfb, 0xff, 0xbe, 0x00, 0x3e, 0x3f])
+    const code = toBase64Url(bytes)
+    expect(Array.from(fromBase64Url(code))).toEqual(Array.from(bytes))
+  })
+
+  it('非法字符安全停止，不抛异常', () => {
+    expect(() => fromBase64Url('!!!!')).not.toThrow()
+    expect(fromBase64Url('!!!!').length).toBe(0)
+  })
+
+  it('空串往返', () => {
+    expect(toBase64Url(new Uint8Array([]))).toBe('')
+    expect(fromBase64Url('').length).toBe(0)
   })
 })

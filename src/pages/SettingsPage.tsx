@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import ConfirmDialog, { AlertDialog } from '../components/Dialogs'
@@ -18,7 +18,14 @@ import { usePwaUpdate } from '../features/pwa/PwaUpdateContext'
 import { useSync } from '../features/sync/SyncContext'
 import { syncSummaryToMessage } from '../features/sync/syncPolicy'
 import { syncRepository } from '../db/repositories/syncRepository'
-import { createSyncSpace, joinSyncSpace, parsePairingCode } from '../services/syncService'
+import {
+  commitJoin,
+  createSyncSpace,
+  currentPairingCode,
+  hasSyncSpace,
+  parsePairingCode,
+  validateJoinPairingCode,
+} from '../services/syncService'
 import type { BackupPayload, BackupSummary } from '../domain/backup'
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
@@ -172,7 +179,10 @@ export default function SettingsPage() {
   /* ---------------- 跨设备同步（Phase 3B） ---------------- */
   const [syncing, setSyncing] = useState(false)
   const [busySync, setBusySync] = useState(false)
-  /** 配对码：**只要已启用同步就持续显示**（可随时重新复制），不再是一次性 toast */
+  /**
+   * 配对码：**从本地凭据重建**，不是一次性 toast。
+   * 刷新 / PWA 重启后仍能重新取到（最终审查第 3 条）。
+   */
   const [pairingCode, setPairingCode] = useState<string | null>(null)
   const [codeInput, setCodeInput] = useState('')
   /** 加入时的抉择：云端已有数据 */
@@ -180,6 +190,20 @@ export default function SettingsPage() {
   const [pendingJoin, setPendingJoin] = useState<{ secret: string; keyId: string } | null>(null)
 
   const online = typeof navigator === 'undefined' ? true : navigator.onLine !== false
+
+  // ⭐ 页面挂载 / 刷新后：从本地已有凭据重建配对码（不发网络请求、不调 bootstrap）
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const exists = await hasSyncSpace()
+      if (cancelled) return
+      setPairingCode(exists ? await currentPairingCode() : null)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
 
   const handleSyncNow = async () => {
     if (syncing) return
@@ -198,8 +222,9 @@ export default function SettingsPage() {
   const handleCreateSpace = async () => {
     setBusySync(true)
     try {
-      const { code } = await createSyncSpace()
-      setPairingCode(code)
+      await createSyncSpace()
+      // 配对码从本地凭据重建（不依赖 useState，刷新后也能取到）
+      setPairingCode(await currentPairingCode())
       show('同步空间已创建，配对码已生成')
       await syncNow()
     } catch {
@@ -210,8 +235,9 @@ export default function SettingsPage() {
   }
 
   /**
-   * 入口 B：加入已有同步空间。
-   * ⭐ 只调**已认证的** status 校验 secret；401 时**不写任何本地凭据**。
+   * 入口 B 步骤 1：粘贴配对码并**只做校验**。
+   * ⭐ 此刻不写任何本地凭据、不启用同步 —— 用户还没决定数据方向，
+   *   若这里就同步，会把本机数据推上去污染未确认的状态。
    */
   const handleJoin = async () => {
     setBusySync(true)
@@ -221,43 +247,52 @@ export default function SettingsPage() {
         show('配对码格式不正确')
         return
       }
-      setPendingJoin({ secret: payload.secret, keyId: payload.keyId })
-      // 先做一次只读的连通性校验（此刻还没启用本机同步）
-      const result = await joinSyncSpace(payload)
+      const result = await validateJoinPairingCode(payload)
       if (!result.ok) {
-        setPendingJoin(null)
         show(result.reason === 'offline' ? '当前离线，请联网后重试' : '配对码无效，请确认后在创建设备上重新生成')
         return
       }
-      // 云端已有数据 → 问用户怎么办（不做自动合并）
+      // 校验通过 → 暂存待确认的方向（仍未启用同步）
+      setPendingJoin({ secret: payload.secret, keyId: payload.keyId })
+      setCodeInput('')
       if (result.recordCount > 0) {
         setJoinConflict(result.recordCount)
-        return
+      } else {
+        setJoinConflict(0)
       }
-      setCodeInput('')
-      show('已加入，正在首次同步')
-      await syncNow()
-    } catch {
-      show('加入失败，请稍后重试')
     } finally {
       setBusySync(false)
     }
   }
 
-  /** 用户选择「以云端为准」：丢弃本地待推条目，让云端覆盖 */
+  /** 入口 B 步骤 2a：用户选择「以云端为准」→ 清空本地业务数据后从云端完整拉取 */
   const handleJoinUseCloud = async () => {
-    await syncRepository.clearQueue()
-    setJoinConflict(null)
-    show('将以云端数据为准')
-    await syncNow()
+    if (pendingJoin === null) return
+    setBusySync(true)
+    try {
+      await commitJoin({ v: 1, secret: pendingJoin.secret, keyId: pendingJoin.keyId }, 'cloud')
+      setJoinConflict(null)
+      setPendingJoin(null)
+      show('已启用同步，数据将以云端为准')
+      await syncNow()
+    } finally {
+      setBusySync(false)
+    }
   }
 
-  /** 用户选择「以本机为准」：重新入队全部本地数据并强推 */
+  /** 入口 B 步骤 2b：用户选择「以本机为准」→ 本地全量推上云 */
   const handleJoinUseLocal = async () => {
-    await syncRepository.enqueueAll()
-    setJoinConflict(null)
-    show('将以本机数据为准')
-    await syncNow()
+    if (pendingJoin === null) return
+    setBusySync(true)
+    try {
+      await commitJoin({ v: 1, secret: pendingJoin.secret, keyId: pendingJoin.keyId }, 'local')
+      setJoinConflict(null)
+      setPendingJoin(null)
+      show('已启用同步，数据将以本机为准')
+      await syncNow()
+    } finally {
+      setBusySync(false)
+    }
   }
 
   /** 关闭同步：清凭据但保留待推条目（用户数据一条不丢） */
@@ -390,13 +425,23 @@ export default function SettingsPage() {
               disabled={syncing || !online}
             />
 
-            {/* 配对码持续显示，可随时重新复制 —— 不再是一次性提示 */}
+            {/* 配对码：启用后**持续显示**且刷新后仍可重新复制 ——
+                它由本地凭据重建，不再是一次性提示。 */}
             {pairingCode === null ? (
               <RowButton
-                label="生成配对码"
+                label="重新显示配对码"
                 hint="给另一台设备用"
-                onClick={() => void handleCreateSpace()}
-                disabled={busySync || !online}
+                onClick={() => {
+                  void (async () => {
+                    const code = await currentPairingCode()
+                    if (code === null) {
+                      show('尚未创建同步空间')
+                      return
+                    }
+                    setPairingCode(code)
+                  })()
+                }}
+                disabled={busySync}
               />
             ) : (
               <div className="px-4 py-3">
@@ -436,8 +481,12 @@ export default function SettingsPage() {
       {joinConflict !== null && pendingJoin !== null && (
         <ConfirmDialog
           open
-          title="云端已有数据"
-          message={`云端已有 ${joinConflict} 条记录。\n\n「以云端为准」会丢弃本机待同步的改动，用云端数据覆盖本机；「以本机为准」会用本机数据覆盖云端。两种都不会自动合并。`}
+          title={joinConflict > 0 ? '云端已有数据' : '如何同步数据？'}
+          message={
+            joinConflict > 0
+              ? `云端已有 ${joinConflict} 条记录。\n\n「以云端为准」会**清空本机**的物品/分类/标签，再从云端完整下载 —— 请先确保已导出 ZIP 备份。\n「以本机为准」会把本机数据全量上传；云端独有的记录会保留。`
+              : '「以云端为准」会清空本机的物品/分类/标签，再从云端完整下载（云端目前为空，因此本机数据会被清掉）。\n「以本机为准」会把本机数据全量上传。'
+          }
           confirmLabel="以云端为准"
           cancelLabel="以本机为准"
           onConfirm={() => void handleJoinUseCloud()}

@@ -132,7 +132,7 @@
 ```sql
 -- 单表：每条记录是某个实体的「最新快照」，按 revision 全局单调递增
 CREATE TABLE sync_records (
-  revision     INTEGER PRIMARY KEY AUTOINCREMENT,  -- 全局单调游标，零额外成本
+  revision     INTEGER PRIMARY KEY,           -- 全局单调游标（rowid 别名，零额外成本）
   entity       TEXT    NOT NULL,                  -- 'item' | 'category' | 'tag'
   entity_id    TEXT    NOT NULL,                  -- ULID
   payload      TEXT    NOT NULL,                  -- JSON（只含该实体的业务字段）
@@ -154,7 +154,21 @@ CREATE TABLE sync_auth (
 );
 ```
 
-索引只有 2 个二级索引（`UNIQUE(entity, entity_id)` + 主键）。**每个索引都会让一次写入多算 1 row written**（官方明确说明），所以索引要克制。
+索引刻意精简：1 个 `UNIQUE(entity, entity_id)` + 1 个 tag 专用部分唯一索引。
+**每个索引都会让一次写入多算 1 row written**（官方明确说明），所以不做多余索引。
+
+**tag 规范名的数据库级唯一性**（Phase 3B 最终审查第 6 条）：
+
+```sql
+CREATE UNIQUE INDEX idx_sync_tag_normalized
+  ON sync_records (json_extract(payload, '$.nameNormalized'))
+  WHERE entity = 'tag' AND deleted_at IS NULL;
+```
+
+「先查后写」在两台设备**真正同时**建同名 tag 时会双双看到"不存在"。
+该部分唯一索引让**数据库本身**拒绝这种重复；冲突的那条由 Worker 转成
+`merge-tag-into` 指令，客户端在自己的事务里把引用迁到既有 id、删掉自己那份。
+`WHERE deleted_at IS NULL` 保证删掉 #Apple 后可以重新创建同名标签。
 
 ### 设计 B：关系模型镜像表
 
@@ -288,7 +302,9 @@ GET /api/sync/status
 
 ### 标签跨设备去重（必须处理）
 
-Dexie 的 `&nameNormalized` 唯一索引**只在单个库内生效**。两台设备离线时各建一个 "Apple" tag，push 后 D1 里会有两条。服务端处理：
+Dexie 的 `&nameNormalized` 唯一索引**只在单个库内生效**。两台设备离线时各建一个 "Apple" tag，
+若只靠"先查后写"，真正并发时两者会同时看到"不存在"→ D1 里出现两条。
+因此除预加载判断外，还有**数据库层的部分唯一索引**兜底（见上文 §6.1）；冲突的那条会被转成合并指令。服务端处理：
 
 ```sql
 INSERT INTO sync_records (entity, entity_id, payload, ...)

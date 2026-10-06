@@ -1,167 +1,370 @@
+import { DatabaseSync } from 'node:sqlite'
 import { describe, expect, it } from 'vitest'
-import { allocateRevisions, currentRevision, hasAnyAuth } from './syncSql'
+import { BUMP_REVISION_SQL, UPSERT_SQL, preloadSql, readNameNormalizedOf } from './syncSql'
+import { MAX_PUSH, PRELOAD_CHUNK } from './limitsContract'
 
 /**
- * revision 分配与认证的数据库交互测试（Phase 3B 复审第 2 条）。
+ * Worker 侧 SQL 的行为测试 —— 用**真实的 SQLite** 执行，而不是手写的假 D1。
  *
- * 用一个**内存版D1**（语义与 SQLite 一致，带单线程执行器）来验证：
- * 两个并发 push 不会拿到重叠的 revision 区间。
+ * 理由：本文件验证的两条不变量都是"数据库层的原子性"。
+ * 假实现可能恰好掩盖竞态（第二轮审查里已经吃过一次亏）；
+ * D1 基于 SQLite，真库跑才有说服力。
  *
- * 旧实现是两条独立语句：
- *   UPDATE sync_revision_seq SET revision = revision + N
- *   SELECT revision FROM sync_revision_seq
- * 并发时会交错成A.UPDATE → B.UPDATE → A.SELECT → B.SELECT，
- * 两者读到同一个末值 → **完全重叠的 revision 区间**，
- * 后写的记录覆盖先写的，客户端推进游标后漏数据。
+ * 覆盖 Phase 3B 最终审查第 1、2 条：
+ *   1. revision 分配与写入同事务 → 提交顺序与 revision 可见顺序一致
+ *   2. tombstone 保护落到最终执行的 SQL 上
  */
 
-/** 内存版 D1：单线程执行器 + 真实 SQL 语义（用 Python/sqlite 无法跑，这里手写） */
-class FakeD1 {
-  private seq = 0
-  private authRows: Array<{ id: number; key_id: string; secret_hash: string }> = []
+const SCHEMA = `
+CREATE TABLE sync_records (
+  revision          INTEGER PRIMARY KEY,
+  entity            TEXT NOT NULL,
+  entity_id         TEXT NOT NULL,
+  payload           TEXT NOT NULL,
+  deleted_at        TEXT,
+  client_updated_at TEXT NOT NULL,
+  device_id         TEXT NOT NULL,
+  UNIQUE (entity, entity_id)
+);
+CREATE TABLE sync_revision_seq (id INTEGER PRIMARY KEY CHECK (id = 1), revision INTEGER NOT NULL);
+INSERT INTO sync_revision_seq (id, revision) VALUES (1, 0);
+CREATE UNIQUE INDEX idx_sync_tag_normalized
+  ON sync_records (json_extract(payload, '$.nameNormalized'))
+  WHERE entity = 'tag' AND deleted_at IS NULL;
+`
 
-  /** 记录执行过的语句类型，用来断言是否用了 RETURNING */
-  readonly statements: string[] = []
-  /** 模拟 D1 异常：UPDATE ... RETURNING 不返回结果行 */
-  suppressReturning = false
+function newDb(): DatabaseSync {
+  const db = new DatabaseSync(':memory:')
+  db.exec(SCHEMA)
+  return db
+}
 
-  prepare(sql: string) {
-    const self = this
-    let bound: unknown[] = []
-    const stmt = {
-      bind(...values: unknown[]) {
-        bound = values
-        return stmt
-      },
-      async run() {
-        self.statements.push(sql.trim().split('\n')[0] ?? sql)
-        // 只实现本项目实际用到的两条语句
-        if (sql.includes('UPDATE sync_revision_seq')) {
-          self.seq += Number(bound[0] ?? 0)
-          if (self.suppressReturning) {
-            return { success: true, meta: { rows_written: 1 }, results: [] }
-          }
-          // D1 行为：写语句的 RETURNING 行放在 run() 的 results 里
-          return { success: true, meta: { rows_written: 1 }, results: [{ revision: self.seq }] }
-        }
-        if (sql.includes('INSERT INTO sync_auth')) {
-          // schema 保证只有 id=1 一行
-          if (self.authRows.some((r) => r.id === 1)) {
-            throw new Error('UNIQUE constraint failed: sync_auth.id')
-          }
-          self.authRows.push({ id: 1, key_id: String(bound[0]), secret_hash: String(bound[1]) })
-          return { success: true, results: [] }
-        }
-        return { success: true, results: [] }
-      },
-      async first<T = unknown>(): Promise<T | null> {
-        const trimmed = sql.trim()
-        if (trimmed.includes('FROM sync_revision_seq')) {
-          return { revision: self.seq } as unknown as T
-        }
-        if (trimmed.includes('FROM sync_auth')) {
-          return (self.authRows[0] as unknown as T) ?? null
-        }
-        return null
-      },
+interface PushRow {
+  entity: string
+  entityId: string
+  payload: string
+  deletedAt: string | null
+  clientUpdatedAt: string
+  deviceId: string
+  undelete: 0 | 1
+}
+
+/**
+ * 模拟 Worker 的一次 push：**一个事务**里先推进计数器，再逐条 upsert。
+ * 与 worker/index.ts 的 `env.SYNC_DB.batch([bump, ...upserts])` 完全对应。
+ *
+ * ⚠️ 绑定顺序必须与 UPSERT_SQL 里的匿名 `?` 出现顺序严格一致 ——
+ *   这正是 D1 的 `stmt.bind(...)` 语义（位置绑定）。
+ *   SQL里用 `?N` 编号形式是**错的**：带子查询时 SQLite 会按出现顺序重新编号，
+ *   `?1` 会被解析成子查询的绑定参数（未绑定 → NULL），
+ *   实测导致 revision 恒等于 offset、完全错乱。
+ */
+function push(db: DatabaseSync, rows: PushRow[]): void {
+  db.exec('BEGIN')
+  try {
+    // ⚠️ 与 worker/index.ts 一致：先 upsert，最后才推进计数器
+    rows.forEach((r, offset) => {
+      // 顺序对应 UPSERT_SQL 的 ?1..?8：
+      //   offset, entity, entityId, payload, deletedAt, clientUpdatedAt, deviceId, undelete
+      db.prepare(UPSERT_SQL).run(
+        offset,
+        r.entity,
+        r.entityId,
+        r.payload,
+        r.deletedAt,
+        r.clientUpdatedAt,
+        r.deviceId,
+        r.undelete,
+      )
+    })
+    db.prepare(BUMP_REVISION_SQL).run(rows.length)
+    db.exec('COMMIT')
+  } catch (e) {
+    try {
+      db.exec('ROLLBACK')
+    } catch {
+      // SQLite 在约束冲突时已自动回滚，这里再ROLLBACK 会报"无活动事务"
     }
-    return stmt
-  }
-
-  /** 直接改末值，模拟"别人抢先分配了" */
-  bump(by: number): void {
-    this.seq += by
-  }
-
-  get value(): number {
-    return this.seq
-  }
-
-  insertAuth(keyId: string, hash: string): void {
-    this.authRows.push({ id: 1, key_id: keyId, secret_hash: hash })
+    throw e
   }
 }
 
-describe('allocateRevisions · 原子分配（复审第 2 条）', () => {
-  it('单次分配返回正确的起始值', async () => {
-    const db = new FakeD1()
-    expect(await allocateRevisions(db, 5)).toBe(1)
-    expect(await currentRevision(db)).toBe(5)
+const row = (entity: string, deletedAt: string | null, deviceId = 'D', undelete: 0 | 1 = 0): PushRow => ({
+  entity,
+  entityId: 'x',
+  payload: '{}',
+  deletedAt,
+  clientUpdatedAt: '2026-01-01T00:00:00.000Z',
+  deviceId,
+  undelete,
+})
+
+describe('revision 分配与写入的原子性（最终审查第 1 条）', () => {
+  it('★ A 先取得较小 revision、B 后取得较大 revision → 提交顺序与 revision 顺序一致', () => {
+    const db = newDb()
+
+    push(db, [
+      { ...row('item', null, 'devA'), entityId: 'from-A', payload: '{"n":"A"}' },
+    ])
+    push(db, [
+      { ...row('item', null, 'devB'), entityId: 'from-B', payload: '{"n":"B"}' },
+    ])
+
+    const rows = db
+      .prepare('SELECT entity_id, revision FROM sync_records ORDER BY revision')
+      .all() as Array<{ entity_id: string; revision: number }>
+
+    // ⭐ 旧实现（先分配 revision、再用另一个事务写记录）无法保证这个性质：
+    //    A 可能拿到小 revision 却后提交，落在客户端 cursor 后方而永久漏同步。
+    expect(rows.map((r) => r.entity_id)).toEqual(['from-A', 'from-B'])
+    expect(rows.map((r) => r.revision)).toEqual([1, 2])
   })
 
-  it('第二次分配不与第一次重叠', async () => {
-    const db = new FakeD1()
-    const first = await allocateRevisions(db, 3)
-    const second = await allocateRevisions(db, 4)
-    expect(first).toBe(1) // 区间 1..3
-    expect(second).toBe(4) // 区间 4..7
-    expect(second).toBeGreaterThan(first + 3 - 1)
-  })
-
-  it('⭐ 两个并发分配不得取得重叠 revision', async () => {
-    const db = new FakeD1()
-    // 并发发起两个分配（Promise.all 让交错发生在 await 点）
-    const [a, b] = await Promise.all([allocateRevisions(db, 5), allocateRevisions(db, 5)])
-    // 两个区间不能相交：|a - b| 必须 >= 5
-    expect(Math.abs(a - b)).toBeGreaterThanOrEqual(5)
-  })
-
-  it('大量并发分配：每个区间长度正确且互不重叠', async () => {
-    const db = new FakeD1()
-    const starts = await Promise.all(
-      Array.from({ length: 20 }, () => allocateRevisions(db, 3)),
-    )
-    // 排序后相邻差值都必须 >= 3（即区间不重叠）
-    const sorted = [...starts].sort((x, y) => x - y)
-    for (let i = 1; i < sorted.length; i += 1) {
-      expect(sorted[i]! - sorted[i - 1]!).toBeGreaterThanOrEqual(3)
+  it('★ 任意 cursor 推进都不漏掉已提交记录', () => {
+    const db = newDb()
+    for (const id of ['i1', 'i2', 'i3']) {
+      push(db, [{ ...row('item', null), entityId: id }])
     }
-    // 总共分配了 20 × 3 = 60
-    expect(await currentRevision(db)).toBe(60)
+    // 模拟客户端分页 pull
+    const after1 = db
+      .prepare('SELECT entity_id FROM sync_records WHERE revision > ? ORDER BY revision')
+      .all(1) as Array<{ entity_id: string }>
+    expect(after1.map((r) => r.entity_id)).toEqual(['i2', 'i3'])
+    const after2 = db
+      .prepare('SELECT entity_id FROM sync_records WHERE revision > ? ORDER BY revision')
+      .all(2) as Array<{ entity_id: string }>
+    expect(after2.map((r) => r.entity_id)).toEqual(['i3'])
+    const after3 = db
+      .prepare('SELECT entity_id FROM sync_records WHERE revision > ? ORDER BY revision')
+      .all(3)
+    expect(after3).toHaveLength(0)
   })
 
-  it('分配 0 条不改变末值', async () => {
-    const db = new FakeD1()
-    await allocateRevisions(db, 5)
-    const before = await currentRevision(db)
-    expect(await allocateRevisions(db, 0)).toBe(before)
-    expect(await currentRevision(db)).toBe(before)
+  it('批量内 revision 连续（offset 机制生效）', () => {
+    const db = newDb()
+    push(db, [
+      { ...row('item', null), entityId: 'a' },
+      { ...row('item', null), entityId: 'b' },
+      { ...row('item', null), entityId: 'c' },
+    ])
+    const revs = (db.prepare('SELECT revision FROM sync_records ORDER BY revision').all() as Array<{ revision: number }>).map(
+      (r) => r.revision,
+    )
+    expect(revs).toEqual([1, 2, 3])
   })
 
-  it('★ RETURNING 拿不到结果时抛错，绝不退回「UPDATE 后再 SELECT」的交错路径', async () => {
-    // 这是第一版修复的真实缺陷：写了 RETURNING 却仍用单独的 SELECT 读值。
-    // 模拟 D1 返回空 results 的异常情况（first 会返回"别人的值"）
-    const brokenDb = new FakeD1()
-    brokenDb.suppressReturning = true
-    // 绝不能返回 999（那是另一条路径读到的别人的值）
-    await expect(allocateRevisions(brokenDb, 3)).rejects.toThrow('revision allocation failed')
+  it('同一实体的连续更新拿到递增 revision（不是原地不动）', () => {
+    const db = newDb()
+    push(db, [{ ...row('item', null), payload: '{"v":1}' }])
+    push(db, [{ ...row('item', null), payload: '{"v":2}' }])
+    const r = db.prepare('SELECT revision, payload FROM sync_records WHERE entity_id=?').get('x') as
+      | { revision: number; payload: string }
+      | undefined
+    expect(r?.payload).toBe('{"v":2}')
+    expect(r?.revision).toBe(2)
   })
 
-  it('⭐ 用的是单语句 UPDATE ... RETURNING（而非两条语句）', async () => {
-    const db = new FakeD1()
-    await allocateRevisions(db, 2)
-    const updates = db.statements.filter((s) => s.includes('UPDATE sync_revision_seq'))
-    expect(updates).toHaveLength(1)
-    expect(updates[0]).toContain('RETURNING')
+  it('★ 事务中途失败整批回滚：计数器不推进（无悬空 revision）', () => {
+    const db = newDb()
+    // ⚠️ 原始 SQLite 语义：约束失败**不会**自动回滚事务，必须显式 ROLLBACK。
+    //   D1 的 db.batch() 正是替我们做了这件事 —— 它是一个真正的 SQL transaction，
+    //   任一语句失败则整批回滚。这条测试就是在验证那个语义。
+    db.exec('BEGIN')
+    let failed = false
+    try {
+      db.prepare(UPSERT_SQL).run(0, 'item', 'ok-1', '{}', null, 't', 'D', 0)
+      db.prepare(UPSERT_SQL).run(1, 'item', 'bad', null, null, 't', 'D', 0)
+      db.prepare(BUMP_REVISION_SQL).run(2)
+      db.exec('COMMIT')
+    } catch {
+      failed = true
+      db.exec('ROLLBACK')
+    }
+    expect(failed).toBe(true)
+
+    // ⭐ 关键：连第一条 ok-1 也必须消失，计数器保持 0
+    const seq = db.prepare('SELECT revision FROM sync_revision_seq WHERE id=1').get() as { revision: number }
+    expect(seq.revision).toBe(0)
+    expect((db.prepare('SELECT COUNT(*) AS n FROM sync_records').get() as { n: number }).n).toBe(0)
   })
 })
 
-describe('hasAnyAuth · 单空间检测', () => {
-  it('空库返回 false', async () => {
-    expect(await hasAnyAuth(new FakeD1())).toBe(false)
+describe('tombstone 保护落在最终 SQL（最终审查第 2 条）', () => {
+  it('★ preload 到 active → A 写 tombstone → B stale upsert → 仍 tombstoned', () => {
+    const db = newDb()
+
+    push(db, [{ ...row('item', null, 'devA'), entityId: 'i1', payload: '{"n":"A"}' }])
+
+    // B 此刻 preload 到 active 记录（这就是"提前 decide 为 accept"的快照）
+    const snapshot = db.prepare(preloadSql(1, 1)).all('item', 'i1') as Array<{
+      entity_id: string
+      deleted_at: string | null
+    }>
+    expect(snapshot[0]!.deleted_at).toBeNull()
+
+    // A 写 tombstone
+    push(db, [
+      {
+        ...row('item', '2026-03-01T00:00:00.000Z', 'devA'),
+        entityId: 'i1',
+        payload: '{}',
+      },
+    ])
+
+    // B 拿着过期快照执行 upsert（deleted_at=NULL，无 undelete）
+    push(db, [{ ...row('item', null, 'devB'), entityId: 'i1', payload: '{"n":"B-STALE"}' }])
+
+    const final = db.prepare('SELECT deleted_at, payload, device_id FROM sync_records WHERE entity_id=?').get('i1') as
+      | { deleted_at: string | null; payload: string; device_id: string }
+      | undefined
+    expect(final?.deleted_at).toBe('2026-03-01T00:00:00.000Z')
+    expect(final?.payload).not.toContain('B-STALE')
+    expect(final?.device_id).toBe('devA')
   })
 
-  it('已有认证记录返回 true', async () => {
-    const db = new FakeD1()
-    db.insertAuth('k1', 'hash1')
-    expect(await hasAnyAuth(db)).toBe(true)
+  it('显式 undeleteIntent 可以复活', () => {
+    const db = newDb()
+    push(db, [{ ...row('item', '2026-01-01T00:00:00.000Z'), payload: '{}' }])
+    push(db, [{ ...row('item', null, 'devB', 1), payload: '{"v":"restored"}' }])
+    const r = db.prepare('SELECT deleted_at, payload FROM sync_records WHERE entity_id=?').get('x') as
+      | { deleted_at: string | null; payload: string }
+      | undefined
+    expect(r?.deleted_at).toBeNull()
+    expect(r?.payload).toContain('restored')
   })
 
-  it('第二次 bootstrap 会被 schema 拒绝（模拟 UNIQUE 冲突）', async () => {
-    const db = new FakeD1()
-    db.insertAuth('k1', 'hash1')
-    // 直接走 insert 语句（Worker 的 bootstrap 逻辑）
-    const stmt = db.prepare('INSERT INTO sync_auth (id, key_id, secret_hash, created_at) VALUES (1, ?1, ?2, ?3)')
-    await expect(stmt.bind('k2', 'hash2', 'now').run()).rejects.toThrow('UNIQUE')
+  it('重复写 tombstone 允许（状态保持一致）', () => {
+    const db = newDb()
+    push(db, [{ ...row('item', 'T1'), payload: '{}' }])
+    push(db, [{ ...row('item', 'T2'), payload: '{}' }])
+    const r = db.prepare('SELECT deleted_at FROM sync_records WHERE entity_id=?').get('x') as { deleted_at: string }
+    expect(r.deleted_at).toBe('T2')
+  })
+})
+
+describe('SQL 与限制的静态核对', () => {
+  it('UPSERT_SQL 带 tombstone 守卫子句', () => {
+    expect(UPSERT_SQL).toContain('WHERE sync_records.deleted_at IS NULL')
+    expect(UPSERT_SQL).toContain('OR excluded.deleted_at IS NOT NULL')
+    expect(UPSERT_SQL).toContain('OR ?8 = 1')
+  })
+
+  it('revision 在 SQL 内部读取计数器（客户端不传绝对值）', () => {
+    expect(UPSERT_SQL).toContain('(SELECT revision FROM sync_revision_seq) + 1 + ?')
+  })
+
+  it('UPSERT_SQL 不含 SELECT *（避免全表扫描烧rows read）', () => {
+    expect(UPSERT_SQL).not.toMatch(/SELECT\s+[*]/)
+  })
+
+  it('预加载 SQL 的占位符数 = 实体种类 + id 数，且 ≤ 100', () => {
+    const sql = preloadSql(3, 90)
+    expect((sql.match(/\?/g) ?? []).length).toBe(93)
+    expect((sql.match(/\?/g) ?? []).length).toBeLessThanOrEqual(100)
+  })
+
+  it('单次 push 的查询总数 ≤ Free 的 50 queries/invocation', () => {
+    const preloadChunks = Math.ceil((MAX_PUSH * 2) / PRELOAD_CHUNK)
+    // 1(查auth) + 分片预加载 + 1(tag keys) + 1(bump) + N upsert
+    expect(1 + preloadChunks + 1 + 1 + MAX_PUSH).toBeLessThanOrEqual(50)
+  })
+})
+
+describe('占位符形式（踩过的坑）', () => {
+  it('UPSERT_SQL 用递增编号 ?1..?8，且每个编号只出现一次', () => {
+    // 编号重复会导致参数整体错位（实测：payload 收到 NULL → NOT NULL 失败）
+    for (let n = 1; n <= 8; n += 1) {
+      const count = UPSERT_SQL.split(`?${n}`).length - 1
+      expect(count, `?${n} 出现 ${count} 次`).toBe(1)
+    }
+  })
+
+  it('revision 公式用 ?1（offset）', () => {
+    expect(UPSERT_SQL).toContain('(SELECT revision FROM sync_revision_seq) + 1 + ?1')
+  })
+
+  it('tombstone 守卫用 ?8（undeleteIntent）', () => {
+    expect(UPSERT_SQL).toContain('OR ?8 = 1')
+  })
+
+  it('BUMP 用 ?1', () => {
+    expect(BUMP_REVISION_SQL).toContain('?1')
+  })
+})
+
+describe('readNameNormalizedOf', () => {
+  it('取出规范化名', () => {
+    expect(readNameNormalizedOf('{"nameNormalized":"apple"}')).toBe('apple')
+  })
+
+  it('坏 JSON / 缺失 → null', () => {
+    expect(readNameNormalizedOf('not json')).toBeNull()
+    expect(readNameNormalizedOf('{}')).toBeNull()
+    expect(readNameNormalizedOf('null')).toBeNull()
+    expect(readNameNormalizedOf('{"nameNormalized":""}')).toBeNull()
+  })
+})
+
+describe('tag 规范化名的数据库级唯一性（最终审查第 6 条）', () => {
+  const tagRow = (revision: number, entityId: string, normalized: string) =>
+    [
+      revision,
+      'tag',
+      entityId,
+      JSON.stringify({ name: normalized, nameNormalized: normalized }),
+      null,
+      '2026-01-01T00:00:00.000Z',
+      'dev',
+      0,
+    ] as const
+
+  it('★ 拒绝并发写入的同名 tag（数据库层保证，不靠应用层判断）', () => {
+    const db = newDb()!
+    db.prepare(UPSERT_SQL).run(...tagRow(1, 'tag-A', 'apple'))
+    expect(() => {
+      db.prepare(UPSERT_SQL).run(...tagRow(2, 'tag-B', 'apple'))
+    }).toThrow()
+  })
+
+  it('不同nameNormalized 可共存', () => {
+    const db = newDb()!
+    db.prepare(UPSERT_SQL).run(...tagRow(1, 'tag-A', 'apple'))
+    db.prepare(UPSERT_SQL).run(...tagRow(2, 'tag-B', 'banana'))
+    expect((db.prepare('SELECT COUNT(*) AS n FROM sync_records').get() as { n: number }).n).toBe(2)
+  })
+
+  it('★ 非 tag 行不参与该唯一性（item 的 nameNormalized 字段不产生冲突）', () => {
+    const db = newDb()!
+    // 用真实的两批 push：偏移量递增，避免 revision 撞车
+    push(db, [
+      { entity: 'tag', entityId: 't1', payload: '{"nameNormalized":"apple"}', deletedAt: null, clientUpdatedAt: 't', deviceId: 'A', undelete: 0 },
+    ])
+    // item 载荷里也带 nameNormalized —— 不应受影响（部分索引限定 entity='tag'）
+    push(db, [
+      { entity: 'item', entityId: 'i1', payload: '{"nameNormalized":"apple"}', deletedAt: null, clientUpdatedAt: 't', deviceId: 'A', undelete: 0 },
+    ])
+    expect((db.prepare('SELECT COUNT(*) AS n FROM sync_records').get() as { n: number }).n).toBe(2)
+  })
+
+  it('★ 已删除的 tag 释放名字（删掉 #Apple 后可重新创建）', () => {
+    const db = newDb()!
+    db.prepare(UPSERT_SQL).run(...tagRow(1, 'tag-A', 'apple'))
+    // A 删掉它
+    db.prepare(UPSERT_SQL).run(0, 'tag', 'tag-A', '{}', '2026-03-01T00:00:00.000Z', 't', 'A', 0)
+    // 另一台设备现在可以用同一个名字
+    db.prepare(UPSERT_SQL).run(...tagRow(2, 'tag-B', 'apple'))
+    const rows = db
+      .prepare("SELECT entity_id, deleted_at FROM sync_records WHERE entity='tag' ORDER BY revision")
+      .all() as Array<{ entity_id: string; deleted_at: string | null }>
+    expect(rows[0]!.deleted_at).toBe('2026-03-01T00:00:00.000Z')
+    expect(rows[1]!.entity_id).toBe('tag-B')
+  })
+
+  it('同一 tag 的重命名后仍唯一', () => {
+    const db = newDb()!
+    db.prepare(UPSERT_SQL).run(...tagRow(1, 'tag-A', 'apple'))
+    // A 改名为 banana
+    db.prepare(UPSERT_SQL).run(0, 'tag', 'tag-A', '{"nameNormalized":"banana"}', null, 't', 'A', 0)
+    expect((db.prepare('SELECT COUNT(*) AS n FROM sync_records').get() as { n: number }).n).toBe(1)
   })
 })

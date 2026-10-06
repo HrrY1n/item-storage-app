@@ -387,3 +387,77 @@ GET  /api/sync/status                → { currentRevision, recordCount }
 **为什么不能更早**：第1 步创建的数据库是**空库**，而 schema 要等代码定稿（第 5 步的 SQL 文件）才有最终形态；先建库再改 schema 容易留下与代码不一致的表结构。**先把代码写完、SQL 定稿，再一次性建库 + 执行**，只需做一次。
 
 > **回滚安全**：任何一步出问题，`git revert` 该步 commit 即可。同步功能默认关闭，不影响既有 App 行为。
+
+---
+
+## 附：最终审查（第三轮）的落点
+
+| # | 问题 | 结论 |
+|---|---|---|
+| 1 | revision 分配与写入要同事务 | ✅ `db.batch([...upserts, bump])`；每条 upsert 在 SQL 内读计数器。**用真实 SQLite 验证**：提交顺序与 revision 顺序一致、失败整批回滚 |
+| 2 | tombstone 要落到最终 SQL | ✅ `ON CONFLICT ... DO UPDATE ... WHERE ...` 由数据库层挡住 stale 写入。**已验证**：preload active → A 删 → B stale upsert → 仍 tombstoned |
+| 3 | 配对码要能刷新后重建 | ✅ `currentPairingCode()` 从本地 `syncState` 重新编码，**不再调 bootstrap** |
+| 4 | join 在用户决策前零副作用 | ✅ 拆成 `validateJoinPairingCode()`（只认证，不写任何本地状态）与 `commitJoin()`（确认后才落凭据） |
+| 5 | 「以云端为准」要真清数据 | ✅ `wipeSyncableLocalData()` 清 items/categories/tags/itemTags + `clearQueue()`（assets/appMeta 刻意保留）；**取消「以本机覆盖整个云端」的虚假承诺**（第一版无 server-side replace） |
+| 6 | tag 并发唯一性 | ✅ **方案 A**：D1 加部分唯一索引（数据库层保证）；Worker 对索引冲突降级为合并指令 |
+| 7 | 文档清理 | ✅ `syncPolicy` 的「500 条/批」改为 32；SQL 校验说明改为「4 项（含 sqlite_sequence）」 |
+
+### 本轮修掉的两个真实 bug（都属于"看起来实现了"）
+
+1. **base64url decode 完全错误** → **B 设备永远无法加入**。
+   `fromBase64Url` 先把 `-_` 换成 `+/`，却仍用 URL-safe 字母表 `indexOf`；
+   且第三字节掩码写成 `& 0x0f` 而非 `& 0x03`。双重错误叠加成乱码，`JSON.parse` 必失败。
+   为什么第一版没发现：只测了 encode（对照标准 base64 一致）—— **"encode 对"推不出 "decode 对"**。
+2. **SQLite 占位符语义**：带子查询时 `?N` 会与子查询里的占位符一起被重新编号；
+   而重复编号会让参数整体错位（实测 `payload` 收到 NULL → NOT NULL 约束失败）。
+   最终采用**递增且不重复**的 `?1..?8`。
+
+### 测试方式的关键改进
+
+Worker SQL 测试改用 **node:sqlite（真实 SQLite）**，而非手写的假 D1 ——
+第1、2 条要验证的都是"数据库层原子性"，假实现可能恰好掩盖竞态
+（第二轮的三次修复失败都是测试先抓出来的，这次直接上真库）。
+
+### schema 的两处调整
+
+- `revision` 由 `INTEGER PRIMARY KEY AUTOINCREMENT` 改为 `INTEGER PRIMARY KEY`：
+  实测确认 AUTOINCREMENT 在**显式赋值后仍会推进 sqlite_sequence**，
+  既污染出 `sqlite_sequence` 表，也让"revision 完全由我们控制"不直观。
+- 新增 `idx_sync_tag_normalized` 部分唯一索引（见 §6 方案 A）。
+
+---
+
+## 附：最终审查（第三轮）的落点
+
+| # | 问题 | 结论 |
+|---|---|---|
+| 1 | revision 分配与写入要同事务 | ✅ `db.batch([...upserts, bump])`；每条 upsert 在 SQL 内读计数器。**用真实 SQLite 验证**：提交顺序与 revision 顺序一致、失败整批回滚 |
+| 2 | tombstone 要落到最终 SQL | ✅ `ON CONFLICT ... DO UPDATE ... WHERE ...` 由数据库层挡住 stale 写入。**已验证**：preload active → A 删 → B stale upsert → 仍 tombstoned |
+| 3 | 配对码要能刷新后重建 | ✅ `currentPairingCode()` 从本地 `syncState` 重新编码，**不再调 bootstrap** |
+| 4 | join 在用户决策前零副作用 | ✅ 拆成 `validateJoinPairingCode()`（只认证，不写任何本地状态）与 `commitJoin()`（确认后才落凭据） |
+| 5 | 「以云端为准」要真清数据 | ✅ `wipeSyncableLocalData()` 清 items/categories/tags/itemTags + `clearQueue()`（assets/appMeta 刻意保留）；**取消「以本机覆盖整个云端」的虚假承诺**（第一版无 server-side replace） |
+| 6 | tag 并发唯一性 | ✅ **方案 A**：D1 加部分唯一索引（数据库层保证）；Worker 对索引冲突降级为合并指令 |
+| 7 | 文档清理 | ✅ `syncPolicy` 的「500 条/批」改为 32；SQL 校验说明改为「4 项（含 sqlite_sequence）」 |
+
+### 本轮修掉的两个真实 bug（都属于"看起来实现了"）
+
+1. **base64url decode 完全错误** → **B 设备永远无法加入**。
+   `fromBase64Url` 先把 `-_` 换成 `+/`，却仍用 URL-safe 字母表 `indexOf`；
+   且第三字节掩码写成 `& 0x0f` 而非 `& 0x03`。双重错误叠加成乱码，`JSON.parse` 必失败。
+   为什么第一版没发现：只测了 encode（对照标准 base64 一致）—— **"encode 对"推不出 "decode 对"**。
+2. **SQLite 占位符语义**：带子查询时 `?N` 会与子查询里的占位符一起被重新编号；
+   而重复编号会让参数整体错位（实测 `payload` 收到 NULL → NOT NULL 约束失败）。
+   最终采用**递增且不重复**的 `?1..?8`。
+
+### 测试方式的关键改进
+
+Worker SQL 测试改用 **node:sqlite（真实 SQLite）**，而非手写的假 D1 ——
+第1、2 条要验证的都是"数据库层原子性"，假实现可能恰好掩盖竞态
+（第二轮的三次修复失败都是测试先抓出来的，这次直接上真库）。
+
+### schema 的两处调整
+
+- `revision` 由 `INTEGER PRIMARY KEY AUTOINCREMENT` 改为 `INTEGER PRIMARY KEY`：
+  实测确认 AUTOINCREMENT 在**显式赋值后仍会推进 sqlite_sequence**，
+  既污染出 `sqlite_sequence` 表，也让"revision 完全由我们控制"不直观。
+- 新增 `idx_sync_tag_normalized` 部分唯一索引（见 §6 方案 A）。

@@ -33,18 +33,32 @@ export function toBase64Url(bytes: Uint8Array): string {
   return out
 }
 
-/** base64url 字符串 → 字节（配对码解析用） */
+/**
+ * base64url 字符串 → 字节（配对码解析用）。
+ *
+ * ⚠️ 这里**必须用标准 base64 字母表**做 indexOf，而不是上面那个 URL-safe 表。
+ *   曾经的 bug：先把 `-_` 换成 `+/`，却仍然用 URL-safe 表去查 ——
+ *   转换后的字符在那张表里根本不存在，`indexOf` 全部返回 -1，
+ *   解出来是乱码，`JSON.parse` 必然失败 → **B 设备永远无法加入**。
+ *   （第一版只有 encode 的测试，decode 一直没被覆盖到。）
+ */
+const STD_B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
 export function fromBase64Url(text: string): Uint8Array {
   const normalized = text.replace(/-/g, '+').replace(/_/g, '/')
   const out: number[] = []
   for (let i = 0; i < normalized.length; i += 4) {
-    const c0 = B64.indexOf(normalized[i]!)
-    const c1 = B64.indexOf(normalized[i + 1]!)
-    const c2 = normalized[i + 2] === undefined ? -1 : B64.indexOf(normalized[i + 2])
-    const c3 = normalized[i + 3] === undefined ? -1 : B64.indexOf(normalized[i + 3])
+    const c0 = STD_B64.indexOf(normalized[i]!)
+    const c1 = normalized[i + 1] === undefined ? -1 : STD_B64.indexOf(normalized[i + 1])
+    const c2 = normalized[i + 2] === undefined ? -1 : STD_B64.indexOf(normalized[i + 2])
+    const c3 = normalized[i + 3] === undefined ? -1 : STD_B64.indexOf(normalized[i + 3])
+    if (c0 < 0 || c1 < 0) break // 非法字符，停止解码
+    // 标准 base64 解码：每 4 个6-bit 字符还原成 3 个字节
+    // ⚠️ 掩码必须是 `c1 & 15` 与 `c2 & 3`（各取剩余位）；
+    //   写成 0x0f 会把多余位一起推进字节 → 解出乱码。
     out.push(((c0 << 2) | (c1 >> 4)) & 0xff)
     if (c2 >= 0) out.push((((c1 & 0x0f) << 4) | (c2 >> 2)) & 0xff)
-    if (c3 >= 0) out.push((((c2 & 0x0f) << 2) | (c3 >> 6)) & 0xff)
+    if (c3 >= 0) out.push((((c2 & 0x03) << 6) | c3) & 0xff)
   }
   return new Uint8Array(out)
 }

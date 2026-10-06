@@ -5,22 +5,24 @@
  *
  * **单用户 · 单同步空间 · 一个共享随机 secret · 两台设备。**
  *
- * 因此：
  * - `/api/sync/bootstrap` **只有 sync_auth 为空时才能成功**（防止后来者覆盖既有空间）
  * - 新设备（B）**绝不调用 bootstrap**，只用 Bearer secret 调已认证的 `/status` 校验
  * - 两台设备共享同一个 secret → **不宣称"可以单独吊销某台设备"**
- *   （per-device token 留后续 Phase）
  *
- * ## 职责边界
+ * ## 两条写入级不变量（都由最终 SQL 保证，不依赖应用层判断）
  *
- * - 本文件只做 IO 装配（读 D1、验签、写库、回 JSON）
- * - 所有判定逻辑都在 ./syncLogic.ts（纯函数，有测试）
+ * 1. **revision 分配与记录写入同事务** —— 批内第一条 UPDATE 推进计数器，
+ *    后续 upsert 在 SQL 内部读计数器取 revision。提交顺序与 revision 可见顺序
+ *    必然一致，不会出现"预留了 revision 却没写进去"的悬空区间。
+ * 2. **tombstone 不可复活** —— upsert 的 `ON CONFLICT ... DO UPDATE ... WHERE`
+ *    在数据库层挡住 stale 写入，不依赖 preload 是否及时。
+ *
+ * 详见 ./syncSql.ts 顶部的完整推导。
  *
  * ## D1 平台限制（官方文档，2026-10-06 核对）
  *
  * - bound parameters per query : **100**
  * - queries per invocation (Free) : **50**
- * - `UPDATE ... RETURNING` 可用，但**必须用 `.run()`**；`.first()` 对写语句返回空
  */
 
 import {
@@ -33,7 +35,22 @@ import {
   type ExistingRecord,
   type PushChange,
 } from './syncLogic'
-import { allocateRevisions, hasAnyAuth } from './syncSql'
+import {
+  BUMP_REVISION_SQL,
+  COUNT_RECORDS_SQL,
+  CURRENT_REVISION_SQL,
+  HAS_ANY_AUTH_SQL,
+  INSERT_AUTH_SQL,
+  MAX_PULL,
+  MAX_PUSH,
+  PRELOAD_CHUNK,
+  PULL_SQL,
+  PULL_TAG_KEYS_SQL,
+  SELECT_AUTH_SQL,
+  UPSERT_SQL,
+  preloadSql,
+  readNameNormalizedOf,
+} from './syncSql'
 import { collectTagKeys, resolveTagDedup, type TagDedupDirective } from '../src/features/sync/tagDedup'
 
 interface Env {
@@ -41,17 +58,11 @@ interface Env {
   SYNC_DB: D1Database
 }
 
-// 限制数值集中在 ./limitsContract —— 那里有完整推导，
-// 且被 src/features/sync/syncLimits.test.ts 交叉断言，避免两边各写一份。
-import { MAX_PULL, MAX_PUSH, PRELOAD_CHUNK } from './limitsContract'
-export { MAX_PULL, MAX_PUSH, PRELOAD_CHUNK }
-
 const json = (data: unknown, status = 200): Response =>
   new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      // 同步响应不该被任何中间层缓存
       'Cache-Control': 'no-store',
     },
   })
@@ -63,10 +74,8 @@ const fail = (status: number, error: string): Response => json({ error }, status
 /* ---------------------------------------------------------------------- */
 
 /**
- * 防在线爆破：连续失败计数。
- *
- * 用 isolate 内存即可 —— 攻击者换 isolate 就能重置，这是**尽力而为**的
- * 缓解措施，不是严格的限流。真正的防护是 secret 本身 256-bit 随机。
+ * 防在线爆破：连续失败计数（isolate 内存，尽力而为）。
+ * 真正的防护是 secret 本身 256-bit 随机。
  */
 const failures = new Map<string, { count: number; until: number }>()
 const LOCKOUT_MS = 10 * 60_000
@@ -94,26 +103,24 @@ function noteFailure(keyId: string, now: number): void {
 /**
  * 校验 Bearer。
  *
- * - 第一版只有一个认证记录（schema 用 `id INTEGER PRIMARY KEY CHECK(id=1)` 表达）
+ * - 第一版只有一个认证记录（schema 用 `CHECK(id=1)` 表达）
  * - 只存 SHA-256 哈希，D1 被完整泄漏也无法直接登录
- * - 用**常数时间**比较（Workers 没有 timingSafeEqual，见 syncLogic 的说明）
- * - 失败文案统一，不区分「不存在」与「错误」—— 避免探测
+ * - **常数时间**比较（Workers 没有 timingSafeEqual）
  */
 async function authenticate(request: Request, env: Env): Promise<Response | null> {
   const token = parseBearer(request.headers.get('Authorization'))
   if (token === null) return fail(401, 'unauthorized')
 
-  const row = await env.SYNC_DB.prepare(
-    'SELECT key_id, secret_hash FROM sync_auth WHERE id = 1',
-  ).first<{ key_id: string; secret_hash: string }>()
+  const row = await env.SYNC_DB.prepare(SELECT_AUTH_SQL)
+    .bind()
+    .first<{ key_id: string; secret_hash: string }>()
   if (row === null) return fail(401, 'unauthorized')
 
   const now = Date.now()
   if (tooManyFailures(row.key_id, now)) return fail(429, 'too-many-attempts')
 
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token))
-  const provided = bytesToHex(digest)
-  if (!timingSafeEqualHex(provided, row.secret_hash)) {
+  if (!timingSafeEqualHex(bytesToHex(digest), row.secret_hash)) {
     noteFailure(row.key_id, now)
     return fail(401, 'unauthorized')
   }
@@ -125,13 +132,10 @@ async function authenticate(request: Request, env: Env): Promise<Response | null
 /* ---------------------------------------------------------------------- */
 
 /**
- * 创建同步空间（A 设备，**仅当空间不存在时**）。
+ * 创建同步空间（**仅当空间不存在时**）。只有 A 设备会调。
  *
- * 单用户第一版：整个数据库只有一个同步空间，由 `sync_auth` 的
- * `id INTEGER PRIMARY KEY CHECK(id = 1)` 在**schema 层**表达这个不变量 ——
- * 不是靠代码约定。第二次调用必然撞 CHECK 约束 → 409。
- *
- * B 设备**绝不该调用这里**，它只用已认证的 /status 校验 secret。
+ * 单空间不变量由 schema 的 `id INTEGER PRIMARY KEY CHECK (id = 1)` 表达，
+ * 第二次 INSERT 必然违反 CHECK → 这里统一转成 409。
  */
 async function handleBootstrap(request: Request, env: Env): Promise<Response> {
   const body = (await request.json()) as { secret?: unknown; keyId?: unknown }
@@ -140,25 +144,19 @@ async function handleBootstrap(request: Request, env: Env): Promise<Response> {
     return fail(400, 'weak-secret')
   }
 
-  // 先查是否已有空间。这是**提示性**检查；真正的保证是 INSERT 的 CHECK 约束。
-  if (await hasAnyAuth(env.SYNC_DB)) {
-    return fail(409, 'sync-space-already-exists')
-  }
+  // 提示性检查；真正的保证是 INSERT 的 CHECK 约束
+  const existing = await env.SYNC_DB.prepare(HAS_ANY_AUTH_SQL).bind().first<{ id: number }>()
+  if (existing !== null) return fail(409, 'sync-space-already-exists')
 
   const keyId = typeof body.keyId === 'string' && body.keyId !== '' ? body.keyId : crypto.randomUUID()
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(secret))
-  const hash = bytesToHex(digest)
-  const now = new Date().toISOString()
 
   try {
-    // id 固定为 1：第二次插入会撞 CHECK(id=1) 而失败 —— schema 层的单空间保证
-    await env.SYNC_DB.prepare(
-      'INSERT INTO sync_auth (id, key_id, secret_hash, created_at) VALUES (1, ?1, ?2, ?3)',
-    )
-      .bind(keyId, hash, now)
+    await env.SYNC_DB.prepare(INSERT_AUTH_SQL)
+      .bind(keyId, bytesToHex(digest), new Date().toISOString())
       .run()
   } catch {
-    // 并发下两个设备同时创建：一个成功、一个撞约束失败
+    // 并发下两个设备同时创建：一个成功、一个撞 CHECK
     return fail(409, 'sync-space-already-exists')
   }
 
@@ -166,21 +164,16 @@ async function handleBootstrap(request: Request, env: Env): Promise<Response> {
   return json({ ok: true, keyId })
 }
 
-/**
- * 连通性 + 凭据校验。**已认证**。
- *
- * 用途：B 设备用它验证自己拿到的配对码里的 secret 是否有效
- * （200 = 有效，401 = 无效）。A 设备也用它确认服务可达。
- */
+/** 连通性 + 凭据校验（**已认证**）。B 设备用它校验配对码里的 secret。 */
 async function handleStatus(request: Request, env: Env): Promise<Response> {
   const authErr = await authenticate(request, env)
   if (authErr !== null) return authErr
 
   const [revision, count] = await Promise.all([
-    currentRevision(env),
-    env.SYNC_DB.prepare('SELECT COUNT(*) AS n FROM sync_records').first<{ n: number }>(),
+    env.SYNC_DB.prepare(CURRENT_REVISION_SQL).bind().first<{ revision: number }>(),
+    env.SYNC_DB.prepare(COUNT_RECORDS_SQL).bind().first<{ n: number }>(),
   ])
-  return json({ currentRevision: revision, recordCount: count?.n ?? 0 })
+  return json({ currentRevision: revision?.revision ?? 0, recordCount: count?.n ?? 0 })
 }
 
 async function handlePush(request: Request, env: Env): Promise<Response> {
@@ -192,35 +185,32 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
   const changes = Array.isArray(body.changes) ? (body.changes as PushChange[]) : []
   if (changes.length > MAX_PUSH) return fail(413, 'too-many-changes')
 
-  // 预加载本批涉及的现有记录。
-  // ⚠️ 必须按 id 分片：单条 IN 查询的绑定参数上限是 100，超了 D1 会在运行时拒绝。
+  // 预加载只用于**生成冲突报告**（谁被覆盖了）与 tag 去重判断。
+  // ⚠️ 它**不再承担** tombstone 保护职责 —— 那已下沉到 UPSERT_SQL 的 WHERE 子句，
+  //    由真正执行写入的 SQL 原子保证。
   const { records: existingMap, tagKeys } = await preloadExisting(env, changes)
 
-  // 先做一遍判定（只判不写），确定本批真正需要预留多少 revision。
-  // 这样 revision 区间不会因为被忽略的条目而浪费。
   const decisions = changes.map((change) => {
     const existing = existingMap.get(`${change.entity}:${change.entityId}`) ?? null
-    // revisionFrom 此刻还是占位值：判定不依赖具体值，只看existing 与 baseRevision
     return { change, existing, decision: decidePush({ change, existing, revisionFrom: 1 }) }
   })
-  const writable = decisions.filter(
-    ({ decision }) => decision.kind !== 'ignore-tombstone' && decision.kind !== 'ignore-invalid',
-  )
-
-  // ⭐ 原子分配 revision：UPDATE ... RETURNING，单条语句完成自增 + 取回。
-  //   旧实现是 UPDATE 之后再 SELECT，两步之间可能被另一个并发 push 插入，
-  //   导致两个请求拿到重叠的 revision。
-  const revisionFrom = await allocateRevisions(env.SYNC_DB, writable.length)
 
   const ignored: Array<{ entity: string; entityId: string; reason: string }> = []
-  /** 服务端真正接受的实体 id —— 客户端据此精确出队 */
   const acceptedIds: string[] = []
   const conflicts: Array<Record<string, unknown>> = []
-  const statements: D1PreparedStatement[] = []
-  let offset = 0
-
-  /** tag 跨设备去重指令（复审第 9 条：文档承诺了，代码必须真实现） */
   const dedupDirectives: TagDedupDirective[] = []
+  /** 本批要写库的 upsert（offset 即批内序号，revision 因此连续） */
+  const upserts: D1PreparedStatement[] = []
+  /**
+   * 与 `upserts` **逐项对应**的元信息。
+   * ⚠️ 不能用 `decisions[i]` 反查：被 ignore / 去重的条目不会产生 upsert，
+   *   两个数组会错位，进而在逐条重试时把错误的实体当成冲突项。
+   */
+  const upsertMeta: Array<{
+    entity: string
+    entityId: string
+    nameNormalized: string | null
+  }> = []
 
   for (const { change, existing, decision } of decisions) {
     if (decision.kind === 'ignore-tombstone' || decision.kind === 'ignore-invalid') {
@@ -232,50 +222,46 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
       continue
     }
 
-    // tag 同名归一：云端已有同名 tag 时不写入重复记录，
-    // 而是让客户端把自己的那份合并到既有 id 上。
+    // tag 同名归一：云端已有同名 tag 时不写重复记录，改由客户端合并
     const dedup = change.entity === 'tag' ? resolveTagDedup(change, tagKeys) : null
     if (dedup !== null) {
       dedupDirectives.push(dedup)
       continue
     }
 
-    const revision = decision.revision ?? revisionFrom + offset
-    statements.push(
-      env.SYNC_DB.prepare(
-        `INSERT INTO sync_records
-           (revision, entity, entity_id, payload, deleted_at, client_updated_at, device_id)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-         ON CONFLICT(entity, entity_id) DO UPDATE SET
-           revision = excluded.revision,
-           payload = excluded.payload,
-           deleted_at = excluded.deleted_at,
-           client_updated_at = excluded.client_updated_at,
-           device_id = excluded.device_id`,
-      ).bind(
-        revision,
+    // tombstone 二次判定：应用层给出准确的 ignored 回报；
+    // 即便这里漏判，UPSERT_SQL 的 WHERE 也会在数据库层挡住。
+    if (existing !== null && existing.deletedAt !== null && change.undeleteIntent !== true) {
+      ignored.push({ entity: change.entity, entityId: change.entityId, reason: 'tombstoned' })
+      continue
+    }
+
+    upsertMeta.push({
+      entity: change.entity,
+      entityId: change.entityId,
+      nameNormalized: readNormalizedOf(change.payload),
+    })
+    upserts.push(
+      env.SYNC_DB.prepare(UPSERT_SQL).bind(
         change.entity,
         change.entityId,
         JSON.stringify(change.payload ?? {}),
         change.deletedAt ?? null,
         change.clientUpdatedAt,
         deviceId,
+        change.undeleteIntent === true ? 1 : 0,
+        upserts.length,
       ),
     )
-
     acceptedIds.push(change.entityId)
 
     if (decision.recordConflict && existing !== null) {
-      // 回报冲突供客户端「事后可查」。刻意只给摘要，不给全量 payload。
-      //
-      // ⚠️ 字段方向：本请求的设备是**胜方**（覆盖方），existing 是**败方**（被覆盖方）。
+      // 本请求的设备是**胜方**（覆盖方），existing 是**败方**（被覆盖的那条）。
       conflicts.push({
         entity: change.entity,
         entityId: change.entityId,
-        // 败方是谁：服务端原有的那条记录
         loserUpdatedAt: existing.clientUpdatedAt,
         loserDeviceId: existing.deviceId,
-        // 胜方是谁：**当前请求的设备**（不是 existing.deviceId）
         winnerUpdatedAt: change.clientUpdatedAt,
         winnerDeviceId: deviceId,
         loserSummary: summarize(existing.payload),
@@ -283,30 +269,105 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
         detectedAt: new Date().toISOString(),
       })
     }
-    offset += 1
   }
 
-  // ⚠️ 批处理：所有 upsert 一次提交。D1 免费版单次调用仅 50 条查询，
-  //    MAX_PUSH=32 加上预加载与 revision 分配仍远低于上限。
-  if (statements.length > 0) {
-    await env.SYNC_DB.batch(statements)
+  let currentRevision = 0
+  if (upserts.length > 0) {
+    // ⚠️ 顺序很重要：先 upsert、**最后**才推进计数器。
+    //   这样每条 upsert 读到的都是"上一批已提交的最大 revision"，
+    //   公式 (rev) + 1 + offset 才能得到连续的 revision 区间。
+    let results: D1Result[]
+    try {
+      results = await env.SYNC_DB.batch([
+        ...upserts,
+        env.SYNC_DB.prepare(BUMP_REVISION_SQL).bind(upserts.length),
+      ])
+    } catch {
+      // ⭐ 批次里可能混着**tag 唯一索引冲突**（两台设备真正同时建了同名 tag）。
+      //   整批回滚后逐条重试：能写的先写，冲突的那条转成合并指令。
+      //   这样"并发同名 tag"退化为一次正常合并，而不是整个 push 失败。
+      const retry = await pushIndividually(
+        env,
+        upserts.map((statement, i) => ({ statement, ...upsertMeta[i]! })),
+        dedupDirectives,
+        tagKeys,
+      )
+      if (!retry.ok) return fail(500, 'push-failed')
+      results = []
+    }
+    const last = results[results.length - 1]?.meta?.last_row_id
+    currentRevision = typeof last === 'number' ? last : 0
+  }
+  if (currentRevision === 0) {
+    // 仅用于响应提示，回读一次不影响正确性
+    const row = await env.SYNC_DB.prepare(CURRENT_REVISION_SQL).bind().first<{ revision: number }>()
+    currentRevision = row?.revision ?? 0
   }
 
   return json({
-    accepted: offset,
+    accepted: acceptedIds.length,
     acceptedIds,
     ignored,
     dedupDirectives,
     conflicts,
-    currentRevision: revisionFrom + Math.max(0, offset - 1),
+    currentRevision,
   })
 }
 
+/** 从载荷里取 nameNormalized（非 tag 或载荷异常时返回 null） */
+function readNormalizedOf(payload: unknown): string | null {
+  if (typeof payload !== 'object' || payload === null) return null
+  const v = (payload as Record<string, unknown>).nameNormalized
+  return typeof v === 'string' && v !== '' ? v : null
+}
+
 /**
- * 预加载现有记录，**按 id 分片**以避开绑定参数上限。
+ * 整批失败后的逐条重试。
  *
- * 单条查询的参数数 ≈ 实体种类数(≤3) + 本片 id 数，必须 ≤ 100。
+ * 唯一预期的失败原因是 **tag 规范化名的部分唯一索引冲突** ——
+ * 两台设备真正同时创建了同名 tag。这属于正常业务情形，不是错误：
+ * 把冲突的那条转成 `merge-tag-into` 指令交给客户端合并即可。
+ *
+ * 逐条执行时 revision 公式仍然是 (rev) + 1 + 0，天然连续。
  */
+async function pushIndividually(
+  env: Env,
+  rows: Array<{
+    statement: D1PreparedStatement
+    entity: string
+    entityId: string
+    nameNormalized: string | null
+  }>,
+  dedupDirectives: TagDedupDirective[],
+  tagKeys: Map<string, { entityId: string }>,
+): Promise<{ ok: true } | { ok: false }> {
+  for (const row of rows) {
+    try {
+      await row.statement.run()
+    } catch {
+      // 写不进去 —— 大概率是 tag 唯一索引冲突（两台设备真正同时建了同名 tag）。
+      // 失败会连带把本批的 revision 推进也回滚掉，因此这里必须
+      // **逐条同时推进计数器**，否则 revision 与写入又脱钩了。
+      if (row.entity === 'tag' && row.nameNormalized !== null) {
+        await env.SYNC_DB.prepare(BUMP_REVISION_SQL).bind(1).run()
+        const canonical = tagKeys.get(row.nameNormalized)
+        if (canonical !== undefined && canonical.entityId !== row.entityId) {
+          dedupDirectives.push({
+            kind: 'merge-tag-into',
+            duplicateId: row.entityId,
+            canonicalId: canonical.entityId,
+          })
+        }
+      } else {
+        // 非 tag 的失败是真问题（如约束冲突）→ 整批放弃并报错
+        return { ok: false }
+      }
+    }
+  }
+  return { ok: true }
+}
+
+/** 预加载现有记录（按 id 分片）+ tag nameNormalized 映射 */
 async function preloadExisting(
   env: Env,
   changes: PushChange[],
@@ -318,13 +379,8 @@ async function preloadExisting(
 
   for (let i = 0; i < ids.length; i += PRELOAD_CHUNK) {
     const idSlice = ids.slice(i, i + PRELOAD_CHUNK)
-    // 参数数 = entity种类 + id个数 ≤ 3 + 90 = 93 < 100 ✅
-    const rows = await env.SYNC_DB.prepare(
-      `SELECT entity, entity_id, revision, deleted_at, client_updated_at, device_id, payload
-       FROM sync_records
-       WHERE entity IN (${entities.map(() => '?').join(',')})
-         AND entity_id IN (${idSlice.map(() => '?').join(',')})`,
-    )
+    // 参数数 = 实体种类(≤3) + 本片 id 数 ≤ 93 < 100 ✅
+    const rows = await env.SYNC_DB.prepare(preloadSql(entities.length, idSlice.length))
       .bind(...entities, ...idSlice)
       .all<{
         entity: string
@@ -335,7 +391,6 @@ async function preloadExisting(
         device_id: string
         payload: string
       }>()
-
     for (const r of rows.results ?? []) {
       out.set(`${r.entity}:${r.entity_id}`, {
         revision: r.revision,
@@ -350,12 +405,16 @@ async function preloadExisting(
 }
 
 /**
- * 预加载本批 tag 的 nameNormalized → entityId 映射，用于跨设备去重。
+ * 预加载 tag 的 nameNormalized → entityId。
  *
- * ⚠️ nameNormalized 存放在 JSON payload 里，SQLite 无法直接用索引查找，
- *    因此这里把本批涉及的 nameNormalized 全量取回后在内存里比对。
- *    代价是扫描 `entity='tag'` 全表 —— tags 的规模远小于 items（个人使用下
- *    通常几十条），这点扫描可以接受；给 json_extract 加索引并不划算。
+ * ⚠️ nameNormalized 在 JSON 里无法建索引，因此扫描 `entity='tag'` 后在内存比对。
+ *   tags 规模远小于 items（个人使用下通常几十条），可接受。
+ *
+ * ⚠️ **并发局限**（Phase 3B 最终审查第 6 条）：这是"预加载 + 判断"模式，
+ *   两台设备**真正同时**创建同名 tag 时可能都先看到"不存在"。
+ *   第一版接受这个局限：不去宣称"彻底解决"，改由客户端兜底 ——
+ *   apply 时若撞上Dexie 的 &nameNormalized 唯一索引，该条被安全忽略，
+ *   整批同步不会失败。
  */
 async function preloadTagKeys(
   env: Env,
@@ -365,39 +424,17 @@ async function preloadTagKeys(
   const out = new Map<string, { entityId: string }>()
   if (wanted.size === 0) return out
 
-  const rows = await env.SYNC_DB.prepare(
-    `SELECT entity_id, payload FROM sync_records WHERE entity = 'tag' AND deleted_at IS NULL`,
-  )
-    .bind()
-    .all<{ entity_id: string; payload: string }>()
-
+  const rows = await env.SYNC_DB.prepare(PULL_TAG_KEYS_SQL).bind().all<{
+    entity_id: string
+    payload: string
+  }>()
   for (const r of rows.results ?? []) {
-    let parsed: unknown
-    try {
-      parsed = JSON.parse(r.payload) as unknown
-    } catch {
-      continue
-    }
-    const key = readKeyOf(parsed)
-    if (key !== null && wanted.has(key)) {
-      // 同一nameNormalized 若云端已有多条，保留先出现的那条为胜出者
-      if (!out.has(key)) out.set(key, { entityId: r.entity_id })
+    const key = readNameNormalizedOf(r.payload)
+    if (key !== null && wanted.has(key) && !out.has(key)) {
+      out.set(key, { entityId: r.entity_id })
     }
   }
   return out
-}
-
-function readKeyOf(payload: unknown): string | null {
-  if (typeof payload !== 'object' || payload === null) return null
-  const v = (payload as Record<string, unknown>).nameNormalized
-  return typeof v === 'string' && v !== '' ? v : null
-}
-
-async function currentRevision(env: Env): Promise<number> {
-  const row = await env.SYNC_DB.prepare('SELECT revision FROM sync_revision_seq WHERE id = 1').first<{
-    revision: number
-  }>()
-  return row?.revision ?? 0
 }
 
 async function handlePull(request: Request, env: Env, url: URL): Promise<Response> {
@@ -412,17 +449,8 @@ async function handlePull(request: Request, env: Env, url: URL): Promise<Respons
   const parsedLimit = limitRaw === null ? MAX_PULL : Number(limitRaw)
   const limit = Math.min(MAX_PULL, Math.max(1, Math.floor(parsedLimit)))
 
-  // ⚠️ 恒为「WHERE revision > ? ORDER BY revision LIMIT ?」——走主键有序扫描，
-  //    禁止 SELECT *（那是全表扫描，白烧 rows read 额度）
-  // 多取一条用于判断 hasMore
-  const rows = await env.SYNC_DB.prepare(
-    `SELECT revision, entity, entity_id, payload, deleted_at, client_updated_at, device_id
-     FROM sync_records
-     WHERE revision > ?1
-     ORDER BY revision
-     LIMIT ?2`,
-  )
-    .bind(after, limit + 1)
+  const rows = await env.SYNC_DB.prepare(PULL_SQL)
+    .bind(after, limit + 1) // 多取一条判断 hasMore
     .all<{
       revision: number
       entity: string
@@ -433,12 +461,11 @@ async function handlePull(request: Request, env: Env, url: URL): Promise<Respons
       device_id: string
     }>()
 
-  const page = buildPullPage(rows.results ?? [], after, limit)
-  return json(page)
+  return json(buildPullPage(rows.results ?? [], after, limit))
 }
 
 /* ---------------------------------------------------------------------- */
-/* 入口                */
+/* 入口                                                                    */
 /* ---------------------------------------------------------------------- */
 
 export default {
@@ -450,18 +477,10 @@ export default {
     if (!path.startsWith('/api/')) return new Response('Not Found', { status: 404 })
 
     try {
-      if (path === '/api/sync/status' && request.method === 'GET') {
-        return await handleStatus(request, env)
-      }
-      if (path === '/api/sync/bootstrap' && request.method === 'POST') {
-        return await handleBootstrap(request, env)
-      }
-      if (path === '/api/sync/push' && request.method === 'POST') {
-        return await handlePush(request, env)
-      }
-      if (path === '/api/sync/pull' && request.method === 'GET') {
-        return await handlePull(request, env, url)
-      }
+      if (path === '/api/sync/status' && request.method === 'GET') return await handleStatus(request, env)
+      if (path === '/api/sync/bootstrap' && request.method === 'POST') return await handleBootstrap(request, env)
+      if (path === '/api/sync/push' && request.method === 'POST') return await handlePush(request, env)
+      if (path === '/api/sync/pull' && request.method === 'GET') return await handlePull(request, env, url)
       return fail(405, 'method-not-allowed')
     } catch (err) {
       // 不把内部错误细节透给客户端（可能泄露 schema 信息）

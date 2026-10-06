@@ -20,14 +20,14 @@
 -- 每个实体在这里只保留**最新一行**（UNIQUE(entity, entity_id)），
 -- 于是 pull 就是「拉revision > 游标」这一条有序查询。
 --
--- revision 用 INTEGER PRIMARY KEY AUTOINCREMENT：
+-- revision 用 INTEGER PRIMARY KEY（即 rowid 的别名）：
 --   - rowid 本身就是索引，零额外存储与零额外 rows written
---   - 单调递增且不复用 → 天然是全局游标
+--   - ⚠️ **刻意不用 AUTOINCREMENT**（实测确认）：显式赋值后它仍会推进sqlite_sequence，
+--     既污染出 sqlite_sequence 表，也让"revision 完全由我们控制"不直观。
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sync_records (
   -- 全局单调游标。客户端 lastPulledRevision 指向"已应用到这里"
-  revision          INTEGER PRIMARY KEY AUTOINCREMENT,
-
+  revision          INTEGER PRIMARY KEY,
   -- 实体种类：'item' | 'category' | 'tag'
   -- 刻意**不含** assets（照片/AI 图标二进制不做同步）与 appMeta（纯本地状态）
   entity            TEXT    NOT NULL,
@@ -54,6 +54,30 @@ CREATE TABLE IF NOT EXISTS sync_records (
   -- 每实体只保留最新一行 ★ 这是「无日志膨胀」的关键
   UNIQUE (entity, entity_id)
 );
+
+
+-- ---------------------------------------------------------------------
+-- ①-b tag 规范化名的**部分唯一索引**（并发去重的最终保证）
+--
+-- 问题：nameNormalized 存在 JSON payload 里，靠"先查后写"去重时，
+--   两台设备**真正同时**创建同名 tag 会各自看到"不存在"，然后各自写入 →
+--   数据库层出现重复。本索引让数据库本身拒绝这种重复。
+--
+-- 为什么是「部分」索引（WHERE entity='tag' AND deleted_at IS NULL）：
+--   · 只约束活跃的 tag —— 已删除的 tag 不该继续占用这个名字
+--     （用户删掉 #Apple 后应能重新创建同名标签）
+--   · 不约束 item/category 行 —— 它们的 payload 里没有 nameNormalized，
+--     若参与索引会让无意义的 NULL 互相冲突
+--
+-- 索引冲突如何处理：Worker 把该条转为 dedupDirective（合并指令），
+-- 客户端在自己的事务里把引用迁到既有 id、删掉自己那份。
+--   → 用户看到的是「两个 #Apple 变成一个」，而不是同步失败。
+--
+-- ⚠️ 代价：索引会让每次 tag 写入**多算 1 rows written**（官方规则）。
+--   个人使用下 tag 变更极少，这个代价可以忽略。
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sync_tag_normalized
+  ON sync_records (json_extract(payload, '$.nameNormalized'))
+  WHERE entity = 'tag' AND deleted_at IS NULL;
 
 
 -- ---------------------------------------------------------------------
@@ -113,16 +137,20 @@ CREATE TABLE IF NOT EXISTS sync_auth (
 -- =====================================================================
 -- 执行后的校验（可选，在 Console 里跑一次看看结果）
 --
--- 应看到 3 个表：
---   SELECT name FROM sqlite_master WHERE type='table'
---     ORDER BY name;
---   → sync_auth, sync_records, sync_revision_seq
+-- 应看到 **4** 项：3 张业务表 + SQLite 自动创建的 `sqlite_sequence`
+--   SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
+--   → sqlite_sequence, sync_auth, sync_records, sync_revision_seq
+--
+-- ⚠️ `sqlite_sequence` 由 SQLite 自动维护，**只要用了 AUTOINCREMENT 就会存在**。
+--   本schema 刻意不用 AUTOINCREMENT（revision 由 sync_revision_seq 显式分配），
+--   但 D1 可能在某些路径下自行创建该表 —— 看到它属正常，不是建表出错。
+--   校验时只需确认 **3 张业务表都在**即可。
 --
 -- 计数器初始值：
 --   SELECT revision FROM sync_revision_seq WHERE id = 1;
 --   → 0
 --
--- 索引确认（应只有 UNIQUE(entity, entity_id) 一个二级索引）：
+-- 索引确认（应有 2 个二级索引：UNIQUE(entity,entity_id) + tag 规范化名唯一索引）：
 --   PRAGMA index_list(sync_records);
 --
 -- ⚠️ 每个索引都会让一次写入**多算 1 rows written**（Cloudflare 官方说明），

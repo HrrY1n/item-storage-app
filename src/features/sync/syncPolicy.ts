@@ -116,9 +116,11 @@ export function backoffDelay(attempt: number): number | null {
 /**
  * 把一批待推变更切成若干批，每批不超过 `batchSize`。
  *
- * 为什么必须分批（不是性能优化，是硬约束）：
- * D1 免费版**单次 Worker 调用只有 50 条查询**，而 push 每条变更都要写库；
- * 一次推几千条会直接撞上限并失败。500 条/批留足余量。
+ * 为什么必须分批（不是性能优化，是**硬约束**）：
+ * D1 免费版**单次 Worker 调用只有 50 条查询**，且**单条查询最多 100 个绑定参数**
+ * （Worker 预加载已有记录的 `IN (...)` 查询参数量 ≈ 3 + N）。
+ * 两条约束把单批上限压到 48 / 97 —— 取更保守的 **32**。
+ * 完整推导见 ./syncLimits.ts
  */
 export function chunk<T>(items: readonly T[], batchSize: number): T[][] {
   const size = Math.max(1, Math.floor(batchSize))
