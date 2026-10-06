@@ -1,7 +1,13 @@
 import { syncRepository } from '../db/repositories/syncRepository'
+import { onSyncDirty } from '../db/syncDirty'
 import { SyncEngine } from '../features/sync/syncEngine'
 import { fromBase64Url, toBase64Url } from './syncBytes'
 import { SyncTransport, type TransportHost } from '../features/sync/syncTransport'
+import { LOCAL_CHANGE_DEBOUNCE_MS } from '../features/sync/syncPolicy'
+import {
+  createLocalChangeDebouncer,
+  realTimerHost,
+} from '../features/sync/localChangeDebounce'
 import type { SyncReason } from '../features/sync/syncPolicy'
 
 /**
@@ -57,6 +63,38 @@ function attachLifecycle(): void {
     void requestSync('visible')
   })
   window.addEventListener('online', () => void requestSync('online'))
+
+  // ⭐ Phase 3B.1：本地业务写入 → 聚合后自动同步一次
+  //   repository 只喊一声「脏了」，聚合在这里做，
+  //   保证"连续整理动作只产生一次网络请求"。
+  onSyncDirty(() => localChangeDebouncer.notify())
+}
+
+/* ---------------------------------------------------------------------- */
+/* 本地改动的 debounce（同步关闭 / 离线 / 未配对时零网络）                  */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * 本地改动 → 等 LOCAL_CHANGE_DEBOUNCE_MS → 发一次 'local-change' 同步。
+ *
+ * ⚠️ 只负责**聚合**；是否真的发请求由 `shouldRequestSync` 判定
+ *    （未启用 / 未配 secret / 离线 一律不发），因此"同步关闭时零网络"
+ *    是双重保证：既不起请求，也不弹错误。
+ */
+const localChangeDebouncer = createLocalChangeDebouncer({
+  debounceMs: LOCAL_CHANGE_DEBOUNCE_MS,
+  host: realTimerHost,
+  fire: () => void requestSync('local-change'),
+})
+
+/** 仅测试用：取消待触发的 debounce（避免用例间串扰） */
+export function cancelPendingLocalChangeSync(): void {
+  localChangeDebouncer.cancel()
+}
+
+/** 仅测试用：是否存在待触发的本地改动同步 */
+export function hasPendingLocalChangeSync(): boolean {
+  return localChangeDebouncer.pending()
 }
 
 /**

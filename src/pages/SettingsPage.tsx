@@ -176,14 +176,23 @@ export default function SettingsPage() {
     }
   }
 
-  /* ---------------- 跨设备同步（Phase 3B） ---------------- */
+  /* ---------------- 云端同步（Phase 3B / 3B.1） ---------------- */
   const [syncing, setSyncing] = useState(false)
   const [busySync, setBusySync] = useState(false)
   /**
-   * 配对码：**从本地凭据重建**，不是一次性 toast。
+   * 恢复码：**从本地凭据重建**，不是一次性 toast。
    * 刷新 / PWA 重启后仍能重新取到（最终审查第 3 条）。
+   *
+   * ⭐ Phase 3B.1 的产品定位变化：真实使用是"只有一台主力手机"，
+   *   所以这个词的主要用途不是"给第二台设备配对"，而是
+   *   **换手机 / Safari 清了网站数据之后，用它重新连回云端数据**。
+   *   协议格式一点没变（仍是 keyId + secret），只是含义说清楚。
    */
   const [pairingCode, setPairingCode] = useState<string | null>(null)
+  /** 恢复码是否展开显示（默认收起 —— 它等同于凭据，不该一直摊在屏幕上） */
+  const [recoveryVisible, setRecoveryVisible] = useState(false)
+  /** 刚创建完同步空间 → 强制展示一次恢复码并给出保存提醒 */
+  const [justCreatedRecovery, setJustCreatedRecovery] = useState(false)
   const [codeInput, setCodeInput] = useState('')
   /** 加入时的抉择：云端已有数据 */
   const [joinConflict, setJoinConflict] = useState<number | null>(null)
@@ -218,14 +227,24 @@ export default function SettingsPage() {
     }
   }
 
-  /** 入口 A：创建新的同步空间（会立即启用并上传本机数据） */
+  /**
+   * 入口 A：创建新的同步空间（会立即启用并上传本机数据）。
+   *
+   * ⭐ 创建成功后**必须让用户看到并保存恢复码** ——
+   *   手机丢失 / PWA 数据被清 / Safari 清了网站数据之后，
+   *   本机 syncState 里的 secret 会一起消失。没有恢复码，
+   *   即使 D1 里的数据还在，也认证不回原来的同步空间。
+   */
   const handleCreateSpace = async () => {
     setBusySync(true)
     try {
       await createSyncSpace()
-      // 配对码从本地凭据重建（不依赖 useState，刷新后也能取到）
-      setPairingCode(await currentPairingCode())
-      show('同步空间已创建，配对码已生成')
+      // 恢复码从本地凭据重建（不依赖 useState，刷新后也能取到）
+      const code = await currentPairingCode()
+      setPairingCode(code)
+      setJustCreatedRecovery(true)
+      setRecoveryVisible(true)
+      show('同步已开启，请保存恢复码')
       await syncNow()
     } catch {
       show('创建失败，请检查网络后重试')
@@ -244,12 +263,12 @@ export default function SettingsPage() {
     try {
       const payload = parsePairingCode(codeInput.trim())
       if (payload === null) {
-        show('配对码格式不正确')
+        show('恢复码格式不正确')
         return
       }
       const result = await validateJoinPairingCode(payload)
       if (!result.ok) {
-        show(result.reason === 'offline' ? '当前离线，请联网后重试' : '配对码无效，请确认后在创建设备上重新生成')
+        show(result.reason === 'offline' ? '当前离线，请联网后重试' : '恢复码无效，请确认后重新粘贴')
         return
       }
       // 校验通过 → 暂存待确认的方向（仍未启用同步）
@@ -265,7 +284,12 @@ export default function SettingsPage() {
     }
   }
 
-  /** 入口 B 步骤 2a：用户选择「以云端为准」→ 清空本地业务数据后从云端完整拉取 */
+  /**
+   * 入口 B 步骤 2a：**用云端数据恢复此设备**（换手机的主路径）。
+   *
+   * 清空本地业务数据后从云端完整拉取。真实场景主要是"新手机 / 数据被清后
+   * 重新连回既有云端数据"，因此这是**推荐项**，UI 上也排在首位。
+   */
   const handleJoinUseCloud = async () => {
     if (pendingJoin === null) return
     setBusySync(true)
@@ -273,7 +297,9 @@ export default function SettingsPage() {
       await commitJoin({ v: 1, secret: pendingJoin.secret, keyId: pendingJoin.keyId }, 'cloud')
       setJoinConflict(null)
       setPendingJoin(null)
-      show('已启用同步，数据将以云端为准')
+      setRecoveryVisible(false)
+      setJustCreatedRecovery(false)
+      show('已用云端数据恢复此设备')
       await syncNow()
     } finally {
       setBusySync(false)
@@ -380,26 +406,30 @@ export default function SettingsPage() {
         <RowLink to="/settings/icons" label="物品图标库" hint={`浏览全部内置图标（共 ${PRESET_ICONS.length} 个）`} />
       </Group>
 
-      {/*──────── 跨设备同步：两个明确入口（Phase 3B 复审第 4 条）────────*/}
-      <Group title="跨设备同步">
+      {/*──────── 云端同步（Phase 3B / 3B.1）────────*/}
+      <Group title="云端同步">
         {syncSummary === null || syncSummary.kind === 'disabled' ? (
           <>
+            <div className="px-4 pb-3 pt-3 text-caption leading-relaxed text-ink-tertiary">
+              数据始终首先保存在本机。开启后，联网时会自动同步到你的私人云端，
+              用于换机恢复，也可以连接其他设备。
+            </div>
             <RowButton
-              label="创建新的同步空间"
-              hint="在本机开启同步，并生成配对码给另一台设备"
+              label="开启云端同步"
+              hint="在本机开启同步，并生成恢复码"
               onClick={() => void handleCreateSpace()}
               disabled={busySync || !online}
             />
             <div className="px-4 py-3">
               <p className="mb-2 text-caption text-ink-tertiary">
-                已在另一台设备开启过同步？在这里粘贴它的配对码。
+                换过手机，或在别的设备上开启过？在这里粘贴当时的恢复码。
               </p>
               <div className="field-shell flex gap-2 rounded-lg border border-line px-3 py-2 focus-within:border-accent">
                 <input
                   type="text"
                   value={codeInput}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setCodeInput(e.target.value)}
-                  placeholder="粘贴配对码"
+                  placeholder="粘贴恢复码"
                   className="min-w-0 flex-1 bg-transparent text-body outline-none"
                 />
                 <button
@@ -408,7 +438,7 @@ export default function SettingsPage() {
                   disabled={busySync || codeInput.trim() === ''}
                   className="shrink-0 rounded-md px-2 py-1 text-body text-accent disabled:opacity-40"
                 >
-                  加入
+                  连接
                 </button>
               </div>
             </div>
@@ -425,12 +455,12 @@ export default function SettingsPage() {
               disabled={syncing || !online}
             />
 
-            {/* 配对码：启用后**持续显示**且刷新后仍可重新复制 ——
-                它由本地凭据重建，不再是一次性提示。 */}
-            {pairingCode === null ? (
+            {/* 恢复码：默认收起，按需展开。它**等同于同步凭据**，不该一直摊在屏幕上。
+                值由本地凭据重建，刷新 / 重启后照样能取到（不是一次性提示）。 */}
+            {!recoveryVisible ? (
               <RowButton
-                label="重新显示配对码"
-                hint="给另一台设备用"
+                label="查看恢复码"
+                hint="换机或本机数据丢失后，用它重新连接云端"
                 onClick={() => {
                   void (async () => {
                     const code = await currentPairingCode()
@@ -439,6 +469,7 @@ export default function SettingsPage() {
                       return
                     }
                     setPairingCode(code)
+                    setRecoveryVisible(true)
                   })()
                 }}
                 disabled={busySync}
@@ -446,7 +477,7 @@ export default function SettingsPage() {
             ) : (
               <div className="px-4 py-3">
                 <p className="mb-2 text-caption text-ink-tertiary">
-                  在另一台设备的「同步 → 加入」里粘贴这段配对码。
+                  换手机、或本机数据被清除后，用这段恢复码重新连接云端数据。
                 </p>
                 <div className="flex items-start gap-2">
                   <p className="min-w-0 flex-1 break-all rounded-lg bg-sunken px-3 py-2 text-caption text-ink-secondary">
@@ -455,14 +486,42 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      if (pairingCode === null) return
                       void navigator.clipboard?.writeText(pairingCode)
-                      show('配对码已复制')
+                      show('恢复码已复制')
                     }}
                     className="shrink-0 rounded-md px-2 py-1 text-body text-accent"
                   >
                     复制
                   </button>
                 </div>
+
+                {/* ⭐ 明确警告：恢复码 = 同步凭据 */}
+                <p className="mt-2 text-caption leading-relaxed text-danger">
+                  {justCreatedRecovery
+                    ? '请立刻保存恢复码。更换手机或本机数据丢失后，需要它才能重新连接云端数据。'
+                    : '恢复码等同于同步凭据，不要公开分享，也不要发给他人。'}
+                </p>
+
+                {justCreatedRecovery && (
+                  <button
+                    type="button"
+                    onClick={() => setJustCreatedRecovery(false)}
+                    className="mt-2 rounded-md px-2 py-1 text-body text-accent"
+                  >
+                    我已保存恢复码
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRecoveryVisible(false)
+                    setJustCreatedRecovery(false)
+                  }}
+                  className="mt-1 rounded-md px-2 py-1 text-caption text-ink-tertiary"
+                >
+                  收起
+                </button>
               </div>
             )}
 
@@ -484,11 +543,11 @@ export default function SettingsPage() {
           title={joinConflict > 0 ? '云端已有数据' : '如何同步数据？'}
           message={
             joinConflict > 0
-              ? `云端已有 ${joinConflict} 条记录。\n\n「以云端为准」会**清空本机**的物品/分类/标签，再从云端完整下载 —— 请先确保已导出 ZIP 备份。\n「以本机为准」会把本机数据全量上传；云端独有的记录会保留。`
-              : '「以云端为准」会清空本机的物品/分类/标签，再从云端完整下载（云端目前为空，因此本机数据会被清掉）。\n「以本机为准」会把本机数据全量上传。'
+              ? `云端已有 ${joinConflict} 条记录。\n\n「使用云端数据恢复此设备」会**清空本机**的物品/分类/标签，再从云端完整下载 —— 适合换手机或本机数据丢失后恢复。若本机有未备份的改动，请先导出 ZIP 备份。\n\n「以本机数据为准」会把本机数据全量上传；云端独有的记录会保留。`
+              : '「使用云端数据恢复此设备」会清空本机的物品/分类/标签，再从云端完整下载（云端目前为空，因此本机数据会被清掉）。\n「以本机数据为准」会把本机数据全量上传。'
           }
-          confirmLabel="以云端为准"
-          cancelLabel="以本机为准"
+          confirmLabel="使用云端数据恢复此设备"
+          cancelLabel="以本机数据为准"
           onConfirm={() => void handleJoinUseCloud()}
           onCancel={() => void handleJoinUseLocal()}
         />

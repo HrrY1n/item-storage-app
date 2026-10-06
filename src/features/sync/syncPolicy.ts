@@ -20,9 +20,42 @@ export type SyncReason =
   | 'online'
   /** 用户在设置里手动点击「立即同步」 */
   | 'manual'
+  /**
+   * 本地业务写入（新增/编辑/删除物品、标签、分类）之后。
+   *
+   * Phase 3B.1 新增：真实使用是"只有一台主力手机"，用户保存后不该再手动点同步。
+   * 这个原因由 syncService 的 debounce 统一发出（见 LOCAL_CHANGE_DEBOUNCE_MS），
+   * **绝不是** repository 每次写入都发一次 —— 那会把一次整理动作放大成 N 个请求。
+   */
+  | 'local-change'
 
 /** 自动触发（前台恢复类）的最小间隔，避免每次切前台都打一次网络请求 */
 export const SYNC_THROTTLE_MS = 60_000
+
+/**
+ * 本地改动后**聚合窗口**：这段时间内的连续改动合并成一次同步。
+ *
+ * 取 2.5s 的理由：手机上一次"整理动作"（新增物品 → 改标签 → 移动分类）
+ * 通常在 1~2 秒内完成，2.5s 能可靠地把它们合成一次；又不至于让用户
+ * 保存后等太久才看到"已同步"。
+ */
+export const LOCAL_CHANGE_DEBOUNCE_MS = 2_500
+
+/**
+ * ⚠️ local-change **刻意不参与节流**（与 boot / manual / online 同级）。
+ *
+ * 试过给它一个更短的节流窗口（10s），但那会制造一个真实缺陷：
+ * 用户改一次 → 同步成功；**5 秒后**再改一次 → 被节流挡住 → 而 debounce
+ * 已经触发过、不会再触发，于是这次改动**滞留在本机**，直到切前台 /
+ * 恢复网络 / 手动点击才补上。"保存即同步"的语义就没了。
+ *
+ * 要补这个洞就得"被节流时重新排期"，复杂度明显上升而收益很小。
+ * 因此限流职责**完全交给 debounce**：
+ *   - 聚合窗口 2.5s 已经把"连续整理动作"合成一次
+ *   - 引擎的 `inFlight` 保证不会并发打网络
+ *   - 想发第二次请求，必须先有 2.5s 的静默 —— 单人单机的量级完全够用
+ */
+export const LOCAL_CHANGE_THROTTLE_MS = 0
 
 /** 退避序列：失败后第 n 次重试的等待时间（毫秒） */
 export const SYNC_BACKOFF_MS = [30_000, 120_000, 600_000, 1_800_000] as const
@@ -52,9 +85,11 @@ export interface SyncDecisionInput {
  * - 未启用 / 未配好凭据 → 不同步。**这是"同步默认关闭不影响既有 App"的兜底**
  * - 离线 → 不同步（静默）
  * - 已在飞行中 → 不重复
- * - boot / manual / online → 忽略节流
- *   （boot 只发生一次；manual 是用户明确意图；online 是新信息）
- * - visible → 距上次尝试 >= 节流窗口才同步
+ * - boot / manual / online / local-change → 忽略节流
+ *   （boot 只发生一次；manual 是用户明确意图；online 是新信息；
+ *    local-change 的限流由 2.5s debounce 负责，再节流会让改动滞留 ——
+ *    详见 LOCAL_CHANGE_THROTTLE_MS 的注释）
+ * - visible → 距上次尝试 >= SYNC_THROTTLE_MS 才同步
  */
 export function shouldRequestSync(input: SyncDecisionInput): boolean {
   if (!input.enabled) return false
@@ -64,6 +99,7 @@ export function shouldRequestSync(input: SyncDecisionInput): boolean {
   if (input.reason === 'manual') return true
   if (input.reason === 'boot') return true
   if (input.reason === 'online') return true
+  if (input.reason === 'local-change') return true
   if (input.lastAttemptAt === null) return true
   const throttle = input.throttleMs ?? SYNC_THROTTLE_MS
   return input.now - input.lastAttemptAt >= throttle

@@ -1,5 +1,6 @@
 import { ulid } from 'ulid'
 import { db } from '../db'
+import { markSyncDirty } from '../syncDirty'
 import { syncRepository } from './syncRepository'
 import type { DisposalMethod, Item, ItemStatus, PurchasePlatform } from '../../domain/types'
 import { restoreToOwnedFields, sanitizeLifecycle } from '../../domain/lifecycle'
@@ -109,6 +110,8 @@ export const itemRepository = {
       }
       await syncRepository.enqueueWithTx('item', item.id, tx)
     })
+    // ⭐ Phase 3B.1：事务**已提交**之后才通知同步层（事务内绝不碰网络/定时器）
+    markSyncDirty()
     return item
   },
 
@@ -144,6 +147,7 @@ export const itemRepository = {
       }
       await syncRepository.enqueueWithTx('item', id, tx)
     })
+    markSyncDirty()
   },
 
   /** 读取某物品当前的标签 id 集合（供只改部分字段的操作复用，避免误清空标签） */
@@ -197,6 +201,7 @@ export const itemRepository = {
       })
       await syncRepository.enqueueWithTx('item', id, tx)
     })
+    markSyncDirty()
   },
 
   /**
@@ -212,5 +217,6 @@ export const itemRepository = {
       await db.items.update(id, { deletedAt: now, updatedAt: now })
       await syncRepository.enqueueWithTx('item', id, tx)
     })
+    markSyncDirty()
   },
 }

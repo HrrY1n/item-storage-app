@@ -1,5 +1,6 @@
 import { ulid } from 'ulid'
 import { db } from '../db'
+import { markSyncDirty } from '../syncDirty'
 import type { Category } from '../../domain/types'
 import { collectSubtreeIds, wouldCreateCycle } from '../../domain/categoryTree'
 import { itemRepository } from './itemRepository'
@@ -44,6 +45,7 @@ export const categoryRepository = {
       await db.categories.add(category)
       await syncRepository.enqueueWithTx('category', category.id, tx)
     })
+    markSyncDirty()
     return category
   },
 
@@ -54,6 +56,7 @@ export const categoryRepository = {
       await db.categories.update(id, { name: trimmed, updatedAt: new Date().toISOString() })
       await syncRepository.enqueueWithTx('category', id, tx)
     })
+    markSyncDirty()
   },
 
   /**
@@ -78,6 +81,7 @@ export const categoryRepository = {
       })
       await syncRepository.enqueueWithTx('category', id, tx)
     })
+    markSyncDirty()
   },
 
   /** 同级内上移/下移：与相邻兄弟交换 sortOrder */
@@ -100,6 +104,7 @@ export const categoryRepository = {
       await syncRepository.enqueueWithTx('category', self.id, tx)
       await syncRepository.enqueueWithTx('category', neighbor.id, tx)
     })
+    markSyncDirty()
   },
 
   /**
@@ -126,6 +131,7 @@ export const categoryRepository = {
       await db.categories.update(id, { deletedAt: new Date().toISOString() })
       await syncRepository.enqueueWithTx('category', id, tx)
     })
+    markSyncDirty()
   },
 
   /** 收集含后代在内的分类 id 集合（供查询物品用） */

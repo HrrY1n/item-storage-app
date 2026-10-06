@@ -1,5 +1,6 @@
 import { ulid } from 'ulid'
 import { db } from '../db'
+import { markSyncDirty } from '../syncDirty'
 import type { Tag } from '../../domain/types'
 import { normalizeTagName } from '../../domain/tagNormalize'
 import { syncRepository } from './syncRepository'
@@ -39,6 +40,7 @@ export const tagRepository = {
       await db.tags.add(tag)
       await syncRepository.enqueueWithTx('tag', tag.id, tx)
     })
+    markSyncDirty()
     return tag
   },
 
@@ -66,6 +68,7 @@ export const tagRepository = {
       })
       await syncRepository.enqueueWithTx('tag', id, tx)
     })
+    markSyncDirty()
   },
 
   /**
@@ -117,6 +120,7 @@ export const tagRepository = {
       // target 标签本身没变字段，但它是被引用的那一端，刷新一次以确保上云
       await syncRepository.enqueueWithTx('tag', targetId, tx)
     })
+    markSyncDirty()
   },
 
   async listItemTagLinks(): Promise<{ itemId: string; tagId: string }[]> {
