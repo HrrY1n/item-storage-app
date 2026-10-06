@@ -5,6 +5,7 @@ import { requestPersistentStorage } from './services/pwa'
 import BottomNav from './components/BottomNav'
 import UpdateBanner from './components/UpdateBanner'
 import { PwaUpdateProvider } from './features/pwa/PwaUpdateContext'
+import { SyncProvider } from './features/sync/SyncContext'
 import HomePage from './pages/HomePage'
 import ItemsListPage from './pages/ItemsListPage'
 import CategoriesPage from './pages/CategoriesPage'
@@ -108,7 +109,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <PwaUpdateProvider>
-        <Boot />
+        {/* 同步引擎在 provider 内部惰性获取；未启用同步时
+            所有同步调用都会直接空转，不发任何网络请求。 */}
+        <SyncProvider>
+          <Boot />
+        </SyncProvider>
       </PwaUpdateProvider>
     </BrowserRouter>
   )

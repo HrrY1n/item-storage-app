@@ -7,6 +7,7 @@ import { loadDemoData } from './mock/loadDemoData'
 import { db } from './db/db'
 import { exportBackup, readAndValidateBackup, restoreFromPayload } from './services/backupService'
 import { startPwaUpdate } from './services/pwaUpdate'
+import { requestSync, startSync } from './services/syncService'
 
 // 仅开发环境暴露演示数据加载器与备份验证钩子（生产构建不会包含）
 if (import.meta.env.DEV) {
@@ -56,3 +57,12 @@ createRoot(document.getElementById('root')!).render(
  * 放在首次渲染之后启动，注册与启动检查都不阻塞首屏。
  */
 startPwaUpdate()
+
+/**
+ * 跨设备同步：同样**不阻塞首屏**。
+ * 引擎在这里启动（惰性），首次同步排到 React 挂载之后。
+ * 未启用同步时 syncState 里没有 enabled，所有 run() 都会直接空转，
+ * 不会发出任何网络请求 —— 同步对既有 App 完全无感。
+ */
+startSync()
+void requestSync('boot')
