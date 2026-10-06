@@ -534,12 +534,24 @@ wishlist（心愿）──「转为持有」──▶ owned（持有）──「
   "name": "item-storage-app",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"   // SPA fallback
+    "not_found_handling": "single-page-application", // SPA fallback
+    "run_worker_first": ["/api/*"]                   // ⭐ 见下方说明
   }
 }
 ```
 
-> 本项目**没有后端**：没有 Worker 入口（无 `main`、无 `functions`），`dist` 中也不放置任何 Pages 专属重写规则文件。
+> ⚠️ **`run_worker_first` 不能省**（Phase 3B 起才有 `/api/*`，此前不需要）。
+> 只配 `not_found_handling` 时，**SPA 回落优先级高于 Worker**：
+> 在浏览器**地址栏**直接访问 `/api/sync/status`（navigation 请求）会拿到 `index.html`
+> 而不是 JSON；只有 `fetch('/api/...')` 这类子资源请求才会进 Worker。
+> 这个现象极易被误判成"Worker 没部署"。
+>
+> 只能用**路径数组**：`"run_worker_first": true` 会让**所有**请求（含 `.js`/`.css`/`.svg`
+> 静态资源）都绕道 Worker，白白增加调用量与首屏延迟。
+
+> 本项目**没有自己的后端服务器**：业务数据 100% 存在浏览器 IndexedDB 里。
+> 仅 Phase 3B 起附带一个**可选的**同步 Worker（`main: ./worker/index.ts`，默认关闭），
+> 它只存同步状态、不存业务数据；`dist` 中不放置任何 Pages 专属重写规则文件。
 
 其他平台：
 

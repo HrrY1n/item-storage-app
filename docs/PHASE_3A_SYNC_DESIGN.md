@@ -212,10 +212,26 @@ GET /api/sync/status
 
 ### D1 侧必须遵守的两条实现约束
 
-1. **`run_worker_first` 不用设，但要知道为什么安全。**
-   官方 SPA 行为：`not_found_handling: "single-page-application"` 只对**导航请求**（带 `Sec-Fetch-Mode: navigate`）回落 `index.html`；`fetch('/api/...')` 这类子资源请求**不会**回落，会正常进入 Worker。实测依据：官方文档原文明确 "if you define an API endpoint ... and then fetch it with a client-side request ..., the Worker script will be invoked"。**前提是 `compatibility_date >= 2025-04-01`**（当前是 `2026-10-03`，✅）。
-   代价：浏览器地址栏直接输入 `/api/sync/status` 会拿到 HTML。**可接受**（这是有意的省流量行为）。
-   若 Phase 3B 想彻底显式化，可改用 `assets.run_worker_first: ["/api/*"]`（需 wrangler ≥ 4.20.0）。
+1. **⚠️ 必须显式设置 `run_worker_first: ["/api/*"]`（已更正，见 commit `6ba3275`）。**
+
+   ~~原判断「不用设」是错的~~ —— 只配 `not_found_handling: "single-page-application"` 时，
+   **SPA 回落优先级高于 Worker**：地址栏发起的是**导航请求**（`Sec-Fetch-Mode: navigate`），
+   会先被资产路由接住并回落 `index.html`；只有 `fetch('/api/...')` 这类子资源请求才会进 Worker。
+   **线上实测**：地址栏访问 `/api/sync/status` 返回的是 HTML 而不是 JSON
+   （症状是"用 fetch 测一切正常、地址栏一看是 HTML"，极易误判成 Worker 没部署）。
+
+   正确配置（`wrangler.jsonc`，需 wrangler ≥ 4.20.0，当前 4.147.0 ✅）：
+   ```jsonc
+   "assets": {
+     "directory": "./dist",
+     "not_found_handling": "single-page-application",
+     "run_worker_first": ["/api/*"]
+   }
+   ```
+
+   ⚠️ **只用路径数组，不要用 `true`**：`true` 会让**所有**请求（含 `.js`/`.css`/`.svg`
+   等静态资源）都绕道 Worker，白白增加 Worker 调用量与首屏延迟。
+   数组形式只放行 `/api/*`，其余路径照旧走资产路由 + SPA 回落，深链行为不变。
 2. **单次 push 的批大小必须 ≤ 32 条**（Phase 3B 复审后修正，原写 500 是错的）。
    两条官方硬约束各自给出的上限：
    - **绑定参数 ≤ 100/query**：Worker 预加载已有记录的查询参数数 ≈ 实体种类(≤3) + 实体id 数 → N ≤ 97
@@ -518,7 +534,7 @@ Supabase Free 对照：500 MB 库、**1 周不活动自动暂停**、5 GB egress
 | R2 | 设备时钟被修改 → 时间戳错乱 | 🟡 中 | 排序**完全不看**客户端时间戳，用服务端 revision；`clientUpdatedAt` 仅审计 |
 | R3 | 两端版本不同（老设备缺新 preset SVG） | 🟡 中 | 已有 `syncPresetAssets()` 幂等补齐 + 图标 fallback；`iconAssetId` 是逻辑引用 |
 | R4 | D1 故障 / 额度耗尽 | 🟢 低 | 余量 3 个数量级；失败静默；ZIP backup 兜底；`/api/sync/status` 可查 |
-| R5 | 同 origin Worker 引入后 SPA fallback 行为变化 | 🟢 低 | 已确认：只有 navigation 请求回落 HTML，`fetch('/api/*')` 正常进 Worker；需在 3B 加一条回归断言 |
+| R5 | 同 origin Worker 引入后 SPA fallback 行为变化 | 🔴 高（**已实际发生**） | ⚠️ 原判断「只有 navigation 回落 HTML，可接受」**低估了它**：地址栏访问 `/api/*` 确实会拿到 HTML，排查时极易误判成 Worker 没部署。**已修**：`assets.run_worker_first: ["/api/*"]`（commit `6ba3275`）。验证方式：部署后地址栏访问 `/api/sync/status` 应返回 401 JSON 而非 HTML |
 | R6 | `ai_generated` / `from_photo` 资产跨设备缺失 | 🟡 中 | 3B 不同步其二进制；同步元数据并让缺失端回退默认图标。将来走 R2（免费 10 GB） |
 | R7 | 同步与 PWA 更新的 reload 互相干扰 | 🟢 低 | 两者独立节流；同步**永不触发 reload**；`useUpdateGuard` 只管版本更新 |
 | R8 | 用户误以为"同步 = 备份"，删了云端 | 🟡 中 | UI 文案明确"备份"与"同步"是两件事；`/api/sync/status` 支持云端重建引导 |

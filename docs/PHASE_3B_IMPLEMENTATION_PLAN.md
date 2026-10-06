@@ -99,9 +99,18 @@
 
 ### 明确不动（8）
 
-`src/domain/lifecycle.ts` `purchase.ts` `searchItems.ts` `backup.ts` · `vite.config.ts` · `src/features/pwa/*` · `src/services/pwaUpdate.ts` · `wrangler.jsonc` 的 `assets` 段（只**新增** `main` / `d1_databases` / `compatibility_date` 已是 2026-10-03 无需改）
+`src/domain/lifecycle.ts` `purchase.ts` `searchItems.ts` `backup.ts` · `vite.config.ts` · `src/features/pwa/*` · `src/services/pwaUpdate.ts`
 
-> `vite.config.ts` **不改** —— 加 Worker 入口后 SPA fallback 行为已验证（`fetch('/api/*')` 正常进 Worker），无需 `run_worker_first`。Phase 3B 会加一条**回归断言**锁住这个行为。
+> `vite.config.ts` **不改** —— 路由行为由 `wrangler.jsonc` 的 `assets` 段决定，与构建配置无关。
+>
+> ⚠️ **原计划「`assets` 段无需改」是错的，已更正**（commit `6ba3275`）。
+> 加上 Worker 入口后必须显式声明 `"run_worker_first": ["/api/*"]`，否则 SPA 回落
+> 优先级高于 Worker，地址栏访问 `/api/sync/status` 会拿到 **HTML** 而不是 JSON
+> （线上实测确认）。只能用路径数组，不能用 `true`。
+>
+> ⚠️ 原计划里"Phase 3B 会加一条回归断言锁住这个行为" **实际未做** ——
+> 该行为取决于 Cloudflare 平台的路由，**无法在 vitest 里断言**，
+> 只能靠部署后手工验证（地址栏访问 `/api/sync/status` 应返回 401 JSON）。
 
 ---
 
@@ -273,7 +282,7 @@ GET  /api/sync/status                → { currentRevision, recordCount }
 
 | 约束 | 出处 |
 |---|---|
-| **SPA fallback 只对 navigation 请求生效**，`fetch('/api/*')` 正常进 Worker —— 前提 `compatibility_date ≥ 2025-04-01`（当前 2026-10-03 ✅），所以 `assets` 段无需改 | 官方 SPA 文档 |
+| ⚠️ **必须显式配 `assets.run_worker_first: ["/api/*"]`** —— 否则 SPA 回落优先级高于 Worker，地址栏（navigation）访问 `/api/*` 会拿到 HTML 而非 JSON（**线上实测已发生**，commit `6ba3275`）。原写「`assets` 段无需改」是错的。只能用路径数组，**不能用 `true`**（那会让静态资源也绕道 Worker） | 线上实测 + 官方 SPA 文档 |
 | 单次 push **≤ 32 条** | D1 Free：**50 queries/invocation** 且 **100 bound params/query**（两条都是硬约束） |
 | **禁止 `SELECT *`** | pull 恒为 `WHERE revision > ? ORDER BY revision LIMIT ?`；`/status` 用 `COUNT(*)` |
 | `revision` 用 `INTEGER PRIMARY KEY AUTOINCREMENT` | rowid 即索引，零额外成本，天然单调不复用 |
@@ -344,7 +353,9 @@ GET  /api/sync/status                → { currentRevision, recordCount }
 7. **关闭代理**：确认 App 完全可用，同步仅静默失败
 8. **冲突可查**：制造冲突 → 设置页「最近的覆盖记录」出现该条 → 含被覆盖摘要
 9. **备份不含 secret**：导出 ZIP → 检查不含 `syncState` / secret
-10. SPA fallback 回归：`fetch('/api/status')` 返回 JSON（**不是** HTML）
+10. **路由回归**：`fetch('/api/sync/status')` 返回 JSON（**不是** HTML）**且** 在浏览器
+    **地址栏直接访问** `/api/sync/status` 也返回 JSON（401 unauthorized）——
+    后者正是 `run_worker_first` 要修的现象，只测 fetch 会漏掉它
 11. **SW 状态记录**：记录 push/pull 前后的 service worker 与网络状态，确认同步**不触发 reload**
 
 ### 8.3 手工确认（无法自动化）
