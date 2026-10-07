@@ -412,7 +412,7 @@ overlay 规格：
 │ │  图标   │  小米平板 5 6+128                           │
 │ │ 52×52  │  处置于 2026年9月14日 · 数码与电子             │
 │ └────────┘  1463 天 · 售出回收 ¥568 · 日均 ¥0.39       │
-│            实际持有成本 ¥0 · 盈利 ¥0                     │  ← 仅 sold 有意义
+│            总投入 ¥2,042 · 亏损 ¥1,474                  │  ← 仅 sold 有意义
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -422,11 +422,26 @@ overlay 规格：
 | 标题行 | 物品名 | — |
 | 副标题 | `处置于 {date} · {categoryName}` | Grid 只放日期；列表行加回分类（横向有空间） |
 | 指标行 | `持有天数 · 出售回收 · 日均成本` 单行内联 | Grid 是三栏栅格 |
-| 财务行 | 仅 sold：`实际持有成本 · 盈亏` | discarded / other **无此行** |
+| 财务行 | 仅 sold：`总投入 · 盈利/亏损/持平` | discarded / other **无此行** |
 
 列表行不叠加 overlay（52px 缩略图上放文字会不可读），
 方法语义由**缩略图右下角的缩小版徽标**承担 —— 与 Grid 的 L1 badge 是同一个组件、同一套 token，
 只是尺寸档位不同。
+
+#### ⚠️ 财务口径必须与 Grid 完全一致（勘误 FIX-B）
+
+**Grid 与 List 只能改变布局，不能改变财务口径。** 二者都来自同一个
+presentation model，因此：
+
+| | Grid Card | List Row |
+|---|---|---|
+| 指标（三栏 / 内联） | 持有天数 · 出售回收 · 日均成本 | **完全相同** |
+| 财务行 | 总投入 · 盈利/亏损/持平 | **完全相同** |
+| 「实际持有成本」 | ❌ 不显示 | ❌ **也不显示** |
+
+「实际持有成本」与「盈亏」互为相反数，同时展示是重复信息
+（见 §9.1 第 2 点）。**详情页**作为完整账目视图仍可显示「实际持有成本」，
+但那是另一层级的事，本轮不实施。
 
 ---
 
@@ -471,7 +486,7 @@ overlay 规格：
 ### 9.3 盈亏的人类可读表达（§12 最终决策）
 
 ```
-盈亏 = grossTotal − salePriceCents      （即 −effectiveCostCents）
+盈亏 = salePriceCents − grossTotal      （即 −effectiveCostCents）
 ```
 
 | 条件 | 文案 | token |
@@ -479,6 +494,34 @@ overlay 规格：
 | `盈亏 > 0` | `盈利 ¥X` | `text-success` |
 | `盈亏 < 0` | `亏损 ¥X` | `text-money`（暖色，**不用 danger**） |
 | `盈亏 === 0` | `持平` | `text-ink-tertiary` |
+
+#### ⚠️ 盈亏方向（勘误 FIX-A，勿再搞反）
+
+项目已有的口径是 `netHoldingCost = grossTotal − salePrice`（**花费**视角），
+而 `profitLoss` 是它的**相反数**（**结果**视角）：
+
+```
+netHoldingCost = grossTotal − salePriceCents      // 可能是正数，也可能是负数
+profitLoss     = salePriceCents − grossTotal      // = −netHoldingCost
+```
+
+| 条件 | 判定 | UI 文案 |
+|---|---|---|
+| `profitLoss > 0` | 卖得比买得多 | **盈利** ¥X（`text-success`） |
+| `profitLoss < 0` | 卖得比买得少 | **亏损** ¥X（`text-money`） |
+| `profitLoss === 0` | 恰好回本 | **持平**（`text-ink-tertiary`） |
+
+⚠️ **禁止把 `grossTotal − salePrice > 0` 显示成「盈利」** —— 那是净成本为正，
+意思是"确实花了钱"，与盈利正好相反。
+
+| 算例 | 总投入 | 出售回收 | 净持有成本 | profitLoss | UI |
+|---|---|---|---|---|---|
+| A | ¥2,042 | ¥568 | ¥1,474 | **−¥1,474** | **亏损 ¥1,474** |
+| B | ¥1,000 | ¥1,200 | **−¥200** | **+¥200** | **盈利 ¥200** |
+| C | ¥1,000 | ¥1,000 | ¥0 | ¥0 | **持平** |
+
+算例 B 是「净成本为负」的情形 —— 卖出回收超过总投入，
+`netHoldingCost` 为负而 `profitLoss` 为正，**UI 必须显示「盈利 ¥200」**。
 
 **亏损为什么不用 `danger`**：亏损是**结果**，不是**故障**。
 用红色会让"卖亏了"读起来像"数据出错了"，与 §19「处置不是墓地」冲突。
@@ -610,7 +653,7 @@ domain **只有** `method = 'other'`，**没有 subtype 字段**。
 
 出售回收    recovery    = salePriceCents           // 仅 sold
 
-盈亏        profitLoss  = grossTotal − salePriceCents = −netCost   // 仅 sold
+盈亏        profitLoss  = salePriceCents − grossTotal = −netCost   // 仅 sold
 
 持有天数    days        = disposed 时以 disposedAt 冻结
 日均成本    daily       = netCost ÷ days
@@ -649,10 +692,29 @@ domain **只有** `method = 'other'`，**没有 subtype 字段**。
 | F2 | 金额使用 `num` + `tabular-nums` | 数字等宽，多行对齐 |
 | F3 | 卡片用 `formatCentsCard`；详情页用 `formatCents`（全 2 位小数） | 沿用现有口径 |
 | F4 | **禁止紧凑记法**（`¥1.2k` / `¥12.3万`） | 紧凑记法牺牲精确性，本项目已决定不走这条路 |
-| F5 | 整元省略 `.00`；非整元**保留** | 现有 `formatCentsCard` 已实现 |
+| F5 | **严格复用现有 `formatCentsCard` 的既有行为**，本轮不改其口径 | 见下方「F5 精确说明」 |
 | F6 | 负数格式 `-¥1,474`（负号在 ¥ 前） | 现有 `formatCents` 已实现 |
 | F7 | 三栏均溢出时：**先降一档字号**（caption → 10px），仍溢出则该卡降为 2 栏 | 不牺牲可读性 |
-| F8 | **¥123,456.78 在卡片显示 ¥123,457**（四舍五入），详情页显示全精度 | 这是**有意的**既有取舍，本轮不改变 |
+| F8 | 卡片 = `formatCentsCard`；详情页 = `formatCents`（两位小数全精度） | 本轮**不改** formatter |
+
+#### F5 精确说明（勘误 FIX-C，消除"非整元保留"与"四舍五入"的矛盾）
+
+初稿同时写了「非整元保留」与「¥123,456.78 → ¥123,457」，两者冲突。
+**本轮以现有实现为准，不重新设计 formatter**：
+
+- **卡片**：严格复用现有 `formatCentsCard`。其既有行为包含：
+  - 整元 → 省略 `.00`（`¥476.00` → `¥476`）
+  - 非整元且 < ¥1,000 → 保留两位小数（`¥57.14` → `¥57.14`）
+  - 非整元且 ≥ ¥1,000 → **四舍五入到整元**（`¥123,456.78` → `¥123,457`）
+- **详情页**：`formatCents`，始终两位小数（`¥123,456.78`）
+
+⚠️ 最后一条（大额四舍五入）是 `formatCentsCompact` 的既有行为，
+`domain/purchase.ts` 的注释与测试都承认这一点。本轮**保留**，
+精确值始终可在详情页看到。
+
+**本轮真正要修的不是 formatter，而是 CSS `truncate` / `text-overflow: ellipsis`。**
+除测试证明设计文档对现有实现理解错误外，不改
+`formatCents` / `formatCentsCard` / `formatCentsCompact`。
 
 ### 14.2 大额验证（必须全部可读，无省略号）
 
@@ -889,7 +951,7 @@ domain **只有** `method = 'other'`，**没有 subtype 字段**。
 │  1463天   │  ¥568    │  ¥0.39   │  ← 三栏 · grid-cols-3 · divide-x
 │  持有天数  │  出售回收 │  日均成本 │     数值 num + tabular-nums，**无 truncate**
 ├─────────────────────────────────┤
-│ 总投入 ¥12,999          盈利 ¥0   │  ← footer · 仅 sold
+│ 总投入 ¥2,042           亏损 ¥1,474│  ← footer · 仅 sold
 └─────────────────────────────────┘
 ```
 
@@ -1013,7 +1075,7 @@ FINAL DESIGN CONTRACT — Disposed Item UX
            出售回收(formatCentsCard(salePriceCents))
            日均成本(formatCentsCompact(dailyCostOf))
      footer：总投入(grossCostCents —— 不是 effectiveCostCents)
-             盈亏(grossTotal − salePriceCents；盈利 text-success /
+             盈亏(salePriceCents − grossTotal；盈利 text-success /
                   亏损 text-money / 持平 text-ink-tertiary)
      ⚠️ 卡片不显示「实际持有成本」（与盈亏互为相反数，冗余）
 
@@ -1074,11 +1136,12 @@ FINAL DESIGN CONTRACT — Disposed Item UX
       指标标签由 lifecycle + method 决定，不得在组件内硬编码
       （消除 HomePage/CategoryDetailPage 仍显示「总投入」的现状）
 
-[F14] 列表行
+[F14] 列表行（与 Grid 同一 presentation model，只改布局不改口径）
        缩略图 52×52，右下角 sm 方法徽标，不放文字 overlay
        副标题：处置于 {date} · {categoryName}
        指标内联：持有天数 · 出售回收 · 日均成本（仅 sold）
-       财务行：实际持有成本 · 盈亏（仅 sold）
+       财务行：总投入 · 盈利/亏损/持平（仅 sold）
+       ❌ 不显示「实际持有成本」（与盈亏互为相反数，重复）
 
 [F15] 禁止项（自检清单）
        ❌ 新增任何 hex / 颜色变量
