@@ -382,7 +382,7 @@ async function run() {
   }
 
   const iconChecks = await s.ev(`(async () => {
-    const paths = ['/icons/pwa/pwa-192x192.png','/icons/pwa/pwa-512x512.png','/icons/pwa/maskable-512x512.png','/icons/pwa/apple-touch-icon-180x180-v3.png','/icons/pwa/favicon-32x32.png'];
+    const paths = ['/icons/pwa/pwa-192x192.png','/icons/pwa/pwa-512x512.png','/icons/pwa/maskable-512x512.png','/icons/pwa/apple-touch-icon-180x180-v4.png','/icons/pwa/favicon-32x32.png'];
     const out = {};
     for (const p of paths) {
       try { const r = await fetch(p); out[p] = r.ok; } catch { out[p] = false; }

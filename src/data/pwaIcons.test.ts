@@ -35,7 +35,7 @@ const masterPaths = namesIn(
 )
 
 const EXPECTED = [
-  { name: 'apple-touch-icon-180x180-v3.png', size: 180 },
+  { name: 'apple-touch-icon-180x180-v4.png', size: 180 },
   { name: 'favicon-32x32.png', size: 32 },
   { name: 'maskable-512x512.png', size: 512 },
   { name: 'pwa-192x192.png', size: 192 },
@@ -99,11 +99,19 @@ describe('PWA 图标资产（单一正式图标）', () => {
     expect(generator).not.toMatch(/source:\s*'/)
   })
 
-  it('生成器带「母版必须不透明 / 四角不得是白边」守卫', () => {
-    // 这两条守卫是"只缩放、不重绘"的强制手段：透明圆角与白边都会在生成阶段直接失败
+  it('生成器带「母版必须不透明 / 四角是同一个连续背景」守卫', () => {
+    // 这条守卫是"只缩放、不重绘背景"的强制手段：
+    // 透明圆角、人工白边、单角补丁都会在生成阶段直接失败；而浅色或深色背景本身都是合法的
     expect(generator).toContain('母版必须完全不透明')
-    expect(generator).toContain('assertNoWhiteCorners')
+    expect(generator).toContain('assertFullBleedCorners')
+    expect(generator).toContain('MAX_CORNER_SPREAD')
     expect(generator).toContain('MIN_MASTER_SIZE')
+  })
+
+  it('生成器不再做任何背景合成（Laplace / 谐波扩散已彻底删除）', () => {
+    // 浅暖灰背景是**设计的一部分**（为 iOS 自动 Dark treatment 预留的明亮区域），
+    // 曾经被谐波扩散成深蓝，造成"蓝色大底 + 深蓝内板"的框套框 —— 这里锁死不再复发。
+    expect(generator).not.toMatch(/Laplace|谐波扩散|harmonic/)
   })
 
   it('maskable 走安全区自动校验，而不是靠补白边', () => {
@@ -132,12 +140,18 @@ describe('PWA 图标资产（单一正式图标）', () => {
 
   it('index.html：恰好一条 apple-touch-icon，且指向带版本的新文件名', () => {
     const appleHrefs = [...html.matchAll(/rel="apple-touch-icon"\s+href="([^"]+)"/g)].map((m) => m[1])
-    expect(appleHrefs).toEqual(['/icons/pwa/apple-touch-icon-180x180-v3.png'])
+    expect(appleHrefs).toEqual(['/icons/pwa/apple-touch-icon-180x180-v4.png'])
     // 旧路径不能以任何 href 形式残留（注释里提到旧文件名是刻意的说明文字，不算引用）
     expect(html).not.toMatch(/href="[^"]*apple-touch-icon-180x180\.png/)
     expect(html).not.toMatch(/href="[^"]*apple-touch-icon-180x180-v2\.png/)
-    expect(pwaIconPaths).not.toContain('apple-touch-icon-180x180.png')
-    expect(pwaIconPaths).not.toContain('apple-touch-icon-180x180-v2.png')
+    expect(html).not.toMatch(/href="[^"]*apple-touch-icon-180x180-v3\.png/)
+    for (const gone of [
+      'apple-touch-icon-180x180.png',
+      'apple-touch-icon-180x180-v2.png',
+      'apple-touch-icon-180x180-v3.png',
+    ]) {
+      expect(pwaIconPaths).not.toContain(gone)
+    }
   })
 
   it('index.html：恰好一条 favicon，且不带 media（不做 light/dark 主题切换）', () => {

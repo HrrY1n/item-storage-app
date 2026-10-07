@@ -14,17 +14,20 @@
  *
  * 零依赖：Node 内置 zlib 手写最小 PNG 解码/编码器。
  *
- * 母版来源（可审计）：由设计交付的 1254×1254 预览式定稿推导而来 —— 原图是"深蓝圆角方块
- * 只占画布 72%、四角浅灰底 + 外投影"的形态，无法直接当 full-bleed 母版用。推导只做一件事：
- * 把方块之外的区域用**谐波扩散（Laplace 解）**从方块边缘颜色平滑外延成同色底，
- * 于是预烘焙圆角与外投影被吸收、画布变 full-bleed，而**方块内所有像素（含收纳盒与投影）
- * 逐像素保持原样**。交付原图 md5：见 README「PWA App Icon」章节。
+ * 母版来源（可审计）：设计交付的定稿 **1254×1254** 直接转成 PNG，**不做任何背景合成**。
+ *
+ * ⚠️ **浅暖灰背景是设计的一部分**：它是为 iOS 自动 Dark treatment 预留的明亮区域，不是"预览背景"。
+ * 因此母版 = 交付原图本身 —— 浅底铺满画布四角（full-bleed）+ 深蓝圆角内板 + 白色收纳盒 + teal 文件卡，
+ * 全部保持原样（自检：母版与交付原图像素 md5 一致），外层圆角留给 iOS / Android 自己裁剪，不预烘焙。
+ *
+ * ❌ 绝不把外围背景合成、外延或替换成别的颜色：那会得到"大底 + 内板"的框套框，
+ *    并吃掉为 iOS Dark treatment 预留的明亮区域。本脚本对母版**只做缩放**，不做任何绘制。
  *
  * 安全网（结构上保证"母版 = 唯一真相"）：
  *   1. 母版必须是正方形、bit depth 8、非隔行，且边长在 512~4096 之间；
  *   2. 母版必须完全不透明（拒绝透明圆角）；
- *   3. 母版四角必须是有色画面（拒绝白边 / 白底裁圆角）；
- *   4. maskable 主体必须落在规范安全圆（半径 0.4）内 —— 不满足直接报错，
+ *   3. 母版四角必须是**同一个连续背景**（拒绝人工白边 / 单角补丁；允许渐变，也允许浅色或深色背景）；
+ *   4. maskable 的**核心主体**必须落在规范安全圆（半径 0.4）内 —— 不满足直接报错，
  *      而不是靠"加白边"糊过去（见 assertMaskableSafe）；
  *   5. 每个文件写盘后回读校验尺寸，不符即抛错；
  *   6. 输出目录里的 PNG 与 targets 表严格一一对应：多出来的（含双图标时代的历史残留）直接删除。
@@ -46,8 +49,10 @@ const MASTER_FILE = resolve(MASTER_DIR, 'app-icon-master-1254.png')
 /** 母版边长下限/上限：只要求"足够大的正方形"，不锁死具体像素数，换导出尺寸时无需改代码 */
 const MIN_MASTER_SIZE = 512
 const MAX_MASTER_SIZE = 4096
-/** Google maskable icon 规范：主体必须落在直径 80%（半径 0.4）的安全圆内 */
+/** Google maskable icon 规范：核心主体必须落在直径 80%（半径 0.4）的安全圆内 */
 const MASKABLE_SAFE_RADIUS = 0.4
+/** 四角色差上限：允许渐变与深浅背景，但拒绝"某一角是外来补丁"（人工白边 / 透明圆角留下的痕迹） */
+const MAX_CORNER_SPREAD = 120
 
 // ------------------------------------------------------------------ PNG 编码
 
@@ -302,60 +307,191 @@ function resample(src, sw, sh, dst) {
 
 const luminance = (rgb, i) => rgb[i * 3] * 0.2126 + rgb[i * 3 + 1] * 0.7152 + rgb[i * 3 + 2] * 0.0722
 
-/** 四角不能是白（白边 / 白底裁圆角都会在这里暴露） */
-function assertNoWhiteCorners(master, label) {
-  const { width, height, rgb } = master
-  const corners = [
-    [0, 0],
-    [width - 1, 0],
-    [0, height - 1],
-    [width - 1, height - 1],
-  ]
-  for (const [x, y] of corners) {
-    const i = (y * width + x) * 3
-    const min = Math.min(rgb[i], rgb[i + 1], rgb[i + 2])
-    if (min > 240) {
-      throw new Error(
-        `${label}: 四角像素接近纯白 (${rgb[i]},${rgb[i + 1]},${rgb[i + 2]}) —— ` +
-          '母版必须是无白边、无预烘焙圆角的 full-bleed 方形',
-      )
-    }
-  }
-}
-
 /**
- * maskable 安全检查：主体必须完全落在半径 0.4 的安全圆内。
- * 主体判定：以四条边 12px 色带的最大亮度为背景基准，亮度 > 基准 + 60 视为主体
- * （背景是有色渐变，盒体/卡片远亮于它，因此这个判据对两套母版都稳定）。
+ * 四角必须是**同一个连续背景**铺到画布四角。
+ *
+ * 注意这里**不**要求"四角不能是浅色"：本项目的正式图标背景就是浅暖灰（它是设计的一部分，
+ * 为 iOS 自动 Dark treatment 预留的明亮区域），浅色四角完全合法。
+ * 真正要拒绝的是：
+ *   - 透明圆角（alpha < 255）—— 由 decodePNG 的不透明校验拦掉；
+ *   - 某一角是外来补丁（人工白边 / 拼贴色块）—— 表现为四角彼此色差过大；
+ *   - 四角与画布主体背景不一致（预烘焙裁切留下的痕迹）。
+ * 允许渐变，也允许浅色或深色背景。
  */
-function assertMaskableSafe(master, label) {
+function assertFullBleedCorners(master, label) {
   const { width, height, rgb } = master
-  const band = 12
-  let bgMax = 0
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (y < band || y >= height - band || x < band || x >= width - band) {
-        const l = luminance(rgb, y * width + x)
-        if (l > bgMax) bgMax = l
+  const block = 8
+  const blocks = [
+    [0, 0],
+    [width - block, 0],
+    [0, height - block],
+    [width - block, height - block],
+  ]
+  const avg = blocks.map(([bx, by]) => {
+    let r = 0
+    let g = 0
+    let b = 0
+    for (let y = by; y < by + block; y++) {
+      for (let x = bx; x < bx + block; x++) {
+        const i = (y * width + x) * 3
+        r += rgb[i]
+        g += rgb[i + 1]
+        b += rgb[i + 2]
+      }
+    }
+    const n = block * block
+    return [r / n, g / n, b / n]
+  })
+  let worst = 0
+  let pair = ''
+  for (let i = 0; i < 4; i++) {
+    for (let j = i + 1; j < 4; j++) {
+      const d = Math.hypot(avg[i][0] - avg[j][0], avg[i][1] - avg[j][1], avg[i][2] - avg[j][2])
+      if (d > worst) {
+        worst = d
+        pair = `${i + 1}↔${j + 1}`
       }
     }
   }
-  const threshold = bgMax + 60
-  let maxRadius = 0
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (luminance(rgb, y * width + x) <= threshold) continue
-      const r = Math.hypot((x + 0.5) / width - 0.5, (y + 0.5) / height - 0.5)
-      if (r > maxRadius) maxRadius = r
-    }
-  }
-  if (maxRadius > MASKABLE_SAFE_RADIUS) {
+  if (worst > MAX_CORNER_SPREAD) {
     throw new Error(
-      `${label}: 主体最大半径 ${maxRadius.toFixed(4)} 超出 maskable 安全圆 ${MASKABLE_SAFE_RADIUS}。` +
-        '请让设计师把主体在内缩小（而不是在生成端补白边 / 加圆角）。',
+      `${label}: 四角不是同一个连续背景（最大色差 ${worst.toFixed(1)} > ${MAX_CORNER_SPREAD}，角 ${pair}）—— ` +
+        '母版必须是背景铺满画布四角的 full-bleed 方形：不允许透明圆角、人工白边或单角补丁',
     )
   }
-  return { bgMax, maxRadius }
+  return { corners: avg, spread: worst }
+}
+
+const colorDistance = (rgb, i, ref) =>
+  Math.hypot(rgb[i * 3] - ref[0], rgb[i * 3 + 1] - ref[1], rgb[i * 3 + 2] - ref[2])
+
+/** 一组像素的中位色（大集合按步长采样，够用且快） */
+function medianColorOf(rgb, indices) {
+  const step = Math.max(1, Math.floor(indices.length / 20000))
+  const rs = []
+  const gs = []
+  const bs = []
+  for (let k = 0; k < indices.length; k += step) {
+    const i = indices[k]
+    rs.push(rgb[i * 3])
+    gs.push(rgb[i * 3 + 1])
+    bs.push(rgb[i * 3 + 2])
+  }
+  const mid = (arr) => {
+    arr.sort((a, b) => a - b)
+    return arr[arr.length >> 1]
+  }
+  return [mid(rs), mid(gs), mid(bs)]
+}
+
+/**
+ * maskable 安全检查：**核心主体（收纳盒 / 卡片）**必须完全落在半径 0.4 的安全圆内。
+ *
+ * 判据必须两级，因为背景可能是浅色也可能是深色：
+ *   1. 背景 = 四角中位色；
+ *   2. 内板 = 与背景色差 > 60 的像素（浅底设计里是深蓝内板；深底设计里这一层就是盒体本身）；
+ *   3. 核心主体 = **内板范围内**亮度高于内板中位色 + 60 的像素（白色盒体 / teal 卡片）。
+ * 内板是装饰性底板、盒体投影是软渐变，它们的四角被裁掉不影响识别；
+ * 真正不能被裁的是盒体，所以只校验盒体。
+ */
+function assertMaskableSafe(master, label) {
+  const { width, height, rgb } = master
+  const bg = medianColorOf(rgb, cornerIndices(width, height))
+  const innerMask = new Uint8Array(width * height)
+  const inner = []
+  for (let i = 0; i < width * height; i++) {
+    if (colorDistance(rgb, i, bg) > 60) {
+      innerMask[i] = 1
+      inner.push(i)
+    }
+  }
+  if (inner.length === 0) {
+    throw new Error(`${label}: 找不到与背景不同的内层图形 —— 请检查母版构图`)
+  }
+  const plate = medianColorOf(rgb, inner)
+  const plateLum = luminance(plate, 0)
+  const deep = deepInside(innerMask, width, height, Math.round(width * 0.05))
+  let subject = deep.filter((i) => luminance(rgb, i) > plateLum + 60)
+  // 若内板本身就是主体（没有独立内板的深底母版），退回用内板深处范围
+  if (subject.length < width * height * 0.005) subject = deep
+  if (subject.length === 0) {
+    throw new Error(`${label}: 无法定位核心主体（内板 ${inner.length}px）—— 请检查母版构图`)
+  }
+
+  let maxRadius = 0
+  for (const i of subject) {
+    const x = i % width
+    const y = (i - x) / width
+    const r = Math.hypot((x + 0.5) / width - 0.5, (y + 0.5) / height - 0.5)
+    if (r > maxRadius) maxRadius = r
+  }
+  return { bg, plate, subjectCount: subject.length, maxRadius }
+}
+
+/**
+ * 内层图形的"深处"：按行/列范围各收缩 E 像素（等价于方形腐蚀，O(n)）。
+ * 目的是排除紧贴内板外缘的**投影**：投影是软渐变、被遮罩切到无所谓，
+ * 但它的半径比盒体大，会污染安全区判定。
+ */
+function deepInside(mask, width, height, e) {
+  const rowLo = new Int32Array(height).fill(-1)
+  const rowHi = new Int32Array(height).fill(-1)
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (mask[y * width + x]) {
+        rowLo[y] = x
+        break
+      }
+    }
+    for (let x = width - 1; x >= 0; x--) {
+      if (mask[y * width + x]) {
+        rowHi[y] = x
+        break
+      }
+    }
+  }
+  const colTop = new Int32Array(width).fill(-1)
+  const colBot = new Int32Array(width).fill(-1)
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+      if (mask[y * width + x]) {
+        colTop[x] = y
+        break
+      }
+    }
+    for (let y = height - 1; y >= 0; y--) {
+      if (mask[y * width + x]) {
+        colBot[x] = y
+        break
+      }
+    }
+  }
+  const out = []
+  for (let y = 0; y < height; y++) {
+    const lo = rowLo[y]
+    const hi = rowHi[y]
+    if (lo < 0) continue
+    for (let x = lo + e; x <= hi - e; x++) {
+      if (y < colTop[x] + e || y > colBot[x] - e) continue
+      out.push(y * width + x)
+    }
+  }
+  return out
+}
+
+/** 四角 24×24 块的像素下标（用来取背景中位色） */
+function cornerIndices(width, height) {
+  const out = []
+  const n = 24
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      out.push(y * width + x)
+      out.push(y * width + (width - 1 - x))
+      out.push((height - 1 - y) * width + x)
+      out.push((height - 1 - y) * width + (width - 1 - x))
+    }
+  }
+  return out
 }
 
 function loadMaster() {
@@ -369,8 +505,8 @@ function loadMaster() {
       `${label}: 边长必须在 ${MIN_MASTER_SIZE}~${MAX_MASTER_SIZE} 之间（实际 ${master.width}）`,
     )
   }
-  assertNoWhiteCorners(master, label)
-  return master
+  const corners = assertFullBleedCorners(master, label)
+  return { ...master, corners }
 }
 
 // ------------------------------------------------------------------ 输出
@@ -380,16 +516,26 @@ const targets = [
   { name: 'pwa-192x192.png', size: 192 },
   { name: 'pwa-512x512.png', size: 512 },
   { name: 'maskable-512x512.png', size: 512 },
-  { name: 'apple-touch-icon-180x180-v3.png', size: 180 },
+  { name: 'apple-touch-icon-180x180-v4.png', size: 180 },
   { name: 'favicon-32x32.png', size: 32 },
 ]
 
 const master = loadMaster()
 
 const safe = assertMaskableSafe(master, '母版')
+if (safe.maxRadius > MASKABLE_SAFE_RADIUS) {
+  throw new Error(
+    `母版: 核心主体最大半径 ${safe.maxRadius.toFixed(4)} 超出 maskable 安全圆 ${MASKABLE_SAFE_RADIUS}。` +
+      '请让设计师把主体在内缩小（而不是在生成端补白边 / 加圆角）。',
+  )
+}
+const corner = master.corners.corners[0]
 console.log(
-  `母版 ${master.width}×${master.height}｜maskable 安全检查：主体最大半径 ${safe.maxRadius.toFixed(4)} ` +
-    `≤ ${MASKABLE_SAFE_RADIUS}（背景亮度基准 ${safe.bgMax.toFixed(1)}）—— 可直接用作 maskable，无需补白边\n`,
+  `母版 ${master.width}×${master.height}｜四角背景 (${corner.map((v) => Math.round(v)).join(',')})，` +
+    `四角最大色差 ${master.corners.spread.toFixed(1)} → 背景铺满 full-bleed\n` +
+    `maskable 安全检查：核心主体（盒体/卡片）最大半径 ${safe.maxRadius.toFixed(4)} ≤ ${MASKABLE_SAFE_RADIUS}` +
+    `（背景 (${safe.bg.map((v) => Math.round(v)).join(',')}) → 内板 (${safe.plate.map((v) => Math.round(v)).join(',')})）` +
+    `—— 可直接用作 maskable，无需补白边\n`,
 )
 
 mkdirSync(OUT_DIR, { recursive: true })
