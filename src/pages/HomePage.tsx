@@ -12,7 +12,6 @@ import {
 import {
   categoryNameOf,
   computeCategoryCounts,
-  itemMetric,
   tagNamesOf,
 } from '../features/data/viewModels'
 import ItemCard from '../components/ItemCard'
@@ -252,7 +251,6 @@ export default function HomePage() {
             </div>
             <div className="no-scrollbar flex items-stretch gap-3.5 overflow-x-auto px-5 pb-1">
               {recent.map((item) => {
-                const m = itemMetric(item, today)
                 return (
                   <ItemCard
                     key={item.id}
@@ -261,9 +259,8 @@ export default function HomePage() {
                     iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
                     categoryName={categoryNameOf(categories, item.categoryId)}
                     tagNames={tagNamesOf(item.id, links, tags)}
-                    metric={
-                      m && { daysText: m.daysText, totalText: m.totalText, dailyText: m.dailyText }
-                    }
+                    item={item}
+                    today={today}
                     className="w-[204px] shrink-0"
                     onNavigate={(e) => {
                       if (!supportsViewTransition()) return

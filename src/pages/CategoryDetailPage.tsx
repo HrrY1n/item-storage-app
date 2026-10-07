@@ -1,5 +1,6 @@
 import { useParams } from 'react-router'
 import { categoryPath, collectSubtreeIds } from '../domain/categoryTree'
+import { todayString } from '../domain/purchase'
 import { useCategories, useItemTagLinks, useItems, usePresetAssetMap, useTags } from '../features/data/hooks'
 import { categoryNameOf, tagNamesOf } from '../features/data/viewModels'
 import PageHeader from '../components/PageHeader'
@@ -13,6 +14,8 @@ export default function CategoryDetailPage() {
   const tags = useTags()
   const links = useItemTagLinks()
   const assetMap = usePresetAssetMap()
+  // 卡片的持有天数 / 日均成本需要"今天"；已处置物品会在 domain 里冻结到处置日
+  const today = todayString()
 
   const loading = !categories || !items || !tags || !links || !assetMap
   if (loading) return null
@@ -53,6 +56,8 @@ export default function CategoryDetailPage() {
                 iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
                 categoryName={categoryNameOf(categories, item.categoryId)}
                 tagNames={tagNamesOf(item.id, links, tags)}
+                item={item}
+                today={today}
               />
             ))}
           </div>

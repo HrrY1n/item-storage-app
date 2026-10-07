@@ -381,7 +381,7 @@ ownershipDaysOf(item)  // lifecycle.ts:73+  // disposed 时以 disposedAt 冻结
 
 overlay 规格：
 - 位置：图片区**底部居中**（`absolute inset-x-0 bottom-2 flex justify-center`）
-- 材质：`bg-ink-primary/72` 半透明 + 轻 `backdrop-blur-sm`
+- 材质：**`bg-ink-solid` 实心** + `text-ink-inverse`（⚠️ 原设计的 `bg-ink-primary/72` 不可用，见 §15实测结论）
 - 文字：`text-ink-inverse`，`text-caption`，`rounded-pill`，`px-2 py-[3px]`
 - **高度不超过图片区 22%**，不遮挡物品主体（§16）
 
@@ -611,7 +611,7 @@ domain **只有** `method = 'other'`，**没有 subtype 字段**。
 | 已售出 | `bg-success-soft` | `text-success` | L1 badge |
 | 已丢弃 | `bg-surface-sunken` | `text-ink-secondary` | L1 badge |
 | 其他处置 | `bg-info-soft` | `text-info` | L1 badge |
-| 售出 overlay | `bg-ink-primary/72` + `backdrop-blur-sm` | `text-ink-inverse` | L2 图片底部 |
+| 售出 overlay | `bg-ink-solid` | `text-ink-inverse` | L2 图片底部 |
 | 盈利 | — | `text-success` | sold footer |
 | 亏损 | — | `text-money` | sold footer |
 | 持平 | — | `text-ink-tertiary` | sold footer |
@@ -749,7 +749,7 @@ domain **只有** `method = 'other'`，**没有 subtype 字段**。
 | L1 badge `sold` | `bg-success-soft #eaf4ef` + `text-success #2f7d5b` | `bg-success-soft #16241d` + `text-success #5cab86` |
 | L1 badge `discarded` | `bg-surface-sunken #e9e9ec` + `text-ink-secondary #525252` | `bg-surface-sunken #2a2a31` + `text-ink-secondary #b8b8b5` |
 | L1 badge `other` | `bg-info-soft #edf2fb` + `text-info #2f6bd0` | `bg-info-soft #1d2536` + `text-info #7aa7f0` |
-| L2 overlay | `bg-ink-primary/72` + `text-ink-inverse #ffffff` | 同（`ink-inverse` 在 dark 下为 `#0e0e10`，见 `index.css:115`） |
+| L2 overlay | `bg-ink-solid #171717` + `text-ink-inverse #ffffff` | `bg-ink-solid #f4f4f2` + `text-ink-inverse #0e0e10` |
 | 盈利 | `text-success` | `text-success` |
 | 亏损 | `text-money` | `text-money` |
 | 持平 | `text-ink-tertiary` | `text-ink-tertiary` |
@@ -757,11 +757,34 @@ domain **只有** `method = 'other'`，**没有 subtype 字段**。
 **对比度要求**：
 - badge 前景/背景 ≥ 4.5:1（正文级）
 - overlay 文字/背景 ≥ 4.5:1
-- **dark 模式下 overlay 需单独确认**：`bg-ink-primary/72` 在 dark 下
-  `ink-primary` 是 `#f4f4f2`（浅色）→ 浅色半透明底 + 深色文字（`ink-inverse #0e0e10`）。
-  实现时必须**实测**该组合的对比度；若不足，dark 下改用 `bg-ink-inverse/72`（即深色半透明底 + 浅色文字）。
+### 实现阶段实测结论（V4 已完成）
 
-> ⚠️ 这是一个**已知需要在实现时验证**的点，不在文档里预设结论。
+原设计的 `bg-ink-primary/72` **在本项目不可用**，实测发现了一个真实缺陷：
+
+>⚠️ 本项目颜色 token 一律是 `var(--color-*)`，而 **Tailwind 的 opacity 修饰符
+> 对 `var()` 颜色不生成 CSS**。`bg-ink-primary/72` 在构建产物里**根本没有对应规则**，
+> 浏览器实测 computed `background-color` = `rgba(0, 0, 0, 0)`（**完全透明**）。
+> 那会让 overlay 退化成「白字直接压在物品图标上」，遇到浅色 plate 时**白字白底彻底不可读**。
+
+**最终方案**：改用 `bg-ink-solid`（已存在且确实会生成 CSS 的实心 token）。
+它与 `ink-primary` / `ink-inverse` 是同一对"互为反色"的组合，跨主题自动成立：
+
+| 主题 | 背景 | 前景 | 理论对比度 | **真实截图像素实测** |
+|---|---|---|---|---|
+| light | `bg-ink-solid` `#171717` | `text-ink-inverse` `#ffffff` | 17.93:1 | **17.93:1** ✅ |
+| dark | `bg-ink-solid` `#f4f4f2` | `text-ink-inverse` `#0e0e10` | 17.51:1 | **17.51:1** ✅ |
+
+**实测方法**（不是理论推导）：无头 Edge 真机截取overlay 胶囊区域（40×18@6x），
+读回浏览器 canvas 逐像素统计色簇，取"底色主簇"与"文字簇"计算 WCAG 对比度。
+两套主题均 ≥ 4.5:1，实际为 17.5:1 以上。
+
+**取舍说明**：实心胶囊牺牲了原设计的 72% 半透明质感，但
+① 半透明在本项目根本无法实现（见上）；
+② 胶囊只有 40×18px，实心与半透明的视觉差异可忽略；
+③ 实心保证文字对比度**不受背景图片影响**（文字压在100% 不透明填充上）。
+`backdrop-blur-sm` 一并移除 —— 没有透明度时它没有意义，只白烧 GPU。
+
+⚠️ 未新增任何 hex、未新增任何主题变量（`bg-ink-solid` 是既有 token）。
 
 **Phase 2H 明度重校准纪律**：新增 overlay 是唯一的新增表面，
 必须同时在两套主题下截图验证，不得只验浅色。
@@ -913,7 +936,7 @@ domain **只有** `method = 'other'`，**没有 subtype 字段**。
 - [ ] **V1** `.tmp/verify/verify-visual.mjs` 跑一遍
 - [ ] **V2** 明暗两套主题**都**截图（Phase 2H 纪律：不许只验浅色）
 - [ ] **V3** 390 / 430 / 桌面三档截图
-- [ ] **V4** dark 主题 overlay 对比度实测（§15的未决点）
+- [x] **V4** dark 主题 overlay 对比度实测（§15）—— 已完成，见下方「实现阶段实测结论」
 - [ ] **V5** sold / discarded / other **各至少一件**真实数据卡
 
 ### 20.6 验收门禁
@@ -941,7 +964,7 @@ domain **只有** `method = 'other'`，**没有 subtype 字段**。
 │ │        │           │        │
 │ │        └───────────┘        │
 │ │                             │
-│ │        ┌ 售出 ─┐            │  ← L2 overlay · bg-ink-primary/72 + text-ink-inverse
+│ │        ┌ 售出 ─┐            │  ← L2 overlay · bg-ink-solid + text-ink-inverse
 │ ╰─────────────────────────────╯     底部居中，高度 ≤ 图片区 22%
 ├─────────────────────────────────┤
 │ 小米平板 5                        │  text-item · line-clamp-2 · min-h-[40px]
@@ -1059,7 +1082,7 @@ FINAL DESIGN CONTRACT — Disposed Item UX
      other      → 其他处置  bg-info-soft        / text-info
      禁用 danger / danger-soft 表达处置状态
 
-[F2] Image Outcome Overlay（图片区底部居中，bg-ink-primary/72 + text-ink-inverse）
+[F2] Image Outcome Overlay（图片区底部居中，bg-ink-solid + text-ink-inverse）
      sold       → 有，文案「售出」
      discarded  → 无
      other      → 无

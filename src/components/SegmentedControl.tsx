@@ -3,6 +3,13 @@ interface Option<T extends string> {
   label: string
   /** 可选的次要说明（如列表页的件数计数）；始终排在标签之后，用等宽数字 */
   hint?: string
+  /**
+   * 禁用该选项（仍渲染、仍可读，只是不响应点击）。
+   *
+   * 处置二级筛选用它实现"数量为 0 时显示但禁用"——
+   * 隐藏会让控件宽度在切换时跳动，破坏 §6.1 的布局稳定性要求。
+   */
+  disabled?: boolean
 }
 
 /**
@@ -34,17 +41,24 @@ export default function SegmentedControl<T extends string>({
     >
       {options.map((o) => {
         const active = o.value === value
+        const disabled = o.disabled === true
         return (
           <button
             key={o.value}
             type="button"
             role="radio"
             aria-checked={active}
-            onClick={() => onChange(o.value)}
+            disabled={disabled}
+            onClick={() => {
+              if (disabled) return
+              onChange(o.value)
+            }}
             className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-pill text-caption transition-colors duration-200 ease-out-quint ${
-              active
-                ? 'bg-surface-raised font-medium text-ink-primary shadow-card'
-                : 'text-ink-tertiary active:text-ink-secondary'
+              disabled
+                ? 'cursor-default text-ink-faint'
+                : active
+                  ? 'bg-surface-raised font-medium text-ink-primary shadow-card'
+                  : 'text-ink-tertiary active:text-ink-secondary'
             }`}
           >
             {o.label}
