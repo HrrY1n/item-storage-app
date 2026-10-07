@@ -41,6 +41,11 @@
   --color-ink-inverse: #ffffff;
   --color-ink-solid: #171717;
 
+  /* 已售出图片贴纸的底：深灰半透，能微微透出底下图标。
+     与 --color-overlay（dialog 遮罩）分开：那个要盖住整个页面，这个只贴一小条。 */
+  --color-sold-label: rgba(23, 23, 23, 0.82);
+  --color-sold-label-edge: rgba(255, 255, 255, 0.22);
+
   --color-line: rgba(23, 23, 23, 0.06);
   --color-line-strong: rgba(23, 23, 23, 0.1);
   --color-line-inner: rgba(23, 23, 23, 0.045);
@@ -114,6 +119,11 @@
   --color-ink-faint: #83837f;
   --color-ink-inverse: #0e0e10;
   --color-ink-solid: #f4f4f2;
+
+  /* 深色下贴纸底必须仍是"深色 + 白字"，不能反成浅底黑字（那会变成一块突兀白斑）。
+     0.78 保证在深色 plate（#26262C）上仍能透出一点底图，又足够压住白字。 */
+  --color-sold-label: rgba(14, 14, 16, 0.78);
+  --color-sold-label-edge: rgba(255, 255, 255, 0.16);
 
   --color-line: rgba(255, 255, 255, 0.08);
   --color-line-strong: rgba(255, 255, 255, 0.15);

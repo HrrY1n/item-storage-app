@@ -70,36 +70,49 @@ export function DisposalChip({
 }
 
 /**
- * 图片区「处置结果」overlay —— **只有出售有**（设计 §7.1）。
+ * 图片区「已售出」贴纸 —— **只有出售有**（设计 §7.1）。
  *
  * 为什么只有出售：出售有一个明确的**结果**（回收了钱）值得视觉锚点；
  * 丢弃 / 其他没有这种结果，叠字只是噪音。
  *
- * ⚠️ 高度 ≤ 图片区 22%，不遮挡物品本体；物品图标保持opacity 1，
- * 绝不降透明度 / 灰化 / 加红叉（设计 §16）。
+ * ## 形态：斜向浅贴纸（取代旧版底部实心胶囊）
  *
- * ## ⚠️ 为什么用 `bg-ink-solid` 而不是设计稿写的 `bg-ink-primary/72`
+ * 旧版是「图片底部居中、实心墨色、pill 形状」的胶囊，视觉上像**从图片外面
+ * 凸起来的一个控件**——贴着图片下沿、与图片边缘平行，于是读成按钮或 tooltip，
+ * 而不是"贴在物品上的标签"。这一版改成：
  *
- * 本项目颜色 token 一律是 `var(--color-*)`，而 **Tailwind 的 opacity 修饰符
- * 对 `var()` 颜色不生成 CSS** —— `bg-ink-primary/72` 在构建产物里**根本没有
- * 对应规则**，实测 computed `background-color` 是 `rgba(0, 0, 0, 0)`（全透明）。
- * 那会让 overlay 退化成"白字直接压在图标上"，遇到浅色 plate 时**白字白底
- * 完全不可读**。视觉验证正是在这里抓到这个缺陷 —— 也就是设计 §20 预留的未决点。
+ * - **斜置 `-20°`**：不与图片边缘平行 → 立刻从"控件"变成"贴纸/封条"
+ * - **小圆角矩形**（`rounded-[3px]` 而非 `rounded-pill`）：比胶囊更薄更平，
+ *   不像电商大促条幅
+ * - **半透明深灰**（`bg-sold-label`，浅色 0.82 / 深色 0.78）：能微微透出底下图标，
+ *   有"贴纸压在图上"的层次，而不是一块盖住图形的实色块
+ * - **一道 1px 浅色内描边**（`border-sold-label-edge`）：给贴纸一个"纸边"，
+ *   在深色主题下不至于和 plate 糊在一起
+ * - **压在物品主体中部**（`top-1/2` 居中偏下）而非贴底：贴底会压住图标下缘轮廓，
+ *   中部穿过反而更像"贴在物品上"
  *
- * 改用**已存在且确实会生成 CSS** 的 `bg-ink-solid`（实心，无透明度）：
- * - light：`#171717` 底 + `#ffffff` 字 → **17.93:1**
- * - dark ：`#f4f4f2` 底 + `#0e0e10` 字 → **17.51:1**
- * 两者都是"底与字互为反色"，跨主题自动成立，远超 WCAG AA 4.5:1。
- * 实心胶囊只有 40×18px，丢失透明度在视觉上可忽略。
- * `backdrop-blur-sm` 一并去掉 —— 没有透明度时它没有意义，只白烧 GPU。
+ * ## 为什么不用 opacity 修饰符
+ *
+ * 本项目颜色 token 一律 `var(--color-*)`，而 **Tailwind 的 opacity 修饰符对
+ * `var()` 颜色不生成 CSS** —— `bg-ink-solid/80` 在产物里没有对应规则，
+ * 实测 computed `background-color` 是全透明。因此透明度**做进 token 里**
+ * （`--color-sold-label` 本身就是 rgba），`bg-sold-label` 拿到的是真实颜色。
+ *
+ * ## 对比度
+ *
+ * 两套主题都是「深底 + 白字」这一个组合，不做明暗反转：
+ * - light：`rgba(23,23,23,.82)` 底 + `#ffffff` 字 → 约 **12:1**（压在最浅的 plate 上仍 ≥ 9:1）
+ * - dark ：`rgba(14,14,16,.78)` 底 + `#ffffff` 字 → 约 **11:1**
+ * 刻意**不用** `bg-ink-solid`（它在深色下会翻成浅色实心块 + 深色字，
+ * 那正是旧版最刺眼的地方），也不用 `text-ink-inverse`（深色下会变成深字）。
  */
 export function DisposalOverlay({ text }: { text: string }) {
   return (
     <span
-      className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center"
+      className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-[42%] justify-center"
       aria-hidden="false"
     >
-      <span className="rounded-pill bg-ink-solid px-2 py-[3px] text-caption leading-none text-ink-inverse">
+      <span className="-rotate-[20deg] shrink-0 rounded-[3px] border border-sold-label-edge bg-sold-label px-[9px] py-[3px] text-[11px] font-semibold leading-none tracking-[0.06em] text-white shadow-[0_1px_2px_rgba(0,0,0,0.18)]">
         {text}
       </span>
     </span>

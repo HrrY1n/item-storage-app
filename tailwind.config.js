@@ -105,6 +105,13 @@ export default {
           line: 'var(--color-hero-line)',
         },
         overlay: 'var(--color-overlay)',
+        /**
+         * 已售出图片贴纸（斜向「售出」）。
+         * 刻意与 overlay 分开：overlay 是整页遮罩，这个是贴在物品上的一小条浅色斜签，
+         * 两者的透明度与用途都不同，共用一个 token 会让其中一个必然失真。
+         */
+        'sold-label': 'var(--color-sold-label)',
+        'sold-label-edge': 'var(--color-sold-label-edge)',
       },
       spacing: {
         '4.5': '18px',
