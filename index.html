@@ -35,8 +35,35 @@
       })()
     </script>
 
-    <!-- iOS：添加到主屏幕 + 全屏运行 -->
-    <link rel="apple-touch-icon" href="/icons/pwa/apple-touch-icon-180x180.png" />
+    <!--
+      浏览器标签页图标：支持 `link media` 的浏览器（Chromium / Firefox）随系统主题切换日/夜版本；
+      不支持 media 的（Safari、老浏览器）会忽略 media 并采用第一个 —— 也就是日间版，行为可预期。
+      两个文件都由 scripts/gen-pwa-icons.mjs 从 1024 母版缩放得到。注意这与 iOS 主屏图标是两件事。
+    -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/icons/pwa/favicon-light-32x32.png"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/icons/pwa/favicon-dark-32x32.png"
+      media="(prefers-color-scheme: dark)"
+    />
+
+    <!--
+      iOS：添加到主屏幕 + 全屏运行。
+      固定使用**日间版**作为默认安装图标：iOS 完全不支持「按 prefers-color-scheme 切换主屏图标」——
+      主屏图标只在用户「添加到主屏幕」那一刻由 Safari 抓取并静态保存，因此不做非标准 hack。
+
+      文件名带 -v2：iOS 对 apple-touch-icon 缓存极强，换 URL 是唯一可靠的 cache bust 手段
+      （旧文件 apple-touch-icon-180x180.png 已由生成器删除，不再存在）。
+    -->
+    <link rel="apple-touch-icon" href="/icons/pwa/apple-touch-icon-180x180-v2.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />

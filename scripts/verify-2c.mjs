@@ -382,7 +382,7 @@ async function run() {
   }
 
   const iconChecks = await s.ev(`(async () => {
-    const paths = ['/icons/pwa/pwa-192x192.png','/icons/pwa/pwa-512x512.png','/icons/pwa/maskable-512x512.png','/icons/pwa/apple-touch-icon-180x180.png'];
+    const paths = ['/icons/pwa/pwa-192x192.png','/icons/pwa/pwa-512x512.png','/icons/pwa/maskable-512x512.png','/icons/pwa/apple-touch-icon-180x180-v2.png','/icons/pwa/favicon-light-32x32.png','/icons/pwa/favicon-dark-32x32.png'];
     const out = {};
     for (const p of paths) {
       try { const r = await fetch(p); out[p] = r.ok; } catch { out[p] = false; }
@@ -390,7 +390,7 @@ async function run() {
     return out;
   })()`)
   const allIconsOk = Object.values(iconChecks || {}).every(Boolean)
-  check('D7. 四个 PWA 图标文件均可访问', allIconsOk, JSON.stringify(iconChecks))
+  check('D7. 六个 App Icon 文件均可访问（含 -v2 主屏图标与两个 favicon）', allIconsOk, JSON.stringify(iconChecks))
 
   const appleMeta = await s.ev(`!!document.querySelector('link[rel="apple-touch-icon"]')`)
   const iosMeta = await s.ev(`!!document.querySelector('meta[name="apple-mobile-web-app-capable"]')`)

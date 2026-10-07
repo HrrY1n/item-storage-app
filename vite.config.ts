@@ -30,8 +30,14 @@ export default defineConfig({
        * （保留 'auto' 会与手动注册并存，出现两个 registration 来源）。
        */
       injectRegister: null,
-      // public/ 下需要一并进入 precache 清单的静态资源
-      includeAssets: ['icons/items/*.svg', 'icons/pwa/apple-touch-icon-180x180.png'],
+      /**
+       * 物品图标（SVG）显式列入 precache。
+       *
+       * 不再在这里重复声明 PWA App Icon 的 PNG：workbox 的 `globPatterns` 已经覆盖构建产物里
+       * 全部 png，manifest.icons 里的三条也会被插件自动加进 precache —— 显式再写一遍只会
+       * 产生同名条目（revision 相同，workbox 的 cache key 一致，不冲突；但没必要）。
+       */
+      includeAssets: ['icons/items/*.svg'],
       manifest: {
         id: '/',
         name: '私人数字物品库',
@@ -58,6 +64,12 @@ export default defineConfig({
             purpose: 'any',
           },
           {
+            /**
+             * maskable 与 pwa-512x512.png **内容完全相同**：母版是 full-bleed 方形，
+             * 主体最大半径 0.394 ≤ 0.4（规范安全圆），因此不需要为 maskable 单独缩小构图、
+             * 更不允许补白边（gen-pwa-icons.mjs 的 assertMaskableSafe 会在生成时强制这条不变量）。
+             * 保留独立文件名是为了让 manifest 的 purpose 与文件一一对应，将来若要单独微调 maskable 有落点。
+             */
             src: '/icons/pwa/maskable-512x512.png',
             sizes: '512x512',
             type: 'image/png',

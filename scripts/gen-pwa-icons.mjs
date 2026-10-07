@@ -1,22 +1,44 @@
 /**
- * 生成 PWA 图标（192 / 512 / maskable-512 / apple-touch-icon-180）。
+ * 生成 PWA / favicon 图标 —— **唯一入口**，不要手改 `public/icons/pwa/*.png`。
  *
- * 不引入任何第三方依赖：直接用 Node 内置 zlib 手写最小 PNG 编码器。
- * 渲染采用 3 倍超采样后降采样，保证圆角与边缘平滑。
+ * 输入源（设计定稿母版，1024×1024 / full-bleed / 不透明 / 无预烘焙圆角 / 无白边）：
+ *   assets/app-icons/app-icon-light-1024.png   日间版（正式默认 App Icon）
+ *   assets/app-icons/app-icon-dark-1024.png    夜间版（同系列 dark asset，用于主题感知 favicon）
  *
- * 构图：浅色背景 + 深色圆角底板 + 浅色收纳档案盒（盒中露出分类卡，前景卡为品牌青绿）。
- * 全部几何以「底板边长」为唯一单位（比例坐标），因此 normal 与 maskable 共享同一套构图。
+ * 所有派生尺寸都是对母版**等比例高质量缩放**（分离式 Lanczos3）得到：
+ * 不重绘、不调色、不加深边框、不裁圆角、不补白边、不加透明度。
  *
- * 用法：node scripts/gen-pwa-icons.mjs
+ * 零依赖：Node 内置 zlib 手写最小 PNG 解码/编码器。
+ *
+ * 安全网（结构上保证"母版 = 唯一真相"）：
+ *   1. 母版必须是 1024×1024 正方形、bit depth 8、非隔行；
+ *   2. 母版必须完全不透明（拒绝透明圆角）；
+ *   3. 母版四角必须是有色画面（拒绝白边 / 白底裁圆角）；
+ *   4. maskable 主体必须落在规范安全圆（半径 0.4）内 —— 不满足直接报错，
+ *      而不是靠"加白边"糊过去（见 assertMaskableSafe）；
+ *   5. 每个文件写盘后回读校验尺寸，不符即抛错；
+ *   6. 输出目录里的 PNG 与 targets 表严格一一对应：多出来的（历史残留）直接删除。
+ *
+ * 用法：node scripts/gen-pwa-icons.mjs（或 npm run icons）
  */
 
-import { deflateSync } from 'node:zlib'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { deflateSync, inflateSync } from 'node:zlib'
+import { mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUT_DIR = resolve(__dirname, '../public/icons/pwa')
+const MASTER_DIR = resolve(__dirname, '../assets/app-icons')
+
+const MASTER_SIZE = 1024
+/** Google maskable icon 规范：主体必须落在直径 80%（半径 0.4）的安全圆内 */
+const MASKABLE_SAFE_RADIUS = 0.4
+
+const MASTERS = {
+  light: resolve(MASTER_DIR, 'app-icon-light-1024.png'),
+  dark: resolve(MASTER_DIR, 'app-icon-dark-1024.png'),
+}
 
 // ------------------------------------------------------------------ PNG 编码
 
@@ -69,7 +91,7 @@ function encodePNG(width, height, rgb) {
   ])
 }
 
-/** 读取本生成器产出的 PNG（filter: None, truecolor），用于生成后自检尺寸 */
+/** 读取 PNG 的 IHDR 尺寸（用于生成后自检） */
 function readPNGSize(buffer) {
   const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
   for (let i = 0; i < signature.length; i++) {
@@ -79,326 +101,293 @@ function readPNGSize(buffer) {
   return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) }
 }
 
-// ------------------------------------------------------------------ 绘制原语
+// ------------------------------------------------------------------ PNG 解码
 
-function createSurface(size) {
-  return { size, rgb: Buffer.alloc(size * size * 3) }
+const CHANNELS_OF = { 0: 1, 2: 3, 4: 2, 6: 4 }
+
+const paeth = (a, b, c) => {
+  const p = a + b - c
+  const pa = Math.abs(p - a)
+  const pb = Math.abs(p - b)
+  const pc = Math.abs(p - c)
+  if (pa <= pb && pa <= pc) return a
+  return pb <= pc ? b : c
 }
 
-function blendPixel(surface, x, y, color, alpha) {
-  if (x < 0 || y < 0 || x >= surface.size || y >= surface.size) return
-  if (alpha <= 0) return
-  const i = (y * surface.size + x) * 3
-  if (alpha >= 1) {
-    surface.rgb[i] = color[0]
-    surface.rgb[i + 1] = color[1]
-    surface.rgb[i + 2] = color[2]
-    return
+/**
+ * 解码 8bit / 非隔行 PNG → RGB（丢掉 alpha，但要求 alpha 全部不透明）。
+ * 只支持生成器实际需要的子集，遇到不支持的形态直接报错而不是猜。
+ */
+function decodePNG(buffer, label) {
+  const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+  for (let i = 0; i < signature.length; i++) {
+    if (buffer[i] !== signature[i]) throw new Error(`${label}: PNG signature 不正确`)
   }
-  surface.rgb[i] = Math.round(surface.rgb[i] * (1 - alpha) + color[0] * alpha)
-  surface.rgb[i + 1] = Math.round(surface.rgb[i + 1] * (1 - alpha) + color[1] * alpha)
-  surface.rgb[i + 2] = Math.round(surface.rgb[i + 2] * (1 - alpha) + color[2] * alpha)
-}
 
-function fillBackground(surface, color) {
-  for (let y = 0; y < surface.size; y++) {
-    for (let x = 0; x < surface.size; x++) blendPixel(surface, x, y, color, 1)
+  let offset = 8
+  let ihdr = null
+  const idat = []
+  while (offset + 8 <= buffer.length) {
+    const length = buffer.readUInt32BE(offset)
+    const type = buffer.toString('ascii', offset + 4, offset + 8)
+    const data = buffer.subarray(offset + 8, offset + 8 + length)
+    if (type === 'IHDR') ihdr = data
+    else if (type === 'IDAT') idat.push(data)
+    else if (type === 'IEND') break
+    offset += 12 + length
   }
-}
+  if (!ihdr) throw new Error(`${label}: 缺少 IHDR`)
 
-/** 圆角矩形的覆盖率采样（返回 0~1，天然带抗锯齿） */
-function roundRectCoverage(x, y, rx, ry, rw, rh, r) {
-  if (x < rx || x >= rx + rw || y < ry || y >= ry + rh) return 0
-  const px = x + 0.5
-  const py = y + 0.5
-  const cx = Math.min(Math.max(px, rx + r), rx + rw - r)
-  const cy = Math.min(Math.max(py, ry + r), ry + rh - r)
-  const dx = px - cx
-  const dy = py - cy
-  const dist = Math.hypot(dx, dy)
-  return Math.max(0, Math.min(1, r - dist + 0.5))
-}
+  const width = ihdr.readUInt32BE(0)
+  const height = ihdr.readUInt32BE(4)
+  const bitDepth = ihdr[8]
+  const colorType = ihdr[9]
+  const interlace = ihdr[12]
+  if (bitDepth !== 8) throw new Error(`${label}: 只支持 8bit 深度（实际 ${bitDepth}）`)
+  if (interlace !== 0) throw new Error(`${label}: 不支持隔行扫描 PNG`)
+  const channels = CHANNELS_OF[colorType]
+  if (!channels) throw new Error(`${label}: 不支持的颜色类型 ${colorType}`)
 
-function fillRoundRect(surface, rx, ry, rw, rh, r, color, alpha = 1) {
-  const x0 = Math.max(0, Math.floor(rx))
-  const y0 = Math.max(0, Math.floor(ry))
-  const x1 = Math.min(surface.size, Math.ceil(rx + rw))
-  const y1 = Math.min(surface.size, Math.ceil(ry + rh))
-  for (let y = y0; y < y1; y++) {
-    for (let x = x0; x < x1; x++) {
-      const c = roundRectCoverage(x, y, rx, ry, rw, rh, r)
-      if (c > 0) blendPixel(surface, x, y, color, c * alpha)
+  const raw = inflateSync(Buffer.concat(idat))
+  const stride = width * channels
+  const samples = Buffer.alloc(stride * height)
+
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * (stride + 1)]
+    const line = raw.subarray(y * (stride + 1) + 1, y * (stride + 1) + 1 + stride)
+    const cur = samples.subarray(y * stride, (y + 1) * stride)
+    const prev = y > 0 ? samples.subarray((y - 1) * stride, y * stride) : null
+    for (let i = 0; i < stride; i++) {
+      const a = i >= channels ? cur[i - channels] : 0
+      const b = prev ? prev[i] : 0
+      const c = prev && i >= channels ? prev[i - channels] : 0
+      let v = line[i]
+      if (filter === 1) v += a
+      else if (filter === 2) v += b
+      else if (filter === 3) v += (a + b) >> 1
+      else if (filter === 4) v += paeth(a, b, c)
+      else if (filter !== 0) throw new Error(`${label}: 未知的行过滤器 ${filter}`)
+      cur[i] = v & 0xff
     }
   }
-}
 
-/** 竖直线性渐变的圆角矩形（top → bottom） */
-function fillRoundRectGradientY(surface, rx, ry, rw, rh, r, top, bottom, alpha = 1) {
-  const x0 = Math.max(0, Math.floor(rx))
-  const y0 = Math.max(0, Math.floor(ry))
-  const x1 = Math.min(surface.size, Math.ceil(rx + rw))
-  const y1 = Math.min(surface.size, Math.ceil(ry + rh))
-  for (let y = y0; y < y1; y++) {
-    const t = rh <= 1 ? 0 : Math.min(1, Math.max(0, (y + 0.5 - ry) / rh))
-    const color = [
-      Math.round(top[0] + (bottom[0] - top[0]) * t),
-      Math.round(top[1] + (bottom[1] - top[1]) * t),
-      Math.round(top[2] + (bottom[2] - top[2]) * t),
-    ]
-    for (let x = x0; x < x1; x++) {
-      const c = roundRectCoverage(x, y, rx, ry, rw, rh, r)
-      if (c > 0) blendPixel(surface, x, y, color, c * alpha)
+  // 展开为 RGB：灰度复制三通道；带 alpha 的一律要求全不透明（母版必须 full-bleed）
+  const rgb = Buffer.alloc(width * height * 3)
+  for (let i = 0; i < width * height; i++) {
+    const s = i * channels
+    if (channels === 1) {
+      rgb[i * 3] = rgb[i * 3 + 1] = rgb[i * 3 + 2] = samples[s]
+    } else if (channels === 2) {
+      if (samples[s + 1] !== 255) throw new Error(`${label}: 母版必须完全不透明（存在透明像素）`)
+      rgb[i * 3] = rgb[i * 3 + 1] = rgb[i * 3 + 2] = samples[s]
+    } else {
+      if (channels === 4 && samples[s + 3] !== 255) {
+        throw new Error(`${label}: 母版必须完全不透明（存在透明像素）`)
+      }
+      rgb[i * 3] = samples[s]
+      rgb[i * 3 + 1] = samples[s + 1]
+      rgb[i * 3 + 2] = samples[s + 2]
     }
   }
+
+  return { width, height, rgb }
 }
 
-/** 径向衰减的椭圆（只用作极轻的接触阴影） */
-function fillSoftEllipse(surface, cx, cy, rx, ry, color, alpha) {
-  const x0 = Math.max(0, Math.floor(cx - rx))
-  const y0 = Math.max(0, Math.floor(cy - ry))
-  const x1 = Math.min(surface.size, Math.ceil(cx + rx))
-  const y1 = Math.min(surface.size, Math.ceil(cy + ry))
-  for (let y = y0; y < y1; y++) {
-    for (let x = x0; x < x1; x++) {
-      const nx = (x + 0.5 - cx) / rx
-      const ny = (y + 0.5 - cy) / ry
-      const d = Math.hypot(nx, ny)
-      if (d >= 1) continue
-      blendPixel(surface, x, y, color, alpha * Math.pow(1 - d, 1.6))
+// ------------------------------------------------------------------ 重采样
+
+/** Lanczos3 核 */
+function lanczos3(x) {
+  const a = Math.abs(x)
+  if (a === 0) return 1
+  if (a >= 3) return 0
+  const px = Math.PI * x
+  return ((Math.sin(px) / px) * Math.sin(px / 3)) / (px / 3)
+}
+
+/**
+ * 预计算降采样的权重表（分离式，两个方向各算一次即可复用到每一行/列）。
+ * scale > 1（降采样）时按 scale 展宽核，等效于先做抗锯齿低通再采样。
+ */
+function buildWeights(srcSize, dstSize) {
+  const scale = srcSize / dstSize
+  const filterScale = Math.max(1, scale)
+  const support = 3 * filterScale
+  const table = []
+  for (let i = 0; i < dstSize; i++) {
+    const center = (i + 0.5) * scale
+    const from = Math.max(0, Math.floor(center - support + 0.5))
+    const to = Math.min(srcSize - 1, Math.ceil(center + support - 0.5))
+    const weights = []
+    let sum = 0
+    for (let t = from; t <= to; t++) {
+      const w = lanczos3((t + 0.5 - center) / filterScale)
+      weights.push(w)
+      sum += w
     }
-  }
-}
-
-// ------------------------------------------------- 多边形（圆角 + 抗锯齿填充）
-
-const vSub = (a, b) => [a[0] - b[0], a[1] - b[1]]
-const vLen = (v) => Math.hypot(v[0], v[1])
-const vNorm = (v) => {
-  const l = vLen(v) || 1
-  return [v[0] / l, v[1] / l]
-}
-
-/** 把多边形每个角按 radius 倒角，输出稠密折线（二次贝塞尔近似圆弧） */
-function chamferPolygon(pts, radius) {
-  const out = []
-  const n = pts.length
-  for (let i = 0; i < n; i++) {
-    const p = pts[i]
-    const prev = pts[(i - 1 + n) % n]
-    const next = pts[(i + 1) % n]
-    const toPrev = vNorm(vSub(prev, p))
-    const toNext = vNorm(vSub(next, p))
-    const d = Math.min(radius, vLen(vSub(prev, p)) / 2, vLen(vSub(next, p)) / 2)
-    if (d <= 0.01) {
-      out.push(p)
+    if (sum === 0) {
+      weights.length = 0
+      weights.push(1)
+      table.push({ from: Math.min(srcSize - 1, Math.round(center)), weights })
       continue
     }
-    const a = [p[0] + toPrev[0] * d, p[1] + toPrev[1] * d]
-    const b = [p[0] + toNext[0] * d, p[1] + toNext[1] * d]
-    for (let t = 0; t <= 1.0001; t += 0.2) {
-      const u = 1 - t
-      out.push([
-        u * u * a[0] + 2 * u * t * p[0] + t * t * b[0],
-        u * u * a[1] + 2 * u * t * p[1] + t * t * b[1],
-      ])
+    for (let k = 0; k < weights.length; k++) weights[k] /= sum
+    table.push({ from, weights })
+  }
+  return table
+}
+
+const clamp255 = (v) => (v < 0 ? 0 : v > 255 ? 255 : Math.round(v))
+
+/** 等比例（方图 → 方图）Lanczos3 重采样；尺寸相同则原样返回 */
+function resample(src, sw, sh, dst) {
+  if (sw === dst && sh === dst) return Buffer.from(src)
+  const hw = buildWeights(sw, dst)
+  const tmp = Buffer.alloc(dst * sh * 3)
+  for (let y = 0; y < sh; y++) {
+    const rowIn = y * sw * 3
+    const rowOut = y * dst * 3
+    for (let x = 0; x < dst; x++) {
+      const { from, weights } = hw[x]
+      let r = 0
+      let g = 0
+      let b = 0
+      for (let k = 0; k < weights.length; k++) {
+        const o = rowIn + (from + k) * 3
+        const w = weights[k]
+        r += src[o] * w
+        g += src[o + 1] * w
+        b += src[o + 2] * w
+      }
+      const o = rowOut + x * 3
+      tmp[o] = clamp255(r)
+      tmp[o + 1] = clamp255(g)
+      tmp[o + 2] = clamp255(b)
+    }
+  }
+
+  const vw = buildWeights(sh, dst)
+  const out = Buffer.alloc(dst * dst * 3)
+  for (let y = 0; y < dst; y++) {
+    const { from, weights } = vw[y]
+    for (let x = 0; x < dst; x++) {
+      let r = 0
+      let g = 0
+      let b = 0
+      for (let k = 0; k < weights.length; k++) {
+        const o = ((from + k) * dst + x) * 3
+        const w = weights[k]
+        r += tmp[o] * w
+        g += tmp[o + 1] * w
+        b += tmp[o + 2] * w
+      }
+      const o = (y * dst + x) * 3
+      out[o] = clamp255(r)
+      out[o + 1] = clamp255(g)
+      out[o + 2] = clamp255(b)
     }
   }
   return out
 }
 
-/** 射线法 inside test */
-function pointInPolygon(px, py, poly) {
-  let inside = false
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i]
-    const [xj, yj] = poly[j]
-    if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
-      inside = !inside
-    }
-  }
-  return inside
-}
+// ------------------------------------------------------------------ 母版校验
 
-/** 4x 子采样得到多边形覆盖率（再叠加外层 3x 超采样，边缘足够干净） */
-function polygonCoverage(x, y, poly) {
-  let hits = 0
-  for (let sy = 0; sy < 2; sy++) {
-    for (let sx = 0; sx < 2; sx++) {
-      const px = x + 0.25 + sx * 0.5
-      const py = y + 0.25 + sy * 0.5
-      if (pointInPolygon(px, py, poly)) hits++
-    }
-  }
-  return hits / 4
-}
+const luminance = (rgb, i) => rgb[i * 3] * 0.2126 + rgb[i * 3 + 1] * 0.7152 + rgb[i * 3 + 2] * 0.0722
 
-function fillPolygon(surface, pts, radius, color, alpha = 1) {
-  const poly = chamferPolygon(pts, radius)
-  let minX = Infinity
-  let minY = Infinity
-  let maxX = -Infinity
-  let maxY = -Infinity
-  for (const [x, y] of poly) {
-    if (x < minX) minX = x
-    if (x > maxX) maxX = x
-    if (y < minY) minY = y
-    if (y > maxY) maxY = y
-  }
-  const x0 = Math.max(0, Math.floor(minX))
-  const y0 = Math.max(0, Math.floor(minY))
-  const x1 = Math.min(surface.size, Math.ceil(maxX))
-  const y1 = Math.min(surface.size, Math.ceil(maxY))
-  for (let y = y0; y < y1; y++) {
-    for (let x = x0; x < x1; x++) {
-      const c = polygonCoverage(x, y, poly)
-      if (c > 0) blendPixel(surface, x, y, color, c * alpha)
+/** 四角不能是白（白边 / 白底裁圆角都会在这里暴露） */
+function assertNoWhiteCorners(master, label) {
+  const { width, height, rgb } = master
+  const corners = [
+    [0, 0],
+    [width - 1, 0],
+    [0, height - 1],
+    [width - 1, height - 1],
+  ]
+  for (const [x, y] of corners) {
+    const i = (y * width + x) * 3
+    const min = Math.min(rgb[i], rgb[i + 1], rgb[i + 2])
+    if (min > 240) {
+      throw new Error(
+        `${label}: 四角像素接近纯白 (${rgb[i]},${rgb[i + 1]},${rgb[i + 2]}) —— ` +
+          '母版必须是无白边、无预烘焙圆角的 full-bleed 方形',
+      )
     }
   }
 }
-
-// ------------------------------------------------------------------ 图标构图
-
-const BG = [0xfa, 0xfa, 0xfa]
-const INK = [0x1f, 0x29, 0x37]
-const ACCENT = [0x2d, 0x6c, 0x6f]
-
-/** 盒体与卡片：同一浅色族，靠明度差（而非描边）区分层次，保证小尺寸不糊 */
-const BOX = [0xef, 0xf1, 0xf3] // 盒身 / 盖沿
-const BOX_LIP = [0xf9, 0xfa, 0xfb] // 盖沿上沿高光
-const WALL_TOP = [0xe6, 0xea, 0xed] // 盒内后壁顶端（最深 → 与卡片拉开层次）
-const CARD_MID = [0xf5, 0xf7, 0xf8] // 后方中性卡（接近纯白，明显亮于后壁）
 
 /**
- * 构图（比例坐标，原点在底板左上角，底板边长 = 1）：
- *   0.00–1.00  深色圆角底板
- *   0.18–0.83  盒内后壁（最高、最浅的浅色形，托住分类卡）
- *   0.20–0.42  盒口以上露出的分类卡：右侧 1 张中性卡 + 左侧前景青绿卡
- *   0.11–0.85  盖沿（横向厚圆角条，明显宽于盒身 → 读作「上沿」而非托盘）
- *   0.15–0.82  盒身（宽高比≈2.2，底部圆角明显）
- *   0.35–0.65  正面标签槽（INK 外框 + 浅色内芯）
- *
- * contentRatio 决定底板占画布的比例：normal 稍大、maskable 略小以留出裁切安全区。
- * 由于所有几何都以底板边长为单位，两者共享完全相同的构图。
+ * maskable 安全检查：主体必须完全落在半径 0.4 的安全圆内。
+ * 主体判定：以四条边 12px 色带的最大亮度为背景基准，亮度 > 基准 + 60 视为主体
+ * （背景是有色渐变，盒体/卡片远亮于它，因此这个判据对两套母版都稳定）。
  */
-function drawComposition(surface, contentRatio) {
-  const s = surface.size
-  fillBackground(surface, BG)
-
-  const B = s * contentRatio
-  const ox = (s - B) / 2
-  /** 比例坐标 → 像素；DY 让整组图形在底板内视觉居中 */
-  const DY = -0.014
-  const px = (u) => ox + u * B
-  const py = (u) => ox + (u + DY) * B
-
-  // Layer 2：深色圆角底板
-  fillRoundRect(surface, ox, ox, B, B, B * 0.225, INK)
-
-  // Layer 3 前置：盒底接触阴影（极轻，落在底板上）
-  fillSoftEllipse(surface, px(0.48), py(0.868), B * 0.28, B * 0.032, [0x00, 0x00, 0x00], 0.16)
-
-  // Layer 3a：盒内后壁
-  fillRoundRectGradientY(
-    surface,
-    px(0.175),
-    py(0.205),
-    B * 0.65,
-    B * 0.4,
-    B * 0.05,
-    WALL_TOP,
-    BOX,
-  )
-
-  // Layer 4：分类卡（从后往前：右侧中性卡 → 前景青绿卡）
-  fillRoundRect(surface, px(0.545), py(0.245), B * 0.25, B * 0.28, B * 0.03, CARD_MID)
-  // 前景卡略微右倾（更像插进盒里的分类卡），仍保留圆角
-  fillPolygon(
-    surface,
-    [
-      [px(0.2), py(0.272)],
-      [px(0.6), py(0.252)],
-      [px(0.565), py(0.62)],
-      [px(0.235), py(0.62)],
-    ],
-    B * 0.03,
-    ACCENT,
-  )
-
-  // Layer 5a：盖沿投在盒身上的阴影
-  fillRoundRect(surface, px(0.15), py(0.552), B * 0.665, B * 0.032, B * 0.012, INK, 0.13)
-
-  // Layer 5b：盒身（宽高比≈2.0，底部圆角明显）
-  fillRoundRectGradientY(
-    surface,
-    px(0.15),
-    py(0.542),
-    B * 0.665,
-    B * 0.332,
-    B * 0.068,
-    BOX,
-    BOX,
-  )
-
-  // Layer 5c：盖沿（宽于盒身，顶部带高光 → 读作盒子的「上沿」）
-  fillRoundRectGradientY(
-    surface,
-    px(0.12),
-    py(0.415),
-    B * 0.725,
-    B * 0.15,
-    B * 0.055,
-    BOX_LIP,
-    BOX,
-  )
-  fillRoundRect(surface, px(0.12), py(0.532), B * 0.725, B * 0.014, B * 0.006, INK, 0.1)
-
-  // Layer 5d：正面标签槽（INK 外框 + 浅色内芯）
-  fillRoundRect(surface, px(0.353), py(0.612), B * 0.294, B * 0.132, B * 0.037, INK)
-  fillRoundRect(surface, px(0.391), py(0.647), B * 0.218, B * 0.062, B * 0.02, BOX)
-}
-
-/** 超采样渲染后降采样到目标尺寸 */
-function render(size, contentRatio) {
-  const scale = 3
-  const big = createSurface(size * scale)
-  drawComposition(big, contentRatio)
-
-  const out = Buffer.alloc(size * size * 3)
-  const n = scale * scale
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      let r = 0
-      let g = 0
-      let b = 0
-      for (let dy = 0; dy < scale; dy++) {
-        for (let dx = 0; dx < scale; dx++) {
-          const i = ((y * scale + dy) * big.size + (x * scale + dx)) * 3
-          r += big.rgb[i]
-          g += big.rgb[i + 1]
-          b += big.rgb[i + 2]
-        }
+function assertMaskableSafe(master, label) {
+  const { width, height, rgb } = master
+  const band = 12
+  let bgMax = 0
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (y < band || y >= height - band || x < band || x >= width - band) {
+        const l = luminance(rgb, y * width + x)
+        if (l > bgMax) bgMax = l
       }
-      const o = (y * size + x) * 3
-      out[o] = Math.round(r / n)
-      out[o + 1] = Math.round(g / n)
-      out[o + 2] = Math.round(b / n)
     }
   }
-  return encodePNG(size, size, out)
+  const threshold = bgMax + 60
+  let maxRadius = 0
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (luminance(rgb, y * width + x) <= threshold) continue
+      const r = Math.hypot((x + 0.5) / width - 0.5, (y + 0.5) / height - 0.5)
+      if (r > maxRadius) maxRadius = r
+    }
+  }
+  if (maxRadius > MASKABLE_SAFE_RADIUS) {
+    throw new Error(
+      `${label}: 主体最大半径 ${maxRadius.toFixed(4)} 超出 maskable 安全圆 ${MASKABLE_SAFE_RADIUS}。` +
+        '请让设计师把主体在内缩小（而不是在生成端补白边 / 加圆角）。',
+    )
+  }
+  return { bgMax, maxRadius }
+}
+
+function loadMaster(name) {
+  const path = MASTERS[name]
+  const label = `${name} 母版 (${path})`
+  const master = decodePNG(readFileSync(path), label)
+  if (master.width !== MASTER_SIZE || master.height !== MASTER_SIZE) {
+    throw new Error(`${label}: 必须是 ${MASTER_SIZE}×${MASTER_SIZE}（实际 ${master.width}×${master.height}）`)
+  }
+  assertNoWhiteCorners(master, label)
+  return master
 }
 
 // ------------------------------------------------------------------ 输出
 
+/** 每个派生尺寸都声明大小与取哪套母版；文件名必须与 index.html / manifest 的引用一致 */
 const targets = [
-  { name: 'pwa-192x192.png', size: 192, ratio: 0.7 },
-  { name: 'pwa-512x512.png', size: 512, ratio: 0.7 },
-  { name: 'maskable-512x512.png', size: 512, ratio: 0.66 },
-  { name: 'apple-touch-icon-180x180.png', size: 180, ratio: 0.7 },
+  { name: 'pwa-192x192.png', size: 192, source: 'light' },
+  { name: 'pwa-512x512.png', size: 512, source: 'light' },
+  { name: 'maskable-512x512.png', size: 512, source: 'light' },
+  { name: 'apple-touch-icon-180x180-v2.png', size: 180, source: 'light' },
+  { name: 'favicon-light-32x32.png', size: 32, source: 'light' },
+  { name: 'favicon-dark-32x32.png', size: 32, source: 'dark' },
 ]
+
+const masters = {
+  light: loadMaster('light'),
+  dark: loadMaster('dark'),
+}
+
+const safe = assertMaskableSafe(masters.light, 'light 母版')
+console.log(
+  `maskable 安全检查：主体最大半径 ${safe.maxRadius.toFixed(4)} ≤ ${MASKABLE_SAFE_RADIUS}` +
+    `（背景亮度基准 ${safe.bgMax.toFixed(1)}）—— 母版可直接用作 maskable，无需补白边\n`,
+)
 
 mkdirSync(OUT_DIR, { recursive: true })
 for (const t of targets) {
-  const png = render(t.size, t.ratio)
+  const master = masters[t.source]
+  const out = resample(master.rgb, master.width, master.height, t.size)
+  const png = encodePNG(t.size, t.size, out)
   const file = resolve(OUT_DIR, t.name)
   writeFileSync(file, png)
 
@@ -408,7 +397,16 @@ for (const t of targets) {
     throw new Error(`${t.name} 尺寸异常：${width}x${height}，期望 ${t.size}x${t.size}`)
   }
   console.log(
-    `${t.name.padEnd(30)} ${String(width).padStart(4)}x${height}  ${(png.length / 1024).toFixed(1)} KB`,
+    `${t.name.padEnd(32)} ${String(width).padStart(4)}x${height}  ${t.source.padEnd(5)} ${(png.length / 1024).toFixed(1)} KB`,
   )
 }
+
+// 清理：输出目录归生成器所有，不属于 targets 的 PNG 都是历史残留（否则会继续被 precache）
+const expected = new Set(targets.map((t) => t.name))
+const stale = readdirSync(OUT_DIR).filter((f) => f.endsWith('.png') && !expected.has(f))
+for (const f of stale) {
+  unlinkSync(resolve(OUT_DIR, f))
+  console.log(`已删除历史残留：${f}`)
+}
+
 console.log('\n输出目录：public/icons/pwa/')
