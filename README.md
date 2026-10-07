@@ -88,8 +88,8 @@
 | **Phase 3B.1** | **0.7.0** | **主力手机场景细化**：本地保存后自动后台同步（2.5s debounce）、产品语义改为「云端同步」、Pairing Code 明确为**恢复码**（换机 / 清数据后靠它连回云端）、新设备以云端为准恢复 | ✅ 完成 |
 | **Stable Release** | **1.0.0** | 核心功能、视觉系统、离线 PWA、备份恢复与可选私人云同步完成稳定性收口，作为首个正式稳定版本 | ✅ 正式版 |
 
-**测试**：**657** 个单元测试全部通过（**39** 个文件）。覆盖 domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + 生命周期与成本口径 + 数据库迁移 + 备份兼容 + PWA 更新决策 + **PWA 图标资产契约（六个 target 与生成器 targets 表一致、母版存在且被引用、maskable 与 any-512 逐字节一致、index.html / manifest 引用路径有效、旧 apple-touch 文件名已消失）** + **同步引擎（假云端端到端：push/pull 收敛、tombstone 不被复活、outbox 回声防护、tag 去重）** + **Worker 装配层（真 node:sqlite 驱动 `executePush`：bind 参数逐位对应、整批事务、tag 并发冲突后重试、`revision_seq == MAX(revision)` 不变量）** + **local-change 自动同步（debounce 聚合、关闭/离线零网络、恢复码不进 ZIP、换机恢复）**）。
-**验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **175** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8 · Phase 2H 32；生产冒烟 8/8；**Phase 2H.1 PWA 更新端到端 23/23** · **App Icon 生产化替换端到端 22/22**）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
+**测试**：**657** 个单元测试全部通过（**39** 个文件）。覆盖 domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + 生命周期与成本口径 + 数据库迁移 + 备份兼容 + PWA 更新决策 + **PWA 图标资产契约（五个 target 与生成器 targets 表一致、输入源是唯一一张母版、无双轨残留、maskable 与 any-512 逐字节一致、index.html / manifest 引用路径有效、旧文件名已消失）** + **同步引擎（假云端端到端：push/pull 收敛、tombstone 不被复活、outbox 回声防护、tag 去重）** + **Worker 装配层（真 node:sqlite 驱动 `executePush`：bind 参数逐位对应、整批事务、tag 并发冲突后重试、`revision_seq == MAX(revision)` 不变量）** + **local-change 自动同步（debounce 聚合、关闭/离线零网络、恢复码不进 ZIP、换机恢复）**）。
+**验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **175** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8 · Phase 2H 32；生产冒烟 8/8；**Phase 2H.1 PWA 更新端到端 23/23** · **App Icon 端到端 22/22（双母版）** · **单一正式图标端到端 22/22**）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。
 
 ## v1.0.0 · 第一正式稳定版
 
@@ -360,68 +360,70 @@ Phase 2G 新增 **83** 个，并开出「护理」「厨房」两个新分类，
 
 ---
 
-## PWA App Icon（Archive Box · 设计母版驱动）
+## PWA App Icon（Archive Box · 单一正式图标）
 
-主屏图标为 **Archive Box / 收纳档案盒**——有色底板上一只浅色收纳盒，盒中露出分类卡（最前一张为品牌青绿），
-盒正面有标签槽。它比旧版四宫格更直接地表达"物品被整理、归档、收纳在这里"。
+主屏图标为 **Archive Box / 收纳档案盒**——深蓝底板上一只浅色收纳盒，盒中露出分类卡（最前一张为品牌青绿），
+盒正面有标签槽。
 
-外部设计交付的 **1024×1024 定稿母版**（full-bleed 正方形、不透明、无预烘焙圆角、无白边）放在
-`assets/app-icons/`，**刻意不放进 `public/`**：两份 1MB 级母版只作为生成器的输入，不进构建产物、不进 precache。
+本项目采用**单一正式图标**方案（已不再是 light/dark 双母版）：
 
-| 母版 | 用途 |
-|---|---|
-| `assets/app-icons/app-icon-light-1024.png` | **日间/默认版**，所有 PWA / iOS / favicon 派生尺寸都取自它 |
-| `assets/app-icons/app-icon-dark-1024.png` | **夜间版**，只用于浏览器标签页图标的 dark 分支 |
+- PWA manifest、maskable、apple-touch-icon、favicon **全部**来自同一张母版；
+- 不做 `<link rel="icon" media="(prefers-color-scheme: …)">` 主题图标切换，也不给 iOS 主屏做双版本；
+- iOS 若自行对主屏图标施加 dark / tinted 外观，那是**系统行为**，我们接受，不写非标准 hack。
 
-派生尺寸全部由 **`scripts/gen-pwa-icons.mjs`** 从母版**等比例高性能缩放**（分离式 Lanczos3）生成——
+唯一母版：`assets/app-icons/app-icon-master-1254.png`（1254×1254、full-bleed、不透明、无预烘焙圆角、无白边）。
+它放在 `assets/` 而**不是 `public/`**：母版只作为生成器的输入，不进构建产物、不进 precache。
+
+> **母版来源（可审计）**：设计交付的定稿是 **1254×1254 的预览式图**——深蓝圆角方块只占画布 72.2%、
+> 四角是浅灰底（≈244,240,237）、带外投影，**无法直接当 full-bleed 母版**。因此用一次性推导脚本
+> （临时工具，不入库）把方块**之外**的区域用**谐波扩散（Laplace 解）**从方块边缘颜色平滑外延成同色底：
+> 预烘焙圆角与外投影被吸收、画布变 full-bleed，而**方块内所有像素（含收纳盒与其投影）逐像素保持原样**
+> （自检：known 区域与源图最大差异 = 0；未知区域残差 max 0.005）。主体仍在 maskable 安全圆内（半径 0.3413）。
+> 若拿到真正的平面导出（1024 PNG、无圆角、无浅底、无投影），直接覆盖该文件并跑 `npm run icons` 即可，
+> **不需要改任何代码**（生成器只校验"正方形 / 不透明 / 四角非白 / 边长 512~4096"）。
+
+派生尺寸全部由 **`scripts/gen-pwa-icons.mjs`** 从母版**等比例高质量缩放**（分离式 Lanczos3）生成——
 这是唯一入口，**不要手改 `public/icons/pwa/*.png`**：
 
-| 文件 | 尺寸 | 取自 | 用途 |
-|---|---|---|---|
-| `pwa-192x192.png` | 192×192 | light | manifest `purpose: any` |
-| `pwa-512x512.png` | 512×512 | light | manifest `purpose: any` |
-| `maskable-512x512.png` | 512×512 | light | manifest `purpose: maskable`（Android 自适应裁切） |
-| `apple-touch-icon-180x180-v2.png` | 180×180 | light | iOS 主屏图标（`index.html` 的 `apple-touch-icon`） |
-| `favicon-light-32x32.png` | 32×32 | light | `<link rel="icon" media="(prefers-color-scheme: light)">` |
-| `favicon-dark-32x32.png` | 32×32 | dark | `<link rel="icon" media="(prefers-color-scheme: dark)">` |
+| 文件 | 尺寸 | 用途 |
+|---|---|---|
+| `pwa-192x192.png` | 192×192 | manifest `purpose: any` |
+| `pwa-512x512.png` | 512×512 | manifest `purpose: any` |
+| `maskable-512x512.png` | 512×512 | manifest `purpose: maskable`（Android 自适应裁切） |
+| `apple-touch-icon-180x180-v3.png` | 180×180 | iOS 主屏图标（`index.html` 的 `apple-touch-icon`） |
+| `favicon-32x32.png` | 32×32 | 浏览器标签页图标（单一，不做主题切换） |
 
 ### 生成器只做"缩放"，不做"重绘"
 
 这条原则被写成硬校验，任一不满足直接抛错（而不是悄悄产出一张"看起来还行"的图）：
 
-- 母版必须是 **1024×1024 正方形**、bit depth 8、非隔行；
+- 母版必须是**正方形**、bit depth 8、非隔行，边长在 512~4096 之间；
 - 母版必须**完全不透明**（拒绝透明圆角）；
 - 母版**四角必须是有色画面**（拒绝白边 / 白底裁圆角）；
 - **maskable 安全区自动校验**：主体最大半径必须 ≤ **0.4**（Google maskable 规范）。不满足就报错让人回去改母版，
-  而不是在生成端补白边。当前 light 母版实测 **0.3944**（dark 0.3889），因此 `maskable-512x512.png` 与
-  `pwa-512x512.png` **逐字节相同**——`src/data/pwaIcons.test.ts` 直接断言这一点，将来若要为 maskable
-  单独缩小构图，测试会失败，也就是一次"有意识的决定"；
-- 每个文件写盘后**回读校验尺寸**；输出目录里不属于 targets 的 PNG（历史残留）**直接删除**。
+  而不是在生成端补白边。当前母版实测 **0.3413**，因此 `maskable-512x512.png` 与 `pwa-512x512.png`
+  **逐字节相同**——`src/data/pwaIcons.test.ts` 直接断言这一点，将来若要为 maskable 单独缩小构图，
+  测试会失败，也就是一次"有意识的决定"；
+- 每个文件写盘后**回读校验尺寸**；输出目录里不属于 targets 的 PNG **直接删除**——双图标时代的
+  `favicon-light-32x32.png` / `favicon-dark-32x32.png` / `apple-touch-icon-180x180-v2.png`
+  就是这样被清掉的。
 
-所以 **App Icon 的真相永远在母版里**：设计师换掉 `assets/app-icons/*.png` 后跑一次 `npm run icons` 即可。
 生成器零依赖（Node 内置 zlib 手写 PNG 解码 / 编码），且确定性（连跑两次输出 md5 一致）。
+缩放正确性做过交叉验证：与 Pillow 的 LANCZOS 参考实现逐像素比对，**最大偏差 1/255**。
 
-> 母版的缩放正确性做过交叉验证：与 Pillow 的 LANCZOS 参考实现逐像素比对，**最大偏差 1/255**、平均偏差 < 0.01。
-
-### 为什么 iOS 主屏图标固定用日间版
-
-iOS 在"添加到主屏幕"那一刻由 Safari 抓取 `apple-touch-icon` 并**静态保存**，之后不会再按
-`prefers-color-scheme` 重新取图；manifest 里的 dark icon `media` 查询至今也没有标准支持。
-所以本项目**不做这种非标准 hack**：iOS 主屏图标 = 日间版。
-
-夜间版只服务于**浏览器标签页**的 favicon 切换——Chromium / Firefox 支持 `link media`；
-Safari 会忽略 `media` 并采用第一个声明（也就是日间版），行为可预期。**这与"iOS 主屏图标"是两件事**。
+契约由 `src/data/pwaIcons.test.ts`（**16** 项）锁定：targets 与产物一一对应、输入源是唯一一张母版、
+**不存在 light/dark 双轨残留**、`index.html` 恰好一条 favicon（无 `media`）+ 一条 apple-touch-icon、
+manifest 三条 icons 全部能在 targets 表里找到。
 
 ### apple-touch-icon 的 cache bust
 
-iOS 对 `apple-touch-icon` 的缓存极强，覆盖同名文件往往不生效，因此改用**带版本的新文件名**
-`apple-touch-icon-180x180-v2.png`（旧文件 `apple-touch-icon-180x180.png` 已由生成器删除）。
-不追加 query string —— 本仓库没有这个惯例。Android / 桌面端的缓存失效由 workbox 的
-`revision` 内容哈希承担，无需改名。
+iOS 对 `apple-touch-icon` 的缓存极强，覆盖同名文件往往不生效，因此沿用**带版本的新文件名**：
+`apple-touch-icon-180x180-v3.png`（`-v2` 与无版本文件均已由生成器删除）。不追加 query string——
+本仓库没有这个惯例。Android / 桌面端的缓存失效由 workbox 的 `revision` 内容哈希承担，无需改名。
 
-> ⚠️ 已经装在 iOS 主屏上的图标**不会**因为这次换文件而自动更新：
-> 删掉旧的主屏快捷方式、从 Safari 重新"添加到主屏幕"才会拿到新图标。删除主屏快捷方式**不等于**清浏览器站点数据，
-> 不需要为此清 IndexedDB。
+> ⚠️ 已经装在 iOS 主屏上的图标**不会**因为换文件而自动更新：删掉旧的主屏快捷方式、从 Safari 重新
+> "添加到主屏幕"才会拿到新图标（**浏览器标签页 favicon 会立即更新，不受此限**）。删除主屏快捷方式
+> **不等于**清浏览器站点数据，不需要为此清 IndexedDB。
 
 ---
 

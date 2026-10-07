@@ -1,23 +1,33 @@
 /**
  * 生成 PWA / favicon 图标 —— **唯一入口**，不要手改 `public/icons/pwa/*.png`。
  *
- * 输入源（设计定稿母版，1024×1024 / full-bleed / 不透明 / 无预烘焙圆角 / 无白边）：
- *   assets/app-icons/app-icon-light-1024.png   日间版（正式默认 App Icon）
- *   assets/app-icons/app-icon-dark-1024.png    夜间版（同系列 dark asset，用于主题感知 favicon）
+ * 输入源（**单一**正式 App Icon 母版，1024+ 正方形 / full-bleed / 不透明 / 无预烘焙圆角 / 无白边）：
+ *   assets/app-icons/app-icon-master-1254.png
+ *
+ * 本项目采用「单一正式图标」方案：
+ *   - PWA manifest、maskable、apple-touch-icon、favicon **全部**来自这同一张母版；
+ *   - 不做 light/dark 双母版，也不做 `<link rel="icon" media="(prefers-color-scheme: …)">` 主题切换；
+ *   - iOS 若自己对主屏图标施加 dark / tinted 处理，就接受系统行为，不做非标准 hack。
  *
  * 所有派生尺寸都是对母版**等比例高质量缩放**（分离式 Lanczos3）得到：
  * 不重绘、不调色、不加深边框、不裁圆角、不补白边、不加透明度。
  *
  * 零依赖：Node 内置 zlib 手写最小 PNG 解码/编码器。
  *
+ * 母版来源（可审计）：由设计交付的 1254×1254 预览式定稿推导而来 —— 原图是"深蓝圆角方块
+ * 只占画布 72%、四角浅灰底 + 外投影"的形态，无法直接当 full-bleed 母版用。推导只做一件事：
+ * 把方块之外的区域用**谐波扩散（Laplace 解）**从方块边缘颜色平滑外延成同色底，
+ * 于是预烘焙圆角与外投影被吸收、画布变 full-bleed，而**方块内所有像素（含收纳盒与投影）
+ * 逐像素保持原样**。交付原图 md5：见 README「PWA App Icon」章节。
+ *
  * 安全网（结构上保证"母版 = 唯一真相"）：
- *   1. 母版必须是 1024×1024 正方形、bit depth 8、非隔行；
+ *   1. 母版必须是正方形、bit depth 8、非隔行，且边长在 512~4096 之间；
  *   2. 母版必须完全不透明（拒绝透明圆角）；
  *   3. 母版四角必须是有色画面（拒绝白边 / 白底裁圆角）；
  *   4. maskable 主体必须落在规范安全圆（半径 0.4）内 —— 不满足直接报错，
  *      而不是靠"加白边"糊过去（见 assertMaskableSafe）；
  *   5. 每个文件写盘后回读校验尺寸，不符即抛错；
- *   6. 输出目录里的 PNG 与 targets 表严格一一对应：多出来的（历史残留）直接删除。
+ *   6. 输出目录里的 PNG 与 targets 表严格一一对应：多出来的（含双图标时代的历史残留）直接删除。
  *
  * 用法：node scripts/gen-pwa-icons.mjs（或 npm run icons）
  */
@@ -31,14 +41,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUT_DIR = resolve(__dirname, '../public/icons/pwa')
 const MASTER_DIR = resolve(__dirname, '../assets/app-icons')
 
-const MASTER_SIZE = 1024
+/** 唯一母版：单一正式 App Icon 的真相所在 */
+const MASTER_FILE = resolve(MASTER_DIR, 'app-icon-master-1254.png')
+/** 母版边长下限/上限：只要求"足够大的正方形"，不锁死具体像素数，换导出尺寸时无需改代码 */
+const MIN_MASTER_SIZE = 512
+const MAX_MASTER_SIZE = 4096
 /** Google maskable icon 规范：主体必须落在直径 80%（半径 0.4）的安全圆内 */
 const MASKABLE_SAFE_RADIUS = 0.4
-
-const MASTERS = {
-  light: resolve(MASTER_DIR, 'app-icon-light-1024.png'),
-  dark: resolve(MASTER_DIR, 'app-icon-dark-1024.png'),
-}
 
 // ------------------------------------------------------------------ PNG 编码
 
@@ -349,12 +358,16 @@ function assertMaskableSafe(master, label) {
   return { bgMax, maxRadius }
 }
 
-function loadMaster(name) {
-  const path = MASTERS[name]
-  const label = `${name} 母版 (${path})`
-  const master = decodePNG(readFileSync(path), label)
-  if (master.width !== MASTER_SIZE || master.height !== MASTER_SIZE) {
-    throw new Error(`${label}: 必须是 ${MASTER_SIZE}×${MASTER_SIZE}（实际 ${master.width}×${master.height}）`)
+function loadMaster() {
+  const label = `母版 (${MASTER_FILE})`
+  const master = decodePNG(readFileSync(MASTER_FILE), label)
+  if (master.width !== master.height) {
+    throw new Error(`${label}: 必须是正方形（实际 ${master.width}×${master.height}）`)
+  }
+  if (master.width < MIN_MASTER_SIZE || master.width > MAX_MASTER_SIZE) {
+    throw new Error(
+      `${label}: 边长必须在 ${MIN_MASTER_SIZE}~${MAX_MASTER_SIZE} 之间（实际 ${master.width}）`,
+    )
   }
   assertNoWhiteCorners(master, label)
   return master
@@ -362,30 +375,25 @@ function loadMaster(name) {
 
 // ------------------------------------------------------------------ 输出
 
-/** 每个派生尺寸都声明大小与取哪套母版；文件名必须与 index.html / manifest 的引用一致 */
+/** 每个派生尺寸只声明名字与大小：输入源是唯一的一张母版 */
 const targets = [
-  { name: 'pwa-192x192.png', size: 192, source: 'light' },
-  { name: 'pwa-512x512.png', size: 512, source: 'light' },
-  { name: 'maskable-512x512.png', size: 512, source: 'light' },
-  { name: 'apple-touch-icon-180x180-v2.png', size: 180, source: 'light' },
-  { name: 'favicon-light-32x32.png', size: 32, source: 'light' },
-  { name: 'favicon-dark-32x32.png', size: 32, source: 'dark' },
+  { name: 'pwa-192x192.png', size: 192 },
+  { name: 'pwa-512x512.png', size: 512 },
+  { name: 'maskable-512x512.png', size: 512 },
+  { name: 'apple-touch-icon-180x180-v3.png', size: 180 },
+  { name: 'favicon-32x32.png', size: 32 },
 ]
 
-const masters = {
-  light: loadMaster('light'),
-  dark: loadMaster('dark'),
-}
+const master = loadMaster()
 
-const safe = assertMaskableSafe(masters.light, 'light 母版')
+const safe = assertMaskableSafe(master, '母版')
 console.log(
-  `maskable 安全检查：主体最大半径 ${safe.maxRadius.toFixed(4)} ≤ ${MASKABLE_SAFE_RADIUS}` +
-    `（背景亮度基准 ${safe.bgMax.toFixed(1)}）—— 母版可直接用作 maskable，无需补白边\n`,
+  `母版 ${master.width}×${master.height}｜maskable 安全检查：主体最大半径 ${safe.maxRadius.toFixed(4)} ` +
+    `≤ ${MASKABLE_SAFE_RADIUS}（背景亮度基准 ${safe.bgMax.toFixed(1)}）—— 可直接用作 maskable，无需补白边\n`,
 )
 
 mkdirSync(OUT_DIR, { recursive: true })
 for (const t of targets) {
-  const master = masters[t.source]
   const out = resample(master.rgb, master.width, master.height, t.size)
   const png = encodePNG(t.size, t.size, out)
   const file = resolve(OUT_DIR, t.name)
@@ -396,9 +404,7 @@ for (const t of targets) {
   if (width !== t.size || height !== t.size) {
     throw new Error(`${t.name} 尺寸异常：${width}x${height}，期望 ${t.size}x${t.size}`)
   }
-  console.log(
-    `${t.name.padEnd(32)} ${String(width).padStart(4)}x${height}  ${t.source.padEnd(5)} ${(png.length / 1024).toFixed(1)} KB`,
-  )
+  console.log(`${t.name.padEnd(32)} ${String(width).padStart(4)}x${height}  ${(png.length / 1024).toFixed(1)} KB`)
 }
 
 // 清理：输出目录归生成器所有，不属于 targets 的 PNG 都是历史残留（否则会继续被 precache）

@@ -1,5 +1,5 @@
 /**
- * PWA / App Icon 资产契约。
+ * PWA / App Icon 资产契约（**单一正式图标**方案）。
  *
  * 与 src/data/icons.test.ts 保持同一约束：不引入 node:fs（生产代码与测试都不用 Node API，
  * 本仓库不装 @types/node）。因此这里不解析 PNG 二进制尺寸 ——
@@ -8,10 +8,11 @@
  *
  * 所以本测试负责锁住：
  *   1. public/icons/pwa/ 的文件与 targets 表严格一一对应（不多不少，杜绝历史残留）；
- *   2. 每个派生尺寸都能在生成器里找到 name / size / **source**（取自哪套母版）三件套；
+ *   2. 输入源是**唯一一张**母版，且不存在 light/dark 双轨残留（单一正式图标方案的不变量）；
  *   3. 母版存在、被生成器引用、且生成器带「不透明 + 无白角」守卫；
- *   4. index.html 与 vite.config.ts（manifest）的引用路径真实有效且与 targets 一致；
- *   5. iOS 主屏图标走带版本的新文件名（cache bust），旧文件名不再被引用。
+ *   4. index.html：恰好一条 apple-touch-icon（走带版本的新文件名）、恰好一条 favicon 且**无 media**
+ *      （明确不做主题图标切换）；
+ *   5. vite.config.ts（manifest）的三条 icons 都能在 targets 表里找到，purpose 架构为 any + maskable。
  */
 import { describe, expect, it } from 'vitest'
 import generator from '../../scripts/gen-pwa-icons.mjs?raw'
@@ -28,19 +29,20 @@ const pwaIconPaths = namesIn(
   import.meta.glob('/public/icons/pwa/*.png', { eager: true, query: '?url', import: 'default' }),
 )
 
-/** 设计定稿母版：只作为生成器的输入源，不参与运行时，也不进 precache */
+/** 唯一母版：只作为生成器的输入源，不参与运行时，也不进 precache */
 const masterPaths = namesIn(
   import.meta.glob('/assets/app-icons/*.png', { eager: true, query: '?url', import: 'default' }),
 )
 
 const EXPECTED = [
-  { name: 'apple-touch-icon-180x180-v2.png', size: 180, source: 'light' },
-  { name: 'favicon-dark-32x32.png', size: 32, source: 'dark' },
-  { name: 'favicon-light-32x32.png', size: 32, source: 'light' },
-  { name: 'maskable-512x512.png', size: 512, source: 'light' },
-  { name: 'pwa-192x192.png', size: 192, source: 'light' },
-  { name: 'pwa-512x512.png', size: 512, source: 'light' },
+  { name: 'apple-touch-icon-180x180-v3.png', size: 180 },
+  { name: 'favicon-32x32.png', size: 32 },
+  { name: 'maskable-512x512.png', size: 512 },
+  { name: 'pwa-192x192.png', size: 192 },
+  { name: 'pwa-512x512.png', size: 512 },
 ]
+
+const MASTER_NAME = 'app-icon-master-1254.png'
 
 /** ?raw 会把 PNG 当 UTF-8 文本解码，仅签名里的 0x89 变成 U+FFFD，其余头部字节保持原值 */
 const pngMagicOf = (raw: string) => [raw.charCodeAt(1), raw.charCodeAt(2), raw.charCodeAt(3)]
@@ -59,16 +61,14 @@ const rawOf = (name: string) => {
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-describe('PWA 图标资产', () => {
+describe('PWA 图标资产（单一正式图标）', () => {
   it('targets 表与 public/icons/pwa/ 一一对应，无多余也无缺失', () => {
     expect(pwaIconPaths).toEqual([...EXPECTED].map((t) => t.name).sort())
   })
 
-  it.each(EXPECTED)('$name 由 generator 从 $source 母版以 $size x $size 生成', ({ name, size, source }) => {
-    // targets 表是尺寸与来源的唯一来源：name / size / source 三者必须同时声明
-    expect(generator).toMatch(
-      new RegExp(`\\{\\s*name:\\s*'${escapeRe(name)}',\\s*size:\\s*${size},\\s*source:\\s*'${source}'`),
-    )
+  it.each(EXPECTED)('$name 由 generator 以 $size x $size 生成', ({ name, size }) => {
+    // targets 表是尺寸的唯一来源：name / size 必须同时声明（输入源只有一张母版，因此没有 source 字段）
+    expect(generator).toMatch(new RegExp(`\\{\\s*name:\\s*'${escapeRe(name)}',\\s*size:\\s*${size}\\s*\\}`))
   })
 
   it('generator 生成后会回读文件自检尺寸（防止手工换 PNG 而不同步生成器）', () => {
@@ -76,7 +76,7 @@ describe('PWA 图标资产', () => {
     expect(generator).toContain('尺寸异常')
   })
 
-  it('六张图都是合法 PNG（signature 0x89 P N G）', () => {
+  it('五张图都是合法 PNG（signature 0x89 P N G）', () => {
     expect(Object.keys(pwaIconRaw).length).toBe(EXPECTED.length)
     for (const [path, raw] of Object.entries(pwaIconRaw)) {
       expect(raw.length, path).toBeGreaterThan(0)
@@ -84,18 +84,26 @@ describe('PWA 图标资产', () => {
     }
   })
 
-  it('两套 1024 母版存在且是生成器唯一输入源', () => {
-    expect(masterPaths).toEqual(['app-icon-dark-1024.png', 'app-icon-light-1024.png'])
+  it('输入源是唯一一张 1024+ 母版', () => {
+    expect(masterPaths).toEqual([MASTER_NAME])
     expect(generator).toContain("resolve(__dirname, '../assets/app-icons')")
-    expect(generator).toContain('app-icon-light-1024.png')
-    expect(generator).toContain('app-icon-dark-1024.png')
+    expect(generator).toContain(MASTER_NAME)
+    // 单一母版方案：生成器不再有 light/dark 双输入
+    expect(generator).not.toMatch(/app-icon-(light|dark)-/)
+  })
+
+  it('不存在 light/dark 双轨残留（单一正式图标方案的不变量）', () => {
+    // 产物里不允许再有任何 light / dark 分支图标
+    expect(pwaIconPaths.filter((n) => /light|dark/.test(n))).toEqual([])
+    // targets 表也不允许出现第二张母版（双轨时代的 source 字段）
+    expect(generator).not.toMatch(/source:\s*'/)
   })
 
   it('生成器带「母版必须不透明 / 四角不得是白边」守卫', () => {
     // 这两条守卫是"只缩放、不重绘"的强制手段：透明圆角与白边都会在生成阶段直接失败
     expect(generator).toContain('母版必须完全不透明')
     expect(generator).toContain('assertNoWhiteCorners')
-    expect(generator).toContain('MASTER_SIZE')
+    expect(generator).toContain('MIN_MASTER_SIZE')
   })
 
   it('maskable 走安全区自动校验，而不是靠补白边', () => {
@@ -122,20 +130,23 @@ describe('PWA 图标资产', () => {
     expect(viteConfig).not.toContain('prefers-color-scheme')
   })
 
-  it('index.html：apple-touch-icon 指向带版本的新文件名，旧文件名已彻底消失', () => {
-    // 只认引用（href）：注释里出现旧文件名是刻意的说明文字，不算引用
+  it('index.html：恰好一条 apple-touch-icon，且指向带版本的新文件名', () => {
     const appleHrefs = [...html.matchAll(/rel="apple-touch-icon"\s+href="([^"]+)"/g)].map((m) => m[1])
-    expect(appleHrefs).toEqual(['/icons/pwa/apple-touch-icon-180x180-v2.png'])
+    expect(appleHrefs).toEqual(['/icons/pwa/apple-touch-icon-180x180-v3.png'])
+    // 旧路径不能以任何 href 形式残留（注释里提到旧文件名是刻意的说明文字，不算引用）
     expect(html).not.toMatch(/href="[^"]*apple-touch-icon-180x180\.png/)
+    expect(html).not.toMatch(/href="[^"]*apple-touch-icon-180x180-v2\.png/)
     expect(pwaIconPaths).not.toContain('apple-touch-icon-180x180.png')
+    expect(pwaIconPaths).not.toContain('apple-touch-icon-180x180-v2.png')
   })
 
-  it('index.html：favicon 按 prefers-color-scheme 分日/夜两版，且日间版在前', () => {
-    const icons = [...html.matchAll(/href="(\/icons\/pwa\/favicon-[^"]+)"/g)].map((m) => m[1])
-    expect(icons).toEqual(['/icons/pwa/favicon-light-32x32.png', '/icons/pwa/favicon-dark-32x32.png'])
-    const lightAt = html.indexOf('media="(prefers-color-scheme: light)"')
-    const darkAt = html.indexOf('media="(prefers-color-scheme: dark)"')
-    expect(lightAt).toBeGreaterThan(-1)
-    expect(darkAt).toBeGreaterThan(lightAt)
+  it('index.html：恰好一条 favicon，且不带 media（不做 light/dark 主题切换）', () => {
+    const favicons = [...html.matchAll(/<link[^>]*rel="icon"[^>]*>/g)].map((m) => m[0])
+    expect(favicons.length).toBe(1)
+    expect(favicons[0]).toContain('href="/icons/pwa/favicon-32x32.png"')
+    expect(favicons[0]).not.toContain('media=')
+    // 图标声明里不该再出现主题切换条件（HTML 里的主题引导脚本与本条无关，它用的是 window.matchMedia）
+    expect(html).not.toMatch(/rel="icon"[^>]*prefers-color-scheme/)
+    expect(html).not.toMatch(/apple-touch-icon[^>]*prefers-color-scheme/)
   })
 })
