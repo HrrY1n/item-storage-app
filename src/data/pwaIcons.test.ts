@@ -35,7 +35,7 @@ const masterPaths = namesIn(
 )
 
 const EXPECTED = [
-  { name: 'apple-touch-icon-180x180-v4.png', size: 180 },
+  { name: 'apple-touch-icon-180x180-v5.png', size: 180 },
   { name: 'favicon-32x32.png', size: 32 },
   { name: 'maskable-512x512.png', size: 512 },
   { name: 'pwa-192x192.png', size: 192 },
@@ -140,7 +140,7 @@ describe('PWA 图标资产（单一正式图标）', () => {
 
   it('index.html：恰好一条 apple-touch-icon，且指向带版本的新文件名', () => {
     const appleHrefs = [...html.matchAll(/rel="apple-touch-icon"\s+href="([^"]+)"/g)].map((m) => m[1])
-    expect(appleHrefs).toEqual(['/icons/pwa/apple-touch-icon-180x180-v4.png'])
+    expect(appleHrefs).toEqual(['/icons/pwa/apple-touch-icon-180x180-v5.png'])
     // 旧路径不能以任何 href 形式残留（注释里提到旧文件名是刻意的说明文字，不算引用）
     expect(html).not.toMatch(/href="[^"]*apple-touch-icon-180x180\.png/)
     expect(html).not.toMatch(/href="[^"]*apple-touch-icon-180x180-v2\.png/)

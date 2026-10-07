@@ -387,12 +387,13 @@ function medianColorOf(rgb, indices) {
 /**
  * maskable 安全检查：**核心主体（收纳盒 / 卡片）**必须完全落在半径 0.4 的安全圆内。
  *
- * 判据必须两级，因为背景可能是浅色也可能是深色：
- *   1. 背景 = 四角中位色；
- *   2. 内板 = 与背景色差 > 60 的像素（浅底设计里是深蓝内板；深底设计里这一层就是盒体本身）；
- *   3. 核心主体 = **内板范围内**亮度高于内板中位色 + 60 的像素（白色盒体 / teal 卡片）。
- * 内板是装饰性底板、盒体投影是软渐变，它们的四角被裁掉不影响识别；
- * 真正不能被裁的是盒体，所以只校验盒体。
+ * 判据做成两级，才能同时适配浅底 / 深底 / 渐变底三类母版：
+ *   1. 一级背景基准 = 四角中位色；
+ *   2. 一级范围 = 与一级背景色差 > 60 的像素（浅底母版里是深色底板；深蓝底母版里是盒体本身
+ *      ＋ 渐变的另一端）；
+ *   3. **核心主体** = 一级范围内、亮度高于"一级范围中位色 + 60"的像素 —— 也就是白色收纳盒
+ *      （浅蓝底母版里是深蓝底板上的白盒；深蓝底母版里是渐变之上的白盒）。
+ * 装饰性底板与盒体投影都是软渐变，被遮罩切到不影响识别；真正不能被裁的是盒体，因此只校验它。
  */
 function assertMaskableSafe(master, label) {
   const { width, height, rgb } = master
@@ -408,11 +409,11 @@ function assertMaskableSafe(master, label) {
   if (inner.length === 0) {
     throw new Error(`${label}: 找不到与背景不同的内层图形 —— 请检查母版构图`)
   }
-  const plate = medianColorOf(rgb, inner)
-  const plateLum = luminance(plate, 0)
+  const contrast = medianColorOf(rgb, inner)
+  const contrastLum = luminance(contrast, 0)
   const deep = deepInside(innerMask, width, height, Math.round(width * 0.05))
-  let subject = deep.filter((i) => luminance(rgb, i) > plateLum + 60)
-  // 若内板本身就是主体（没有独立内板的深底母版），退回用内板深处范围
+  let subject = deep.filter((i) => luminance(rgb, i) > contrastLum + 60)
+  // 若一级范围本身就是主体（没有独立底板的深底母版），退回用一级范围的深处
   if (subject.length < width * height * 0.005) subject = deep
   if (subject.length === 0) {
     throw new Error(`${label}: 无法定位核心主体（内板 ${inner.length}px）—— 请检查母版构图`)
@@ -425,7 +426,7 @@ function assertMaskableSafe(master, label) {
     const r = Math.hypot((x + 0.5) / width - 0.5, (y + 0.5) / height - 0.5)
     if (r > maxRadius) maxRadius = r
   }
-  return { bg, plate, subjectCount: subject.length, maxRadius }
+  return { bg, contrast, subjectCount: subject.length, maxRadius }
 }
 
 /**
@@ -516,7 +517,7 @@ const targets = [
   { name: 'pwa-192x192.png', size: 192 },
   { name: 'pwa-512x512.png', size: 512 },
   { name: 'maskable-512x512.png', size: 512 },
-  { name: 'apple-touch-icon-180x180-v4.png', size: 180 },
+  { name: 'apple-touch-icon-180x180-v5.png', size: 180 },
   { name: 'favicon-32x32.png', size: 32 },
 ]
 
@@ -534,7 +535,7 @@ console.log(
   `母版 ${master.width}×${master.height}｜四角背景 (${corner.map((v) => Math.round(v)).join(',')})，` +
     `四角最大色差 ${master.corners.spread.toFixed(1)} → 背景铺满 full-bleed\n` +
     `maskable 安全检查：核心主体（盒体/卡片）最大半径 ${safe.maxRadius.toFixed(4)} ≤ ${MASKABLE_SAFE_RADIUS}` +
-    `（背景 (${safe.bg.map((v) => Math.round(v)).join(',')}) → 内板 (${safe.plate.map((v) => Math.round(v)).join(',')})）` +
+    `（背景 (${safe.bg.map((v) => Math.round(v)).join(',')}) → 二级基准 (${safe.contrast.map((v) => Math.round(v)).join(',')})）` +
     `—— 可直接用作 maskable，无需补白边\n`,
 )
 
