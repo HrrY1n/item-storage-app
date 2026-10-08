@@ -71,7 +71,7 @@
 
 ## 当前状态
 
-**当前稳定版本：`1.0.0`**（首个正式稳定版 · 版本号唯一来源是 `src/appInfo.ts` 的 `APP_VERSION`；设置 → 关于页可读，改版本需同步 `package.json` 与 `package-lock.json`）
+**当前稳定版本：`1.0.1`**（首个正式稳定版 v1.0.0 之后的离线冷启动修复版 · 版本号唯一来源是 `src/appInfo.ts` 的 `APP_VERSION`；设置 → 关于页可读，改版本需同步 `package.json` 与 `package-lock.json`）
 
 | 阶段 | 版本 | 内容 | 状态 |
 |---|---|---|---|
@@ -87,6 +87,9 @@
 | **Phase 3B** | **0.7.0** | **可选的私人云端同步**（Cloudflare Workers + D1）：本地优先不变，云端只存同步状态与数据镜像；含 outbox、revision 协议、tombstone 单调性、冲突记录、tag 跨设备去重 | ✅ 完成 |
 | **Phase 3B.1** | **0.7.0** | **主力手机场景细化**：本地保存后自动后台同步（2.5s debounce）、产品语义改为「云端同步」、Pairing Code 明确为**恢复码**（换机 / 清数据后靠它连回云端）、新设备以云端为准恢复 | ✅ 完成 |
 | **Stable Release** | **1.0.0** | 核心功能、视觉系统、离线 PWA、备份恢复与可选私人云同步完成稳定性收口，作为首个正式稳定版本 | ✅ 正式版 |
+| **Offline Fix** | **1.0.1** | 调整 PWA App Shell 预缓存入口，改进离线冷启动兼容性；**iOS 真机验收待确认** | ✅ 已发布（待真机验收） |
+
+**离线冷启动回归**：`npm run verify:pwa-offline`（`scripts/verify-pwa-offline.mjs`）—— 用**生产构建产物** + 一个复刻 Cloudflare Workers 静态资源行为的本地服务器（不是 vite preview），在真实浏览器进程上跑 23 项断言：在线首次安装、杀进程后断网冷启动、网络在线但服务器永不响应时的冷启动、离线深链、新旧 SW 版本更替、以及「新版本预缓存安装失败时不得破坏旧版本」。只读审计结论见 `docs/audit/ios-pwa-offline-coldstart.md`。
 
 **测试**：**657** 个单元测试全部通过（**39** 个文件）。覆盖 domain 纯函数 + repository 集成 + 主题逻辑 + 图标元数据 + 生命周期与成本口径 + 数据库迁移 + 备份兼容 + PWA 更新决策 + **PWA 图标资产契约（五个 target 与生成器 targets 表一致、输入源是唯一一张母版、无双轨残留、maskable 与 any-512 逐字节一致、index.html / manifest 引用路径有效、旧文件名已消失）** + **同步引擎（假云端端到端：push/pull 收敛、tombstone 不被复活、outbox 回声防护、tag 去重）** + **Worker 装配层（真 node:sqlite 驱动 `executePush`：bind 参数逐位对应、整批事务、tag 并发冲突后重试、`revision_seq == MAX(revision)` 不变量）** + **local-change 自动同步（debounce 聚合、关闭/离线零网络、恢复码不进 ZIP、换机恢复）**）。
 **验证**：底栏结构 / 设置齿轮 / 三态切换 / 列表筛选排序 / 处置 Sheet / 保修提醒 / 负成本格式化 / 备份导出与恢复替换 / 旧备份迁移 / 离线打开 / 深色首帧无白闪 / 主题切换过渡 / 桌面与移动响应式，均已在真实浏览器 + 生产构建上端到端验证（共 **175** 项自动化断言：Phase 2G 45 · 视觉与交互 50 · 管理页 9 · 生产与离线 8 · Phase 2H 32；生产冒烟 8/8；**Phase 2H.1 PWA 更新端到端 23/23** · **App Icon 端到端 22/22（双母版）** · **单一正式图标端到端 22/22**）。驱动脚本是本地开发工具（无头 Edge + CDP），不随仓库分发。

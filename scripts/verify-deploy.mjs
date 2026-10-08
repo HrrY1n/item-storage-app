@@ -6,6 +6,10 @@
  *   2. manifest / apple-touch-icon / viewport-fit=cover / standalone 齐备
  *   3. Service Worker 注册成功并接管页面
  *   4. 断网后仍可打开（App Shell 预缓存）—— 对应真机「飞行模式」
+ *
+ * ⚠️ 第 4 项只是**已打开页面的 reload**，覆盖不了"从主屏图标冷启动"：那时浏览器进程
+ * 是被完全终止后重新启动的，走的是顶层导航而不是 reload。真正的冷启动回归在
+ * `scripts/verify-pwa-offline.mjs`（npm run verify:pwa-offline）。
  *   5. IndexedDB 可写（生产模式下真实落库）
  *
  * 前提：dist 已构建，且 preview 服务器在 PREVIEW（默认 4173）。

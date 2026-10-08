@@ -6,4 +6,4 @@
  *
  * 注意：修改此处时请同步更新根目录 package.json 的 version 字段。
  */
-export const APP_VERSION = '1.0.0'
+export const APP_VERSION = '1.0.1'
