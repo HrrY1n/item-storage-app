@@ -125,11 +125,12 @@ describe('outbox', () => {
   it('dequeue 按 id 删除已推送条目', async () => {
     await syncRepository.enqueue('item', 'i1')
     await syncRepository.enqueue('item', 'i2')
-    const [first] = await syncRepository.listQueue()
-    await syncRepository.dequeue([first.id])
+    const target = (await syncRepository.listQueue()).find((entry) => entry.entityId === 'i1')
+    expect(target).toBeDefined()
+    await syncRepository.dequeue([target!.id])
     const left = await syncRepository.listQueue()
     expect(left).toHaveLength(1)
-    expect(left[0].entityId).toBe('i2')
+    expect(left.map((entry) => entry.entityId)).toEqual(['i2'])
   })
 
   it('dequeue 传空数组是安全的空操作', async () => {
