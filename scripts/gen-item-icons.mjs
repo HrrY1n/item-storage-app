@@ -109,9 +109,9 @@ const ICONS = [
     key: 'earbuds',
     body: `
 <circle cx="34" cy="27" r="9" fill="${C1}"/>
-<path d="M34 36v19a6 6 0 0 1-6 6" stroke-width="4.5"/>
+<path d="M34 36v19a6 6 0 0 1-6 6" stroke="${M}" stroke-width="4.5"/>
 <circle cx="62" cy="27" r="9" fill="${C1}"/>
-<path d="M62 36v19a6 6 0 0 0 6 6" stroke-width="4.5"/>
+<path d="M62 36v19a6 6 0 0 0 6 6" stroke="${M}" stroke-width="4.5"/>
 <circle cx="34" cy="27" r="2.2" fill="${W}" stroke="none"/>
 <circle cx="62" cy="27" r="2.2" fill="${W}" stroke="none"/>`,
   },
@@ -161,11 +161,11 @@ const ICONS = [
   {
     key: 'gameconsole',
     body: `
-<path d="M17 28h62a7 7 0 0 1 7 7v34a7 7 0 0 1-7 7H17a7 7 0 0 1-7-7V35a7 7 0 0 1 7-7z" fill="${W}"/>
-<rect x="25" y="38" width="46" height="7" rx="3.5" fill="${C1}"/>
-<path d="M29 58h12M35 52v12" stroke-width="3"/>
-<circle cx="59" cy="55" r="3.2" fill="${C4}" stroke="none"/>
-<circle cx="68" cy="62" r="3.2" fill="${C3}" stroke="none"/>`,
+<path d="M17 29h62a7 7 0 0 1 7 7v32a7 7 0 0 1-7 7H17a7 7 0 0 1-7-7V36a7 7 0 0 1 7-7z" fill="${C2}"/>
+<path d="M23 35h50a4 4 0 0 1 4 4v26a4 4 0 0 1-4 4H23a4 4 0 0 1-4-4V39a4 4 0 0 1 4-4z" fill="${W}" stroke="none"/>
+<rect x="27" y="44" width="42" height="6" rx="3" fill="${C1}"/>
+<circle cx="31" cy="59" r="3" fill="${C4}" stroke="none"/>
+<circle cx="39" cy="59" r="3" fill="${C3}" stroke="none"/>`,
   },
   {
     key: 'gamepad',
@@ -207,11 +207,11 @@ const ICONS = [
   {
     key: 'powerbank',
     body: `
-<rect x="14" y="30" width="68" height="36" rx="10" fill="${W}"/>
-<rect x="23" y="39" width="34" height="10" rx="3" fill="${C1}"/>
-<rect x="63" y="39" width="9" height="10" rx="2" fill="${C2}"/>
-<rect x="63" y="52" width="9" height="10" rx="2" fill="${C2}"/>
-<path d="M36 75h24" stroke="${M}" stroke-width="2.6"/>`,
+<path d="M18 29h60a10 10 0 0 1 10 10v18a10 10 0 0 1-10 10H18A10 10 0 0 1 8 57V39a10 10 0 0 1 10-10z" fill="${C2}"/>
+<rect x="25" y="40" width="29" height="11" rx="5.5" fill="${W}"/>
+<path d="M31 45h3M38 45h3M45 45h3" stroke="${G}" stroke-width="3"/>
+<rect x="67" y="41" width="10" height="11" rx="3" fill="${W}"/>
+<rect x="70" y="44" width="4" height="5" rx="1.5" fill="${C1}" stroke="none"/>`,
   },
   {
     key: 'cable',
@@ -793,11 +793,11 @@ const ICONS = [
 </g>
 <circle cx="48" cy="73" r="3" fill="${C3}" stroke="none"/>` },
   { key: 'cableorganizer', label: '理线器', body: `
-<rect x="14" y="36" width="68" height="34" rx="10" fill="${C3}"/>
-<path d="M25 57V47a6 6 0 0 1 12 0v10" fill="none" stroke="${C1}" stroke-width="5"/>
-<path d="M43 57V47a6 6 0 0 1 12 0v10" fill="none" stroke="${C2}" stroke-width="5"/>
-<path d="M61 57V47a6 6 0 0 1 12 0v10" fill="none" stroke="${C4}" stroke-width="5"/>
-<path d="M25 70h46" stroke="${M}" stroke-width="2.6"/>` },
+<path d="M14 39h68v26a8 8 0 0 1-8 8H22a8 8 0 0 1-8-8z" fill="${C3}"/>
+<path d="M25 64V48a6 6 0 0 1 12 0v16" fill="none" stroke="${W}" stroke-width="6"/>
+<path d="M53 64V48a6 6 0 0 1 12 0v16" fill="none" stroke="${W}" stroke-width="6"/>
+<path d="M31 48V29M59 48V25" stroke="${C1}" stroke-width="4.5"/>
+<path d="M31 29h7M59 25h7" stroke="${C4}" stroke-width="4.5"/>` },
   { key: 'screenprotector', label: '屏幕保护膜', body: `
 <path d="M28 10h40a4 4 0 0 1 4 4v68a4 4 0 0 1-4 4H28a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" fill="${C1}"/>
 <path d="M72 74 56 86h16z" fill="${W}" stroke-width="2.6"/>
@@ -835,11 +835,11 @@ const ICONS = [
 <circle cx="48" cy="56" r="3" fill="${W}" stroke="none"/>` },
   { key: 'curlingiron', label: '卷发棒', body: `
 <g transform="rotate(-20 48 48)">
-<rect x="35" y="10" width="22" height="52" rx="11" fill="${C1}"/>
-<path d="M35 25h22" stroke="${W}" stroke-width="2.6"/>
-<path d="M32 22h8v28a6 6 0 0 0 6 6" fill="none" stroke="${C2}" stroke-width="3.4"/>
-<rect x="37" y="58" width="18" height="30" rx="7" fill="${C2}"/>
-<path d="M39 68h14" stroke="${M}" stroke-width="2.4"/>
+<rect x="32" y="9" width="26" height="54" rx="13" fill="${C1}"/>
+<path d="M32 24h26" stroke="${W}" stroke-width="3"/>
+<path d="M28 18h11v27a7 7 0 0 0 7 7" fill="none" stroke="${C2}" stroke-width="5"/>
+<rect x="36" y="59" width="20" height="29" rx="8" fill="${C2}"/>
+<path d="M39 69h14" stroke="${M}" stroke-width="2.4"/>
 </g>` },
   { key: 'skincare', label: '护肤品', body: `
 <path d="M43 12h10v10h-10z" fill="${C2}"/>
@@ -1042,8 +1042,8 @@ const ICONS = [
   { key: 'tripod', label: '三脚架', body: `
 <rect x="37" y="10" width="22" height="14" rx="5" fill="${C2}"/>
 <circle cx="48" cy="29" r="7" fill="${C1}"/>
-<path d="M48 36v16M48 52 22 84M48 52l26 32M48 52v32" stroke-width="4"/>
-<path d="M18 84h8M44 84h8M70 84h8" stroke-width="3"/>` },
+<path d="M48 36v16M48 52 22 84M48 52l26 32M48 52v32" stroke="${M}" stroke-width="4"/>
+<path d="M18 84h8M44 84h8M70 84h8" stroke="${M}" stroke-width="3"/>` },
   { key: 'fishingrod', label: '钓鱼竿', body: `
 <path d="M24 82 L76 16" stroke-width="3.2"/>
 <path d="M24 82 L40 58" stroke-width="5.5"/>
