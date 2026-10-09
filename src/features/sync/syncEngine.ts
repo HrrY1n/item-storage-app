@@ -1,5 +1,9 @@
 import { db } from '../../db/db'
-import { syncRepository } from '../../db/repositories/syncRepository'
+import {
+  isSessionCurrentInTransaction,
+  syncRepository,
+  type SyncSession,
+} from '../../db/repositories/syncRepository'
 import { itemRepository } from '../../db/repositories/itemRepository'
 import {
   buildItemTagRows,
@@ -108,12 +112,21 @@ export class SyncEngine {
     let pulled = 0
     let conflicts = 0
     let errorKind: SyncErrorKind | null = null
+    let session: SyncSession | null = null
 
     try {
       const state = await syncRepository.getState()
       if (state === null || state.secret === null || state.deviceId === null) {
         return { ok: false, pushed: 0, pulled: 0, conflicts: 0, errorKind: null }
       }
+
+      session = {
+        sessionEpoch: state.sessionEpoch,
+        deviceId: state.deviceId,
+        keyId: state.keyId,
+        secret: state.secret,
+      }
+      const activeSession = session
 
       const transport = new SyncTransport(this.host, {
         baseUrl: this.options.baseUrl,
@@ -150,16 +163,22 @@ export class SyncEngine {
           const currentIds = new Set((await syncRepository.listQueue()).map((r) => r.id))
           const doneEntries = batch.filter((r) => currentIds.has(r.id))
           for (const e of doneEntries) succeededEntryIds.add(e.id)
-          await syncRepository.dequeue(doneEntries.map((r) => r.id))
+          if (!(await syncRepository.dequeueForSession(activeSession, doneEntries.map((r) => r.id)))) {
+            return { ok: false, pushed, pulled, conflicts, errorKind: null }
+          }
           pushed += result.accepted
 
           // ⭐ tag 跨设备去重（复审第 9 条）：把本地的重复 tag 合并到云端既有那条
           for (const d of result.dedupDirectives) {
-            await this.mergeDuplicateTag(d.duplicateId, d.canonicalId)
+            if (!(await this.mergeDuplicateTag(d.duplicateId, d.canonicalId, activeSession))) {
+              return { ok: false, pushed, pulled, conflicts, errorKind: null }
+            }
           }
 
           for (const c of result.conflicts) {
-            await this.recordConflicts(c)
+            if (!(await this.recordConflicts(c, activeSession))) {
+              return { ok: false, pushed, pulled, conflicts, errorKind: null }
+            }
             conflicts += 1
           }
         }
@@ -190,12 +209,16 @@ export class SyncEngine {
           break
         }
         if (result.changes.length === 0) break
-        await this.applyRemote(result.changes, succeededEntities)
+        if (!(await this.applyRemote(result.changes, succeededEntities, activeSession))) {
+          return { ok: false, pushed, pulled, conflicts, errorKind: null }
+        }
         cursor = result.nextRevision
         pulled += result.changes.length
         if (!result.hasMore) break
       }
-      await syncRepository.markSynced(cursor)
+      if (!(await syncRepository.markSyncedForSession(activeSession, cursor))) {
+        return { ok: false, pushed, pulled, conflicts, errorKind: null }
+      }
 
       if (errorKind === null) {
         this.retryCount = 0
@@ -206,9 +229,9 @@ export class SyncEngine {
       return { ok: false, pushed, pulled, conflicts, errorKind: 'unknown' }
     } finally {
       this.inFlight = false
-      if (errorKind !== null) {
+      if (errorKind !== null && session !== null) {
         this.retryCount += 1
-        void syncRepository.markError(errorKind)
+        void syncRepository.markErrorForSession(session, errorKind)
       } else {
         this.retryCount = 0
       }
@@ -317,29 +340,39 @@ export class SyncEngine {
    * itemTags 的复合主键是 [itemId+tagId]，因此若物品同时已关联既有 tag，
    * 直接 bulkAdd 会撞约束 —— 先查再决定 put还是跳过。
    */
-  private async mergeDuplicateTag(duplicateId: string, canonicalId: string): Promise<void> {
-    await db.transaction('rw', [db.items, db.itemTags, db.tags, db.syncQueue], async (tx) => {
-      const dup = await db.tags.get(duplicateId)
-      // 重复的tag 已不存在 → 无需合并（幂等）
-      if (dup === undefined) return
+  private async mergeDuplicateTag(
+    duplicateId: string,
+    canonicalId: string,
+    session: SyncSession,
+  ): Promise<boolean> {
+    return db.transaction(
+      'rw',
+      [db.items, db.itemTags, db.tags, db.syncQueue, db.syncState],
+      async (tx) => {
+        if (!(await isSessionCurrentInTransaction(db.syncState, session))) return false
+        const dup = await db.tags.get(duplicateId)
+        // 重复的tag 已不存在 → 无需合并（幂等）
+        if (dup === undefined) return true
 
-      const links = await db.itemTags.where('tagId').equals(duplicateId).toArray()
-      for (const link of links) {
-        const already = await db.itemTags.get([link.itemId, canonicalId])
-        if (already === undefined) {
-          await db.itemTags.put({ itemId: link.itemId, tagId: canonicalId })
+        const links = await db.itemTags.where('tagId').equals(duplicateId).toArray()
+        for (const link of links) {
+          const already = await db.itemTags.get([link.itemId, canonicalId])
+          if (already === undefined) {
+            await db.itemTags.put({ itemId: link.itemId, tagId: canonicalId })
+          }
+          await db.itemTags.delete([link.itemId, duplicateId])
+          // 该物品的 tagIds 变了 → 重新入队
+          await syncRepository.enqueueWithTx('item', link.itemId, tx)
         }
-        await db.itemTags.delete([link.itemId, duplicateId])
-        // 该物品的 tagIds 变了 → 重新入队
-        await syncRepository.enqueueWithTx('item', link.itemId, tx)
-      }
-      await db.tags.delete(duplicateId)
-    })
+        await db.tags.delete(duplicateId)
+        return true
+      },
+    )
   }
 
   /** 落一条冲突记录（只在覆盖方） */
-  private async recordConflicts(c: PushConflict): Promise<void> {
-    await syncRepository.recordConflict({
+  private async recordConflicts(c: PushConflict, session: SyncSession): Promise<boolean> {
+    return syncRepository.recordConflictForSession(session, {
       entity: c.entity as SyncEntity,
       entityId: c.entityId,
       detectedAt: c.detectedAt,
@@ -365,11 +398,13 @@ export class SyncEngine {
      * 只有这些实体的 outbox 条目才允许在 apply 时被清除。
      */
     succeededQueueIds: Set<string> | null,
-  ): Promise<void> {
-    await db.transaction(
+    session: SyncSession,
+  ): Promise<boolean> {
+    return db.transaction(
       'rw',
-      [db.items, db.itemTags, db.categories, db.tags, db.syncQueue],
+      [db.items, db.itemTags, db.categories, db.tags, db.syncQueue, db.syncState],
       async (tx) => {
+        if (!(await isSessionCurrentInTransaction(db.syncState, session))) return false
         // ⚠️ 顺序很重要：**先处理删除，再处理 upsert**。
         //   若某物品的旧载荷（tagIds 里还带着已删的 tag-x）先被应用，
         //   它会把关联重新建回来；随后 tag 删除才清一次 —— 但如果 item 因为
@@ -445,6 +480,7 @@ export class SyncEngine {
             await this.applyRemoteTag(change)
           }
         }
+        return true
       },
     )
   }

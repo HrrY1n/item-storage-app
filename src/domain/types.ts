@@ -138,6 +138,11 @@ export type SyncEntity = 'item' | 'category' | 'tag'
 export interface SyncState {
   /** 固定为 'sync'，单行 */
   key: string
+  /**
+   * 本地同步会话代次。非索引字段，旧 v4 记录缺失时按 0 读取；
+   * 每次关闭、恢复或替换凭据都会递增，用于拒绝旧异步响应的副作用。
+   */
+  sessionEpoch: number
   /** 本机设备标识（ULID），用于在 D1 侧标记「谁写的」，以及冲突可查的胜方 */
   deviceId: string | null
   /** 同步是否已启用。默认 false —— 未显式启用前完全不影响既有行为。 */

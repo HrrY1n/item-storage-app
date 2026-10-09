@@ -2,6 +2,7 @@ import { db } from '../db'
 import type { Asset, Category, Item, ItemTag, Tag } from '../../domain/types'
 import type { BackupPayload } from '../../domain/backup'
 import { MIGRATABLE_APP_META_KEYS } from '../../domain/backup'
+import { disableInTransaction } from './syncRepository'
 
 /**
  * 备份相关的数据库读写（repositories 是唯一可直接 import db 的一层）。
@@ -37,6 +38,28 @@ export async function readSnapshot(): Promise<Snapshot> {
   return { items, categories, tags, itemTags, assets, appMeta }
 }
 
+async function replaceAllWithBackupInTransaction(payload: BackupPayload): Promise<void> {
+  await Promise.all([
+    db.items.clear(),
+    db.categories.clear(),
+    db.tags.clear(),
+    db.itemTags.clear(),
+    db.assets.clear(),
+    db.appMeta.clear(),
+  ])
+
+  await Promise.all([
+    db.items.bulkAdd(payload.items),
+    db.categories.bulkAdd(payload.categories),
+    db.tags.bulkAdd(payload.tags),
+    db.itemTags.bulkAdd(payload.itemTags),
+    db.assets.bulkAdd(payload.assets),
+  ])
+
+  const metaRows = Object.entries(payload.appMeta).map(([key, value]) => ({ key, value }))
+  if (metaRows.length > 0) await db.appMeta.bulkAdd(metaRows)
+}
+
 /**
  * Replace Restore：在**单个事务**内完整替换全部数据。
  *
@@ -47,26 +70,28 @@ export async function replaceAllWithBackup(payload: BackupPayload): Promise<void
   await db.transaction(
     'rw',
     [db.items, db.categories, db.tags, db.itemTags, db.assets, db.appMeta],
+    () => replaceAllWithBackupInTransaction(payload),
+  )
+}
+
+/** Replace Restore + 使旧同步会话失效，必须是同一个本地事务。 */
+export async function replaceAllWithBackupAndDisableSync(payload: BackupPayload): Promise<void> {
+  await db.transaction(
+    'rw',
+    [
+      db.items,
+      db.categories,
+      db.tags,
+      db.itemTags,
+      db.assets,
+      db.appMeta,
+      db.syncQueue,
+      db.syncState,
+    ],
     async () => {
-      await Promise.all([
-        db.items.clear(),
-        db.categories.clear(),
-        db.tags.clear(),
-        db.itemTags.clear(),
-        db.assets.clear(),
-        db.appMeta.clear(),
-      ])
-
-      await Promise.all([
-        db.items.bulkAdd(payload.items),
-        db.categories.bulkAdd(payload.categories),
-        db.tags.bulkAdd(payload.tags),
-        db.itemTags.bulkAdd(payload.itemTags),
-        db.assets.bulkAdd(payload.assets),
-      ])
-
-      const metaRows = Object.entries(payload.appMeta).map(([key, value]) => ({ key, value }))
-      if (metaRows.length > 0) await db.appMeta.bulkAdd(metaRows)
+      await replaceAllWithBackupInTransaction(payload)
+      await db.syncQueue.clear()
+      await disableInTransaction(db.syncState)
     },
   )
 }

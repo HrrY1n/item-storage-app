@@ -1,4 +1,9 @@
-import { syncRepository } from '../db/repositories/syncRepository'
+import { db } from '../db/db'
+import {
+  initCredentialsInTransaction,
+  setStateInTransaction,
+  syncRepository,
+} from '../db/repositories/syncRepository'
 import { onSyncDirty } from '../db/syncDirty'
 import { SyncEngine } from '../features/sync/syncEngine'
 import { fromBase64Url, toBase64Url } from './syncBytes'
@@ -299,22 +304,26 @@ export async function commitJoin(
   payload: PairingPayload,
   direction: 'cloud' | 'local',
 ): Promise<void> {
-  if (direction === 'cloud') {
-    // 清空**需要同步的**本地业务数据（assets / appMeta / 同步表保持不动）：
-    // 否则云端不存在的数据会留在本机，"以云端为准"名不副实。
-    await wipeSyncableLocalData()
-    // ⚠️ outbox 也必须清：里面是**已被清掉的那些实体**的待推条目。
-    //   若留着，启用后会把刚被删掉的本地数据又推回云端 —— 语义完全相反。
-    await syncRepository.clearQueue()
-    // 游标归零 → 下一轮从 revision=0 完整拉取云端全量
-    await syncRepository.setState({ lastPulledRevision: 0 })
-  }
+  await db.transaction(
+    'rw',
+    [db.items, db.itemTags, db.categories, db.tags, db.syncQueue, db.syncState],
+    async () => {
+      if (direction === 'cloud') {
+        // 清空**需要同步的**本地业务数据（assets / appMeta 保持不动）。
+        // 与清 outbox、换凭据、启用新会话在同一事务内完成。
+        await wipeSyncableLocalDataInTransaction()
+        await db.syncQueue.clear()
+      }
 
-  await syncRepository.initCredentials(payload.secret, payload.keyId)
-  await syncRepository.setState({ enabled: true })
-  if (direction === 'local') {
-    await syncRepository.enqueueAll()
-  }
+      // 替换凭据同时递增 sessionEpoch，使所有旧引擎在事务内失效。
+      await initCredentialsInTransaction(db.syncState, payload.secret, payload.keyId)
+      await setStateInTransaction(db.syncState, {
+        enabled: true,
+        ...(direction === 'cloud' ? { lastPulledRevision: 0 } : {}),
+      })
+      if (direction === 'local') await syncRepository.enqueueAll()
+    },
+  )
 }
 
 /**
@@ -326,13 +335,18 @@ export async function commitJoin(
  *     并覆盖用户整理过的分类名 —— 项目既有硬不变量。
  */
 export async function wipeSyncableLocalData(): Promise<void> {
-  const { db } = await import('../db/db')
-  await db.transaction('rw', [db.items, db.itemTags, db.categories, db.tags], async () => {
-    await db.items.clear()
-    await db.itemTags.clear()
-    await db.categories.clear()
-    await db.tags.clear()
-  })
+  await db.transaction(
+    'rw',
+    [db.items, db.itemTags, db.categories, db.tags],
+    wipeSyncableLocalDataInTransaction,
+  )
+}
+
+async function wipeSyncableLocalDataInTransaction(): Promise<void> {
+  await db.items.clear()
+  await db.itemTags.clear()
+  await db.categories.clear()
+  await db.tags.clear()
 }
 
 export { WORKER_BASE }

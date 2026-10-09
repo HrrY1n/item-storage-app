@@ -20,6 +20,13 @@ import type {
 
 const STATE_KEY = 'sync'
 
+export interface SyncSession {
+  sessionEpoch: number
+  deviceId: string
+  keyId: string | null
+  secret: string
+}
+
 /** 冲突记录保留条数上限（3B 规格 §0.1：保留最近 50 条） */
 export const SYNC_CONFLICT_LIMIT = 50
 
@@ -59,6 +66,7 @@ async function upsertQueueEntry(
 function defaultState(): SyncState {
   return {
     key: STATE_KEY,
+    sessionEpoch: 0,
     deviceId: null,
     enabled: false,
     keyId: null,
@@ -68,6 +76,109 @@ function defaultState(): SyncState {
     lastError: null,
     pendingCount: 0,
   }
+}
+
+type SyncStatePatch = Partial<Omit<SyncState, 'key' | 'sessionEpoch'>>
+
+function normalizeSessionEpoch(value: unknown): number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : 0
+}
+
+function normalizeState(row: Partial<SyncState>): SyncState {
+  const state = { ...defaultState(), ...row, key: STATE_KEY }
+  return { ...state, sessionEpoch: normalizeSessionEpoch(state.sessionEpoch) }
+}
+
+async function readStateFromTable(table: Table<SyncState, string>): Promise<SyncState | null> {
+  const row = await table.get(STATE_KEY)
+  return row ? normalizeState(row) : null
+}
+
+function nextSessionEpoch(state: SyncState): number {
+  if (state.sessionEpoch >= Number.MAX_SAFE_INTEGER) {
+    throw new Error('sync session epoch exhausted')
+  }
+  return state.sessionEpoch + 1
+}
+
+function identityChanged(current: SyncState, patch: SyncStatePatch): boolean {
+  return (
+    (patch.deviceId !== undefined && patch.deviceId !== current.deviceId) ||
+    (patch.keyId !== undefined && patch.keyId !== current.keyId) ||
+    (patch.secret !== undefined && patch.secret !== current.secret)
+  )
+}
+
+export function isCurrentSession(state: SyncState | null, session: SyncSession): boolean {
+  return (
+    state !== null &&
+    state.enabled &&
+    state.sessionEpoch === session.sessionEpoch &&
+    state.deviceId === session.deviceId &&
+    state.keyId === session.keyId &&
+    state.secret === session.secret
+  )
+}
+
+export async function isSessionCurrentInTransaction(
+  stateTable: Table<SyncState, string>,
+  session: SyncSession,
+): Promise<boolean> {
+  return isCurrentSession(await readStateFromTable(stateTable), session)
+}
+
+export async function setStateInTransaction(
+  stateTable: Table<SyncState, string>,
+  patch: SyncStatePatch,
+): Promise<SyncState> {
+  const current = (await readStateFromTable(stateTable)) ?? defaultState()
+  const next: SyncState = {
+    ...current,
+    ...patch,
+    key: STATE_KEY,
+    ...(identityChanged(current, patch) ? { sessionEpoch: nextSessionEpoch(current) } : {}),
+  }
+  await stateTable.put(next)
+  return next
+}
+
+export async function initCredentialsInTransaction(
+  stateTable: Table<SyncState, string>,
+  secret: string,
+  keyId: string,
+): Promise<SyncState> {
+  const current = (await readStateFromTable(stateTable)) ?? defaultState()
+  const next: SyncState = {
+    ...current,
+    deviceId: ulid(),
+    secret,
+    keyId,
+    lastError: null,
+    sessionEpoch: nextSessionEpoch(current),
+    key: STATE_KEY,
+  }
+  await stateTable.put(next)
+  return next
+}
+
+export async function disableInTransaction(
+  stateTable: Table<SyncState, string>,
+): Promise<SyncState | null> {
+  const current = await readStateFromTable(stateTable)
+  if (!current) return null
+  const next: SyncState = {
+    ...current,
+    enabled: false,
+    secret: null,
+    keyId: null,
+    lastPulledRevision: 0,
+    lastSyncAt: null,
+    lastError: null,
+    sessionEpoch: nextSessionEpoch(current),
+    key: STATE_KEY,
+  }
+  await stateTable.put(next)
+  return next
 }
 
 export const syncRepository = {
@@ -80,10 +191,7 @@ export const syncRepository = {
    * 这是"同步默认关闭、不影响既有 App"的判断依据。
    */
   async getState(): Promise<SyncState | null> {
-    const row = await db.syncState.get(STATE_KEY)
-    if (!row) return null
-    // 补齐可能缺失的字段，容忍旧行结构
-    return { ...defaultState(), ...row, key: STATE_KEY }
+    return readStateFromTable(db.syncState)
   },
 
   /** 便捷方法：是否已启用且已配好凭据。引擎每次同步前都会问它。 */
@@ -92,11 +200,8 @@ export const syncRepository = {
     return s !== null && s.enabled && s.secret !== null
   },
 
-  async setState(patch: Partial<Omit<SyncState, 'key'>>): Promise<SyncState> {
-    const current = await this.getState()
-    const next: SyncState = { ...(current ?? defaultState()), ...patch, key: STATE_KEY }
-    await db.syncState.put(next)
-    return next
+  async setState(patch: SyncStatePatch): Promise<SyncState> {
+    return db.transaction('rw', [db.syncState], () => setStateInTransaction(db.syncState, patch))
   },
 
   /**
@@ -104,27 +209,14 @@ export const syncRepository = {
    * 生成 deviceId 并写入凭据；**调用方负责在配对流程中决定 enabled 的时机**。
    */
   async initCredentials(secret: string, keyId: string): Promise<SyncState> {
-    return this.setState({
-      deviceId: ulid(),
-      secret,
-      keyId,
-      // 启用与否由调用方显式决定（A 设备配对时要等 B 确认）
-      lastError: null,
-    })
+    return db.transaction('rw', [db.syncState], () =>
+      initCredentialsInTransaction(db.syncState, secret, keyId),
+    )
   },
 
   /** 关闭同步：清凭据与游标，但**保留 outbox**（用户的数据不该因为关掉同步而丢） */
   async disable(): Promise<void> {
-    const current = await this.getState()
-    if (!current) return
-    await this.setState({
-      enabled: false,
-      secret: null,
-      keyId: null,
-      lastPulledRevision: 0,
-      lastSyncAt: null,
-      lastError: null,
-    })
+    await db.transaction('rw', [db.syncState], () => disableInTransaction(db.syncState))
   },
 
   /** 记录一次成功同步 */
@@ -140,6 +232,31 @@ export const syncRepository = {
   /** 记录一次失败（仅用于 UI 展示，不阻塞任何本地操作） */
   async markError(message: string): Promise<void> {
     await this.setState({ lastError: message })
+  },
+
+  /** 在会话仍然有效的同一事务里记录游标，旧响应不能推进新会话。 */
+  async markSyncedForSession(session: SyncSession, pullRevision: number): Promise<boolean> {
+    return db.transaction('rw', [db.syncState], async () => {
+      const current = await readStateFromTable(db.syncState)
+      if (!isCurrentSession(current, session)) return false
+      await db.syncState.put({
+        ...current!,
+        lastPulledRevision: Math.max(pullRevision, current!.lastPulledRevision),
+        lastSyncAt: new Date().toISOString(),
+        lastError: null,
+      })
+      return true
+    })
+  },
+
+  /** 在会话仍然有效的同一事务里记录错误，旧请求不能污染新会话状态。 */
+  async markErrorForSession(session: SyncSession, message: string): Promise<boolean> {
+    return db.transaction('rw', [db.syncState], async () => {
+      const current = await readStateFromTable(db.syncState)
+      if (!isCurrentSession(current, session)) return false
+      await db.syncState.put({ ...current!, lastError: message })
+      return true
+    })
   },
 
   /* ------------------------------------------------------------------ */
@@ -215,6 +332,16 @@ export const syncRepository = {
     await db.syncQueue.bulkDelete([...ids])
   },
 
+  /** 只在同一会话仍有效时出队；syncState 与 outbox 处于同一事务边界。 */
+  async dequeueForSession(session: SyncSession, ids: readonly string[]): Promise<boolean> {
+    return db.transaction('rw', [db.syncState, db.syncQueue], async () => {
+      const current = await readStateFromTable(db.syncState)
+      if (!isCurrentSession(current, session)) return false
+      if (ids.length > 0) await db.syncQueue.bulkDelete([...ids])
+      return true
+    })
+  },
+
   /**
    * 清除某个实体的 outbox 条目 —— **回声防护的关键**。
    *
@@ -269,6 +396,20 @@ export const syncRepository = {
   async recordConflict(conflict: Omit<SyncConflict, 'id'>): Promise<void> {
     await db.syncConflicts.add({ ...conflict, id: ulid() })
     await this.pruneConflicts()
+  },
+
+  /** 冲突记录也不能由已经失效的网络响应写入新会话。 */
+  async recordConflictForSession(
+    session: SyncSession,
+    conflict: Omit<SyncConflict, 'id'>,
+  ): Promise<boolean> {
+    return db.transaction('rw', [db.syncState, db.syncConflicts], async () => {
+      const current = await readStateFromTable(db.syncState)
+      if (!isCurrentSession(current, session)) return false
+      await db.syncConflicts.add({ ...conflict, id: ulid() })
+      await this.pruneConflicts()
+      return true
+    })
   },
 
   /** 超出上限时删除最旧的记录，保证这张表不会无限膨胀 */
