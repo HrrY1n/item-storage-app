@@ -6,11 +6,47 @@
 - 范围：PWA 注册 / 更新 / 预缓存 / 导航回落 / Cloudflare 静态路由
 - 约束：未修改任何源文件、未改 Cloudflare 配置、未清理 SW / IndexedDB / Cache Storage、未 commit、未 push
 
-> **后续修复状态（v1.0.1，2026-10-08）**：结论 4 的「最小修复」已实施 —— `vite.config.ts` 的
+> ⚠️ 本文正文是 **2026-10-08 审计当时的原始记录**，包括当时只能做静态推理、尚未验证的部分。
+> 后续进展写在下面两个区块里，**正文没有被改写过**。
+
+---
+
+## ✅ 最终验收记录（2026-10-09）
+
+**`IOS_OFFLINE_COLDSTART = PASS_ON_TESTED_IPHONE`**
+
+修复提交：`42c292b619b8582fe493058ffb2e8b990cf5c93f`（`fix(pwa): harden offline app shell cold start`，v1.0.1）
+
+### 真机验收结果（由用户在其实际使用的 iPhone 上操作确认）
+
+| # | 场景 | 结果 |
+|---|---|---|
+| 1 | 飞行模式 + 关闭 Wi-Fi，从**主屏幕冷启动** PWA | **PASS** |
+| 2 | 联网但**不开代理**，从**主屏幕冷启动** PWA | **PASS** |
+| 3 | 保留原有主屏 PWA，**原地更新**到 v1.0.1，**无需删除重装** | **PASS** |
+
+### 桌面自动化回归（同一提交）
+
+`npm run verify:pwa-offline` → **27 项断言全部 PASS**（在线首次安装 / 杀进程断网冷启动 /
+黑洞服务器冷启动 / 离线深链 / 新旧版本更替 / 安装失败不破坏旧版本 / 生产控制台无报错）。
+
+### 结论边界（不得外推）
+
+- 本结论**只覆盖上述那台 iPhone 与它当时的 iOS 版本**，不代表所有 iOS 版本、所有 iPhone 机型均已通过。
+- **没有**在真机上定位到 WebKit 的确定失效点。v1.0.1 消除的是一个**实测存在**的异常
+  （Cloudflare 对 `/index.html` 返回 307 → `/`，使 Workbox 把 App Shell 存成 `Response.url === ""`
+  的合成响应）；修复后真机可用，**不等于已证明它是 WebKit 侧的唯一根因**。
+- 本文第 0 节第 5 项「仍需真机确认」里的机制性问题（iOS standalone 冷启动时 SW 是否 controlling、
+  iOS 是否强制发 sw.js 更新请求、standalone 与 Safari 是否共享存储容器）**仍未被直接观测**——
+  真机通过说明的是"现象已消失"，不是"机制已查明"。换设备或升级 iOS 后若复现，仍需回到该清单重新排查。
+
+---
+
+> **中间状态记录（2026-10-08，v1.0.1 修复提交当时）**：结论 4 的「最小修复」已实施 —— `vite.config.ts` 的
 > `navigateFallback` 改为 `/`，并用 `manifestTransforms` 把 `index.html` 清单项改写成 `/`
-> （保留原内容哈希 revision）。桌面 Chromium 上 23 项冷启动断言全部通过
-> （`npm run verify:pwa-offline`）。**这不等于 iOS 真机已修复**：真机验收仍为 PENDING，
-> 本审计里列出的第 5 项真机待确认清单一条都还没被真机验证过。本文档其余内容保持审计当时的原样。
+> （保留原内容哈希 revision；最终选 `manifestTransforms` 而非 `additionalManifestEntries`，
+> 因为它能拿到 Workbox 已算好的内容哈希）。当时桌面 Chromium 上的冷启动断言全部通过，
+> **而 iOS 真机验收尚未进行**。本段保留当时的原始判断，未被后面的验收结果回溯改写。
 
 ---
 
