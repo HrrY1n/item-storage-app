@@ -161,12 +161,11 @@ const ICONS = [
   {
     key: 'gameconsole',
     body: `
-<path d="M17 26h62a7 7 0 0 1 7 7v36a7 7 0 0 1-7 7H17a7 7 0 0 1-7-7V33a7 7 0 0 1 7-7z" fill="${W}"/>
-<rect x="25" y="34" width="25" height="16" rx="4" fill="${C1}"/>
-<path d="M58 35h15M58 43h15M58 51h15" stroke="${M}" stroke-width="3"/>
-<circle cx="25" cy="59" r="3.2" fill="${C3}" stroke="none"/>
-<path d="M37 59h10" stroke-width="3"/>
-<circle cx="62" cy="63" r="3" fill="${C2}" stroke="none"/>`,
+<path d="M17 28h62a7 7 0 0 1 7 7v34a7 7 0 0 1-7 7H17a7 7 0 0 1-7-7V35a7 7 0 0 1 7-7z" fill="${W}"/>
+<rect x="25" y="38" width="46" height="7" rx="3.5" fill="${C1}"/>
+<path d="M29 58h12M35 52v12" stroke-width="3"/>
+<circle cx="59" cy="55" r="3.2" fill="${C4}" stroke="none"/>
+<circle cx="68" cy="62" r="3.2" fill="${C3}" stroke="none"/>`,
   },
   {
     key: 'gamepad',
@@ -823,19 +822,25 @@ const ICONS = [
 <path d="M43 14h10M43 18h10" stroke-width="2.4"/>
 <path d="M44 84h8" stroke="${M}" stroke-width="3"/>` },
   { key: 'shaver', label: '剃须刀', body: `
-<rect x="34" y="12" width="28" height="46" rx="10" fill="${W}"/>
-<rect x="38" y="20" width="20" height="16" rx="5" fill="${C2}"/>
-<path d="M41 25h14M41 30h14" stroke="${M}" stroke-width="2.4"/>
-<rect x="42" y="58" width="12" height="20" rx="6" fill="${C1}"/>
-<circle cx="48" cy="70" r="3" fill="${W}" stroke="none"/>` },
+<path d="M30 14h36a8 8 0 0 1 8 8v11a8 8 0 0 1-8 8H30a8 8 0 0 1-8-8V22a8 8 0 0 1 8-8z" fill="${C2}"/>
+<rect x="27" y="19" width="42" height="12" rx="5" fill="${W}"/>
+<path d="M35 22v6M43 22v6M51 22v6M59 22v6" stroke="${M}" stroke-width="2.4"/>
+<path d="M37 41h22v34a9 9 0 0 1-9 9h-4a9 9 0 0 1-9-9z" fill="${C1}"/>
+<circle cx="48" cy="60" r="3" fill="${W}" stroke="none"/>` },
   { key: 'trimmer', label: '理发器', body: `
-<path d="M34 40h28a6 6 0 0 1 6 6v22a10 10 0 0 1-10 10H38a10 10 0 0 1-10-10V46a6 6 0 0 1 6-6z" fill="${C2}"/>
-<path d="M32 30h32v8H32z" fill="${C1}"/>
-<path d="M38 24v6M46 22v8M54 24v6M62 26v4" stroke-width="2.6"/>` },
+<path d="M34 39h28a8 8 0 0 1 8 8v19a12 12 0 0 1-12 12H38a12 12 0 0 1-12-12V47a8 8 0 0 1 8-8z" fill="${C2}"/>
+<path d="M28 29h40v10H28z" fill="${C1}"/>
+<path d="M33 23h30v6H33z" fill="${W}"/>
+<path d="M35 23v6M42 21v8M49 21v8M56 21v8M63 23v6" stroke-width="2.6"/>
+<circle cx="48" cy="56" r="3" fill="${W}" stroke="none"/>` },
   { key: 'curlingiron', label: '卷发棒', body: `
-<rect x="56" y="10" width="22" height="52" rx="10" fill="${C1}"/>
-<rect x="58" y="58" width="18" height="30" rx="7" fill="${C2}"/>
-<path d="M56 24a14 14 0 0 0 0 20" fill="none" stroke-width="3.4"/>` },
+<g transform="rotate(-20 48 48)">
+<rect x="35" y="10" width="22" height="52" rx="11" fill="${C1}"/>
+<path d="M35 25h22" stroke="${W}" stroke-width="2.6"/>
+<path d="M32 22h8v28a6 6 0 0 0 6 6" fill="none" stroke="${C2}" stroke-width="3.4"/>
+<rect x="37" y="58" width="18" height="30" rx="7" fill="${C2}"/>
+<path d="M39 68h14" stroke="${M}" stroke-width="2.4"/>
+</g>` },
   { key: 'skincare', label: '护肤品', body: `
 <path d="M43 12h10v10h-10z" fill="${C2}"/>
 <path d="M43 16h-9" stroke-width="3"/>
@@ -914,16 +919,18 @@ const ICONS = [
 <rect x="28" y="40" width="40" height="18" rx="3" fill="${C1}" stroke-width="2.6"/>
 <g fill="${M}" stroke="none"><circle cx="24" cy="26" r="3"/><circle cx="36" cy="26" r="3"/><circle cx="48" cy="26" r="3"/></g>` },
   { key: 'juicer', label: '榨汁机', body: `
-<rect x="28" y="8" width="40" height="12" rx="5" fill="${C2}"/>
-<path d="M32 20h32l-4 20H36z" fill="${W}"/>
-<rect x="38" y="40" width="20" height="10" rx="4" fill="${C2}"/>
-<rect x="30" y="50" width="36" height="32" rx="7" fill="${C1}"/>
-<path d="M40 64h16" stroke="${W}" stroke-width="3"/>` },
+<rect x="39" y="8" width="18" height="12" rx="4" fill="${C2}"/>
+<path d="M31 20h34l-3 16H34z" fill="${W}"/>
+<path d="M29 36h38l-7 18H36z" fill="${C3}"/>
+<path d="M58 45h12a5 5 0 0 1 5 5v4H59z" fill="${C2}"/>
+<rect x="37" y="54" width="22" height="26" rx="6" fill="${C1}"/>
+<path d="M41 65h14" stroke="${W}" stroke-width="2.8"/>` },
   { key: 'blender', label: '破壁机', body: `
 <rect x="28" y="8" width="40" height="10" rx="5" fill="${C2}"/>
-<path d="M32 18h32v22a16 16 0 0 1-32 0z" fill="${W}"/>
-<path d="M34 26h28v14a14 14 0 0 1-28 0z" fill="${C1}" stroke="none"/>
-<rect x="30" y="56" width="36" height="26" rx="7" fill="${C2}"/>
+<path d="M29 18h38l-3 31a16 16 0 0 1-32 0z" fill="${C1}"/>
+<path d="M67 27h5a8 8 0 0 1 0 16h-7" fill="none" stroke-width="3.2"/>
+<path d="M36 42h24" stroke="${W}" stroke-width="2.8"/>
+<rect x="30" y="54" width="36" height="26" rx="7" fill="${C2}"/>
 <circle cx="48" cy="69" r="6" fill="${W}" stroke-width="2.6"/>` },
   { key: 'wineglass', label: '酒杯', body: `
 <path d="M30 10h36c0 18-8 28-18 28S30 28 30 10z" fill="${W}"/>
