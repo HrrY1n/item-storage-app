@@ -13,8 +13,13 @@
  */
 export type IconKey = string
 
-export type AssetKind = 'preset' | 'ai_generated' | 'from_photo'
+export const ASSET_KINDS = ['preset', 'ai_generated', 'from_photo'] as const
+export type AssetKind = (typeof ASSET_KINDS)[number]
 export type ItemSourceType = AssetKind
+
+export function isAssetKind(value: unknown): value is AssetKind {
+  return typeof value === 'string' && (ASSET_KINDS as readonly string[]).includes(value)
+}
 
 /** 购买平台（Phase 2E）；UI 显示映射见 domain/purchase.ts */
 export type PurchasePlatform =

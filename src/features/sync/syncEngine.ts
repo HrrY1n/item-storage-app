@@ -213,6 +213,7 @@ export class SyncEngine {
             const applied = await this.applyRemote(result.authoritativeChanges, activeSession)
             if (applied !== 'ok') {
               if (applied === 'category-cycle') errorKind = 'conflict'
+              if (applied === 'invalid-payload') errorKind = 'protocol'
               return { ok: false, pushed, pulled, conflicts, errorKind }
             }
           }
@@ -243,6 +244,7 @@ export class SyncEngine {
         const applied = await this.applyRemote(result.changes, activeSession)
         if (applied !== 'ok') {
           if (applied === 'category-cycle') errorKind = 'conflict'
+          if (applied === 'invalid-payload') errorKind = 'protocol'
           return { ok: false, pushed, pulled, conflicts, errorKind }
         }
         cursor = result.nextRevision
@@ -472,7 +474,10 @@ export class SyncEngine {
   private async applyRemote(
     changes: RemoteChange[],
     session: SyncSession,
-  ): Promise<'ok' | 'stale' | 'category-cycle'> {
+  ): Promise<'ok' | 'stale' | 'category-cycle' | 'invalid-payload'> {
+    // 先整页校验 upsert payload，避免事务已写入前半页后才发现坏记录。
+    // tombstone 的删除事实独立于 payload，仍允许空 payload 正常传播。
+    if (!this.remotePayloadsAreValid(changes)) return 'invalid-payload'
     if (!(await this.remoteCategoryBatchIsAcyclic(changes))) return 'category-cycle'
     return db.transaction(
       'rw',
@@ -552,6 +557,15 @@ export class SyncEngine {
         return 'ok'
       },
     )
+  }
+
+  private remotePayloadsAreValid(changes: RemoteChange[]): boolean {
+    return changes.every((change) => {
+      if (change.deletedAt !== null) return true
+      if (change.entity === 'item') return decodeItemPayload(change.entityId, change.payload) !== null
+      if (change.entity === 'category') return decodeCategoryPayload(change.entityId, change.payload) !== null
+      return decodeTagPayload(change.entityId, change.payload) !== null
+    })
   }
 
   /** 预演本页分类更新；缺失父节点允许跨页暂态，但已成环数据只读报告。 */

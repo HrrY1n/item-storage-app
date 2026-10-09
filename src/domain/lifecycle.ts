@@ -61,6 +61,15 @@ export const DISPOSAL_METHOD_LABELS: Record<DisposalMethod, string> = {
 }
 
 export const ITEM_STATUSES: ItemStatus[] = ['owned', 'wishlist', 'disposed']
+export const DISPOSAL_METHODS: DisposalMethod[] = ['sold', 'discarded', 'other']
+
+export function isItemStatus(value: unknown): value is ItemStatus {
+  return typeof value === 'string' && ITEM_STATUSES.includes(value as ItemStatus)
+}
+
+export function isDisposalMethod(value: unknown): value is DisposalMethod {
+  return typeof value === 'string' && DISPOSAL_METHODS.includes(value as DisposalMethod)
+}
 
 // ---------------------------------------------------------------- 持有天数
 

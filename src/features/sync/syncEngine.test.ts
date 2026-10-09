@@ -471,12 +471,12 @@ describe('apply 远端变更', () => {
     expect((await db.categories.get(cat.id))?.deletedAt).toBe('2026-03-01T00:00:00.000Z')
   })
 
-  it('脏载荷被静默丢弃，不让整批失败', async () => {
+  it('脏载荷使整页失败，不写入部分记录也不推进游标', async () => {
     const { engine } = makeDevice()
     await pairDevice('dev-b')
 
     cloud.push('dev-a', [
-      { entity: 'item', entityId: 'bad-1', payload: { name: '' }, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
+      { entity: 'item', entityId: 'bad-1', payload: { name: '非法状态', status: 'archived' }, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
       { entity: 'item', entityId: 'not-json', payload: { name: '' }, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
       {
         entity: 'item',
@@ -490,9 +490,10 @@ describe('apply 远端变更', () => {
 
     const r = await engine.run()
 
-    expect(r.ok).toBe(true)
+    expect(r).toMatchObject({ ok: false, errorKind: 'protocol' })
     expect(await db.items.get('bad-1')).toBeUndefined()
-    expect(await db.items.get('good')).toBeDefined()
+    expect(await db.items.get('good')).toBeUndefined()
+    expect((await syncRepository.getState())?.lastPulledRevision).toBe(0)
   })
 })
 

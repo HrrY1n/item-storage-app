@@ -1,4 +1,6 @@
-import type { Asset, Category, Item, ItemTag, Tag } from './types'
+import { isAssetKind, type Asset, type Category, type Item, type ItemTag, type Tag } from './types'
+import { isDisposalMethod, isItemStatus } from './lifecycle'
+import { isPurchasePlatform } from './purchase'
 
 /**
  * 同步载荷的编解码（纯函数，无 IO，全部有测试）。
@@ -159,7 +161,7 @@ export function encodeAssetMetaPayload(asset: Asset): AssetMetaPayload {
  * 把不可信的载荷（来自另一台设备的 JSON）安全地转成 Item。
  *
  * 所有字段都做类型收敛；未知字段被忽略；缺失的可空字段补 null。
- * 刻意**不抛异常** —— 一条坏数据不应该让整批同步失败，静默丢弃即可。
+ * 刻意**不抛异常**，由同步编排层决定如何处理返回的 null。
  */
 export function decodeItemPayload(id: string, raw: unknown): Item | null {
   const p = asRecord(raw)
@@ -167,21 +169,38 @@ export function decodeItemPayload(id: string, raw: unknown): Item | null {
   const name = asString(p.name)
   if (name === null || name === '') return null // 名称是唯一必填项（与 create 的校验一致）
 
+  // 老版本 payload 可能没有这两个字段，保持既有迁移默认值；但显式非法值不能伪造为合法状态。
+  const sourceType = p.sourceType === undefined ? 'preset' : isAssetKind(p.sourceType) ? p.sourceType : null
+  const status = p.status === undefined ? 'owned' : isItemStatus(p.status) ? p.status : null
+  if (sourceType === null || status === null) return null
+
+  let purchasePlatform: Item['purchasePlatform'] = null
+  if (p.purchasePlatform !== undefined && p.purchasePlatform !== null) {
+    if (!isPurchasePlatform(p.purchasePlatform)) return null
+    purchasePlatform = p.purchasePlatform
+  }
+
+  let disposalMethod: Item['disposalMethod'] = null
+  if (p.disposalMethod !== undefined && p.disposalMethod !== null) {
+    if (!isDisposalMethod(p.disposalMethod)) return null
+    disposalMethod = p.disposalMethod
+  }
+
   const item: Item = {
     id,
     name,
     categoryId: asString(p.categoryId) ?? '',
     note: asString(p.note) ?? '',
     iconAssetId: asString(p.iconAssetId) ?? 'preset-other',
-    sourceType: (asString(p.sourceType) ?? 'preset') as Item['sourceType'],
-    status: (asString(p.status) ?? 'owned') as Item['status'],
+    sourceType,
+    status,
     purchaseDate: asNullableString(p.purchaseDate),
     purchasePriceCents: asNullableNumber(p.purchasePriceCents),
     additionalCostCents: asNullableNumber(p.additionalCostCents),
-    purchasePlatform: asNullableString(p.purchasePlatform) as Item['purchasePlatform'],
+    purchasePlatform,
     warrantyExpiresAt: asNullableString(p.warrantyExpiresAt),
     disposedAt: asNullableString(p.disposedAt),
-    disposalMethod: asNullableString(p.disposalMethod) as Item['disposalMethod'],
+    disposalMethod,
     salePriceCents: asNullableNumber(p.salePriceCents),
     disposalNote: asNullableString(p.disposalNote),
     createdAt: asString(p.createdAt) ?? new Date(0).toISOString(),

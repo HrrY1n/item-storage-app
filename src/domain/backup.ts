@@ -11,19 +11,21 @@
  * - 任何一项校验失败都返回 ok:false + 原因，**绝不部分写入**。
  */
 
-import type {
-  Asset,
-  AssetKind,
-  Category,
-  DisposalMethod,
-  Item,
-  ItemStatus,
-  ItemTag,
-  PurchasePlatform,
-  Tag,
+import {
+  isAssetKind,
+  type Asset,
+  type AssetKind,
+  type Category,
+  type DisposalMethod,
+  type Item,
+  type ItemStatus,
+  type ItemTag,
+  type PurchasePlatform,
+  type Tag,
 } from './types'
 import { CURRENT_SCHEMA_VERSION } from './types'
-import { sanitizeLifecycle } from './lifecycle'
+import { isDisposalMethod, isItemStatus, sanitizeLifecycle } from './lifecycle'
+import { isPurchasePlatform } from './purchase'
 import { hasCategoryCycle } from './categoryTree'
 
 /**
@@ -164,18 +166,6 @@ export function validateManifest(raw: unknown): ValidationResult<BackupManifest>
 
 // ---------------------------------------------------------------- data.json
 
-const PURCHASE_PLATFORM_VALUES: readonly string[] = [
-  'jd',
-  'taobao',
-  'pinduoduo',
-  'zhuanzhuan',
-  'aihuishou',
-  'other',
-]
-
-const ITEM_STATUS_VALUES: readonly string[] = ['wishlist', 'owned', 'disposed']
-const DISPOSAL_METHOD_VALUES: readonly string[] = ['sold', 'discarded', 'other']
-
 const isNullableNumber = (v: unknown): v is number | null => v === null || isNumber(v)
 
 function validateItem(raw: unknown, i: number, schemaVersion: number): ValidationResult<Item> {
@@ -185,7 +175,7 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
   if (!isString(raw.categoryId)) return { ok: false, error: `items[${i}].categoryId 无效` }
   if (!isString(raw.note)) return { ok: false, error: `items[${i}].note 无效` }
   if (!isString(raw.iconAssetId)) return { ok: false, error: `items[${i}].iconAssetId 无效` }
-  if (!isString(raw.sourceType)) return { ok: false, error: `items[${i}].sourceType 无效` }
+  if (!isAssetKind(raw.sourceType)) return { ok: false, error: `items[${i}].sourceType 无效` }
   if (!isString(raw.createdAt)) return { ok: false, error: `items[${i}].createdAt 无效` }
   if (!isString(raw.updatedAt)) return { ok: false, error: `items[${i}].updatedAt 无效` }
   if (!isNullableString(raw.deletedAt)) return { ok: false, error: `items[${i}].deletedAt 无效` }
@@ -209,7 +199,7 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
     if (
       !(
         raw.purchasePlatform === null ||
-        (isString(raw.purchasePlatform) && PURCHASE_PLATFORM_VALUES.includes(raw.purchasePlatform))
+        isPurchasePlatform(raw.purchasePlatform)
       )
     ) {
       return { ok: false, error: `items[${i}].purchasePlatform 无效` }
@@ -230,7 +220,7 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
   let disposalNote: string | null = null
 
   if (schemaVersion >= 3) {
-    if (!isString(raw.status) || !ITEM_STATUS_VALUES.includes(raw.status)) {
+    if (!isItemStatus(raw.status)) {
       return { ok: false, error: `items[${i}].status 无效` }
     }
     if (!isNullableString(raw.warrantyExpiresAt)) {
@@ -242,8 +232,7 @@ function validateItem(raw: unknown, i: number, schemaVersion: number): Validatio
     if (
       !(
         raw.disposalMethod === null ||
-        (isString(raw.disposalMethod) &&
-          DISPOSAL_METHOD_VALUES.includes(raw.disposalMethod))
+        isDisposalMethod(raw.disposalMethod)
       )
     ) {
       return { ok: false, error: `items[${i}].disposalMethod 无效` }
@@ -356,7 +345,7 @@ function validateItemTag(raw: unknown, i: number): ValidationResult<ItemTag> {
 function validateAssetMeta(raw: unknown, i: number): ValidationResult<BackupAssetMeta> {
   if (!isRecord(raw)) return { ok: false, error: `assets[${i}] 不是合法对象` }
   if (!isString(raw.id) || raw.id === '') return { ok: false, error: `assets[${i}].id 无效` }
-  if (!isString(raw.kind)) return { ok: false, error: `assets[${i}].kind 无效` }
+  if (!isAssetKind(raw.kind)) return { ok: false, error: `assets[${i}].kind 无效` }
   if (!isNullableString(raw.path)) return { ok: false, error: `assets[${i}].path 无效` }
   if (!isString(raw.mime)) return { ok: false, error: `assets[${i}].mime 无效` }
   if (!isNumber(raw.width)) return { ok: false, error: `assets[${i}].width 无效` }
@@ -379,7 +368,7 @@ function validateAssetMeta(raw: unknown, i: number): ValidationResult<BackupAsse
     ok: true,
     value: {
       id: raw.id,
-      kind: raw.kind as AssetKind,
+      kind: raw.kind,
       path: raw.path,
       mime: raw.mime,
       width: raw.width,

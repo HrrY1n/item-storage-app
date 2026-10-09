@@ -176,6 +176,10 @@ export const PURCHASE_PLATFORM_LABELS: Record<PurchasePlatform, string> = {
 
 export const PURCHASE_PLATFORMS = Object.keys(PURCHASE_PLATFORM_LABELS) as PurchasePlatform[]
 
+export function isPurchasePlatform(value: unknown): value is PurchasePlatform {
+  return typeof value === 'string' && PURCHASE_PLATFORMS.includes(value as PurchasePlatform)
+}
+
 export function platformLabel(platform: PurchasePlatform | null): string {
   return platform ? PURCHASE_PLATFORM_LABELS[platform] : ''
 }

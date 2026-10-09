@@ -105,6 +105,21 @@ describe('脏数据容错（同步来的 JSON 不可信）', () => {
     expect(back?.categoryId).toBe('')
   })
 
+  it.each([
+    ['sourceType', 'future-source'],
+    ['status', 'archived'],
+    ['purchasePlatform', 'amazon'],
+    ['disposalMethod', 'recycled'],
+  ])('已知枚举字段非法值 → 整条 item 拒绝（%s）', (field, value) => {
+    expect(decodeItemPayload('i1', { name: 'X', [field]: value })).toBeNull()
+  })
+
+  it('nullable 枚举显式 null 仍合法', () => {
+    const back = decodeItemPayload('i1', { name: 'X', purchasePlatform: null, disposalMethod: null })
+    expect(back?.purchasePlatform).toBeNull()
+    expect(back?.disposalMethod).toBeNull()
+  })
+
   it('未知字段被忽略（前向兼容：老App 拉到新字段不崩）', () => {
     const back = decodeItemPayload('i1', {
       name: 'X',
