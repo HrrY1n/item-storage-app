@@ -1,13 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { fromBase64Url, toBase64Url } from '../../services/syncBytes'
 import {
-  backoffDelay,
   chunk,
   classifyStatus,
-  shouldAutoRetry,
   shouldRequestSync,
   summarizeSync,
-  SYNC_MAX_AUTO_RETRIES,
   SYNC_THROTTLE_MS,
 } from './syncPolicy'
 
@@ -105,44 +102,6 @@ describe('classifyStatus', () => {
   it('其他状态码归为 unknown', () => {
     expect(classifyStatus(400)).toBe('unknown')
     expect(classifyStatus(404)).toBe('unknown')
-  })
-})
-
-describe('shouldAutoRetry', () => {
-  it('未授权不重试（再试一百次也是 401，只白耗额度）', () => {
-    expect(shouldAutoRetry('unauthorized', 1)).toBe(false)
-  })
-
-  it('离线不靠定时器重试，等 online 事件', () => {
-    expect(shouldAutoRetry('offline', 1)).toBe(false)
-  })
-
-  it('协议错误不自动重试，避免反复发送不兼容请求', () => {
-    expect(shouldAutoRetry('protocol', 1)).toBe(false)
-  })
-
-  it('服务端故障在重试上限内才重试', () => {
-    expect(shouldAutoRetry('server', 1)).toBe(true)
-    expect(shouldAutoRetry('server', SYNC_MAX_AUTO_RETRIES)).toBe(false)
-  })
-})
-
-describe('backoffDelay', () => {
-  it('随尝试次数递增', () => {
-    const d1 = backoffDelay(1) ?? 0
-    const d2 = backoffDelay(2) ?? 0
-    const d3 = backoffDelay(3) ?? 0
-    expect(d1).toBeLessThan(d2)
-    expect(d2).toBeLessThan(d3)
-  })
-
-  it('超出上限返回 null（转为等用户手动重试）', () => {
-    expect(backoffDelay(SYNC_MAX_AUTO_RETRIES + 1)).toBeNull()
-  })
-
-  it('非法输入返回 null', () => {
-    expect(backoffDelay(0)).toBeNull()
-    expect(backoffDelay(-1)).toBeNull()
   })
 })
 

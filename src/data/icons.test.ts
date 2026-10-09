@@ -65,18 +65,6 @@ describe('PRESET_ICONS 元数据', () => {
     expect(iconsInCategory('kitchen').map((i) => i.key)).toContain('airfryer')
   })
 
-  it('九大分类全部有图标，且没有空分类', () => {
-    expect(ICON_CATEGORIES.length).toBeGreaterThanOrEqual(9)
-    for (const c of ICON_CATEGORIES) {
-      expect(iconsInCategory(c.key).length).toBeGreaterThan(0)
-    }
-  })
-
-  it('Phase 2G 新增分类可用：护理 / 厨房', () => {
-    expect(iconsInCategory('care').map((i) => i.key)).toContain('electrictoothbrush')
-    expect(iconsInCategory('kitchen').map((i) => i.key)).toContain('airfryer')
-  })
-
   it('手机与平板是两个独立图标（本轮的硬性诉求）', () => {
     const phone = PRESET_ICONS.find((i) => i.key === 'phone')
     const tablet = PRESET_ICONS.find((i) => i.key === 'tablet')
@@ -109,24 +97,6 @@ describe('图标检索', () => {
   it('英文与品牌名也能命中', () => {
     expect(searchIcons('iPad').map((i) => i.key)).toContain('tablet')
     expect(searchIcons('kindle').map((i) => i.key)).toContain('ereader')
-  })
-
-  it('「平板 / iPad / 平板电脑」三种叫法都稳定命中 tablet', () => {
-    for (const q of ['平板', 'iPad', 'ipad', '平板电脑', 'Tablet', 'iPad mini']) {
-      expect(searchIcons(q).map((i) => i.key), `查询「${q}」`).toContain('tablet')
-    }
-    // 反例：「平板壳」指的是保护壳，不应该把 tablet 也塞进来
-    expect(searchIcons('平板壳').map((i) => i.key)).toEqual(['tabletcase'])
-  })
-
-  it('新增图标按日常叫法可搜', () => {
-    expect(searchIcons('吹风机').map((i) => i.key)).toContain('hairdryer')
-    expect(searchIcons('电动牙刷').map((i) => i.key)).toContain('electrictoothbrush')
-    expect(searchIcons('空气炸锅').map((i) => i.key)).toContain('airfryer')
-    expect(searchIcons('哑铃').map((i) => i.key)).toContain('dumbbell')
-    expect(searchIcons('帐篷').map((i) => i.key)).toContain('tent')
-    expect(searchIcons('插线板').map((i) => i.key)).toContain('powerstrip')
-    expect(searchIcons('螺丝刀').map((i) => i.key)).toContain('screwdriver')
   })
 
   it('「平板 / iPad / 平板电脑」三种叫法都稳定命中 tablet', () => {

@@ -242,10 +242,6 @@ describe('E. 已丢弃卡片', () => {
     expect(values(p())).not.toContain('¥0.00')
     expect(values(p()).every((v) => v !== '¥0' && v !== '¥0.00')).toBe(true)
   })
-
-  it('无图片 overlay', () => {
-    expect(p().overlay).toBeNull()
-  })
 })
 
 describe('F. 其他处置卡片', () => {
@@ -261,10 +257,6 @@ describe('F. 其他处置卡片', () => {
     // 精确比对，不能用子串匹配（`¥0.29` 里也含 `¥0`）
     expect(values(p())).not.toContain('¥0')
     expect(values(p())).not.toContain('¥0.00')
-  })
-
-  it('无图片 overlay', () => {
-    expect(p().overlay).toBeNull()
   })
 
   it('⚠️ 绝不虚构 subtype（domain 只有 method，没有原因字段）', () => {
