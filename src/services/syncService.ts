@@ -1,7 +1,6 @@
 import { db } from '../db/db'
 import {
   initCredentialsInTransaction,
-  setStateInTransaction,
   syncRepository,
 } from '../db/repositories/syncRepository'
 import { onSyncDirty } from '../db/syncDirty'
@@ -212,8 +211,11 @@ export async function createSyncSpace(): Promise<{ code: string; keyId: string; 
   if (!registered.ok) throw new Error('无法创建同步空间')
 
   // 登记成功后才落本地凭据并启用
-  await syncRepository.initCredentials(secret, registered.keyId ?? keyId)
-  await syncRepository.setState({ enabled: true })
+  await syncRepository.initCredentials(secret, registered.keyId ?? keyId, {
+    enabled: true,
+    lastPulledRevision: 0,
+    lastSyncAt: null,
+  })
   await syncRepository.enqueueAll()
 
   return { code, keyId: registered.keyId ?? keyId, secret }
@@ -316,12 +318,13 @@ export async function commitJoin(
       }
 
       // 替换凭据同时递增 sessionEpoch，使所有旧引擎在事务内失效。
-      await initCredentialsInTransaction(db.syncState, payload.secret, payload.keyId)
-      await setStateInTransaction(db.syncState, {
+      // 启用和游标重置与换凭据合并到同一次状态写入，避免一次配对重复递增代次。
+      await initCredentialsInTransaction(db.syncState, payload.secret, payload.keyId, {
         enabled: true,
-        ...(direction === 'cloud' ? { lastPulledRevision: 0 } : {}),
+        lastPulledRevision: 0,
+        lastSyncAt: null,
       })
-      if (direction === 'local') await syncRepository.enqueueAll()
+      if (direction === 'local') await syncRepository.enqueueAll({ preserveDeletes: true })
     },
   )
 }

@@ -103,6 +103,7 @@ function nextSessionEpoch(state: SyncState): number {
 
 function identityChanged(current: SyncState, patch: SyncStatePatch): boolean {
   return (
+    (patch.enabled !== undefined && patch.enabled !== current.enabled) ||
     (patch.deviceId !== undefined && patch.deviceId !== current.deviceId) ||
     (patch.keyId !== undefined && patch.keyId !== current.keyId) ||
     (patch.secret !== undefined && patch.secret !== current.secret)
@@ -142,14 +143,18 @@ export async function setStateInTransaction(
   return next
 }
 
+type CredentialInitOptions = Partial<Pick<SyncState, 'enabled' | 'lastPulledRevision' | 'lastSyncAt'>>
+
 export async function initCredentialsInTransaction(
   stateTable: Table<SyncState, string>,
   secret: string,
   keyId: string,
+  options: CredentialInitOptions = {},
 ): Promise<SyncState> {
   const current = (await readStateFromTable(stateTable)) ?? defaultState()
   const next: SyncState = {
     ...current,
+    ...options,
     deviceId: ulid(),
     secret,
     keyId,
@@ -208,9 +213,13 @@ export const syncRepository = {
    * 初始化配对信息（首次启用同步）。
    * 生成 deviceId 并写入凭据；**调用方负责在配对流程中决定 enabled 的时机**。
    */
-  async initCredentials(secret: string, keyId: string): Promise<SyncState> {
+  async initCredentials(
+    secret: string,
+    keyId: string,
+    options: CredentialInitOptions = {},
+  ): Promise<SyncState> {
     return db.transaction('rw', [db.syncState], () =>
-      initCredentialsInTransaction(db.syncState, secret, keyId),
+      initCredentialsInTransaction(db.syncState, secret, keyId, options),
     )
   },
 
@@ -361,12 +370,22 @@ export const syncRepository = {
   },
 
   /** 把当前全部业务实体填入 outbox（首次启用同步 / 恢复备份后） */
-  async enqueueAll(): Promise<number> {
+  async enqueueAll(options: { preserveDeletes?: boolean } = {}): Promise<number> {
     const [items, categories, tags] = await Promise.all([
       db.items.toArray(),
       db.categories.toArray(),
       db.tags.toArray(),
     ])
+    const currentKeys = new Set([
+      ...items.map((row) => `item:${row.id}`),
+      ...categories.map((row) => `category:${row.id}`),
+      ...tags.map((row) => `tag:${row.id}`),
+    ])
+    const preservedDeletes = options.preserveDeletes
+      ? (await db.syncQueue.toArray()).filter(
+          (entry) => entry.op === 'delete' && !currentKeys.has(`${entry.entity}:${entry.entityId}`),
+        )
+      : []
     await db.syncQueue.clear()
     const now = new Date().toISOString()
     const rows: SyncQueueEntry[] = [
@@ -379,8 +398,8 @@ export const syncRepository = {
       })),
       ...tags.map((r) => ({ id: ulid(), entity: 'tag' as const, entityId: r.id, createdAt: now })),
     ]
-    await db.syncQueue.bulkAdd(rows)
-    return rows.length
+    await db.syncQueue.bulkAdd([...preservedDeletes, ...rows])
+    return preservedDeletes.length + rows.length
   },
 
   /* ------------------------------------------------------------------ */
