@@ -90,6 +90,7 @@ export const tagRepository = {
         await syncRepository.enqueueWithTx('item', itemId, tx)
       }
     })
+    markSyncDirty()
   },
 
   /** 合并：把 source 的全部物品关联转移给 target，然后删除 source */

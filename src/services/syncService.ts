@@ -110,7 +110,7 @@ export async function requestSync(reason: SyncReason): Promise<void> {
   const online = typeof navigator === 'undefined' ? true : navigator.onLine !== false
   try {
     const e = engine ?? startSync()
-    if (await e.shouldSync(reason, online)) await e.run()
+    await e.request(reason, online)
   } catch {
     /* 静默：同步失败对用户不可见 */
   }

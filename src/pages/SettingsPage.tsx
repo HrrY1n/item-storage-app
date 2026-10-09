@@ -218,8 +218,10 @@ export default function SettingsPage() {
     if (syncing) return
     setSyncing(true)
     try {
-      await syncNow()
-      show('同步完成')
+      const outcome = await syncNow()
+      if (outcome.ok) show('同步完成')
+      else if (outcome.errorKind === null) show('当前无法同步，请检查连接和同步设置')
+      else show('同步失败，请稍后重试')
     } catch {
       show('同步失败，请稍后重试')
     } finally {
@@ -245,7 +247,8 @@ export default function SettingsPage() {
       setJustCreatedRecovery(true)
       setRecoveryVisible(true)
       show('同步已开启，请保存恢复码')
-      await syncNow()
+      const outcome = await syncNow()
+      if (!outcome.ok) show('同步空间已创建，但首次同步失败，请稍后重试')
     } catch {
       show('创建失败，请检查网络后重试')
     } finally {
@@ -299,8 +302,11 @@ export default function SettingsPage() {
       setPendingJoin(null)
       setRecoveryVisible(false)
       setJustCreatedRecovery(false)
-      show('已用云端数据恢复此设备')
-      await syncNow()
+      const outcome = await syncNow()
+      if (outcome.ok) show('已用云端数据恢复此设备')
+      else show('已连接云端，但数据恢复同步失败，请稍后重试')
+    } catch {
+      show('连接云端失败，请稍后重试')
     } finally {
       setBusySync(false)
     }
@@ -314,8 +320,11 @@ export default function SettingsPage() {
       await commitJoin({ v: 1, secret: pendingJoin.secret, keyId: pendingJoin.keyId }, 'local')
       setJoinConflict(null)
       setPendingJoin(null)
-      show('已启用同步，数据将以本机为准')
-      await syncNow()
+      const outcome = await syncNow()
+      if (outcome.ok) show('已启用同步，数据已同步')
+      else show('已启用同步，但首次同步失败，待同步数据已保留')
+    } catch {
+      show('连接云端失败，请稍后重试')
     } finally {
       setBusySync(false)
     }

@@ -3,6 +3,7 @@ import Dexie from 'dexie'
 import { db } from '../../db/db'
 import { itemRepository } from '../../db/repositories/itemRepository'
 import { categoryRepository } from '../../db/repositories/categoryRepository'
+import { tagRepository } from '../../db/repositories/tagRepository'
 import { syncRepository } from '../../db/repositories/syncRepository'
 import { markSyncDirty, onSyncDirty, resetSyncDirtyListeners } from '../../db/syncDirty'
 import { createLocalChangeDebouncer, type DebounceHost } from './localChangeDebounce'
@@ -405,6 +406,25 @@ describe('local-change 与业务事务的时序', () => {
 
     expect(seen.length).toBeGreaterThan(0)
     expect(seen.every((tx) => tx === null)).toBe(true)
+  })
+
+  it('标签物理删除也会进入自动同步 debounce', async () => {
+    const tag = await tagRepository.create('待删除')
+    const clock = manualClock()
+    let fired = 0
+    const debouncer = createLocalChangeDebouncer({
+      debounceMs: LOCAL_CHANGE_DEBOUNCE_MS,
+      host: clock.host,
+      fire: () => (fired += 1),
+    })
+    const off = onSyncDirty(() => debouncer.notify())
+
+    await tagRepository.delete(tag.id)
+    clock.advance(LOCAL_CHANGE_DEBOUNCE_MS)
+    off()
+
+    expect(fired).toBe(1)
+    expect((await syncRepository.listQueue()).find((entry) => entry.entityId === tag.id)?.op).toBe('delete')
   })
 
   it('★⑥ 同步监听抛错也不会影响业务写入', async () => {

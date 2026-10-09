@@ -65,6 +65,8 @@ export class SyncEngine {
   private inFlight = false
   private lastAttemptAt: number | null = null
   private retryCount = 0
+  private trailingLocalChange = false
+  private trailingWaiters: Array<(outcome: SyncOutcome | null) => void> = []
   private listeners = new Set<() => void>()
 
   constructor(host: SyncEngineHost, options: SyncEngineOptions) {
@@ -93,6 +95,32 @@ export class SyncEngine {
       lastAttemptAt: this.lastAttemptAt,
       inFlight: this.inFlight,
     })
+  }
+
+  /**
+   * 请求一次同步；local-change 在已有运行时不丢弃，而是合并成一次 trailing run。
+   * 其他原因仍保持“正在运行就跳过”的原语义。
+   */
+  async request(reason: SyncReason, online: boolean): Promise<SyncOutcome | null> {
+    if (this.inFlight) {
+      return reason === 'local-change' ? this.waitForTrailingLocalChange() : null
+    }
+    if (!(await this.shouldSync(reason, online))) return null
+    // shouldSync 读取状态时可能让出执行权；再次确认，避免两个请求并发。
+    if (this.inFlight) {
+      return reason === 'local-change' ? this.waitForTrailingLocalChange() : null
+    }
+    return this.run()
+  }
+
+  private waitForTrailingLocalChange(): Promise<SyncOutcome | null> {
+    this.trailingLocalChange = true
+    return new Promise((resolve) => this.trailingWaiters.push(resolve))
+  }
+
+  private resolveTrailingLocalChange(outcome: SyncOutcome | null): void {
+    const waiters = this.trailingWaiters.splice(0)
+    for (const resolve of waiters) resolve(outcome)
   }
 
   /**
@@ -238,14 +266,29 @@ export class SyncEngine {
       errorKind = 'unknown'
       return { ok: false, pushed, pulled, conflicts, errorKind: 'unknown' }
     } finally {
-      this.inFlight = false
       if (errorKind !== null && session !== null) {
         this.retryCount += 1
-        void syncRepository.markErrorForSession(session, errorKind)
+        try {
+          // 先把错误写入状态，再 emit/return，避免 UI refresh 读到旧状态。
+          await syncRepository.markErrorForSession(session, errorKind)
+        } catch {
+          // 错误记录不能反过来让同步调用抛出，也不能影响本地业务数据。
+        }
       } else {
         this.retryCount = 0
       }
+      const runTrailing = this.trailingLocalChange
+      this.trailingLocalChange = false
+      this.inFlight = false
       this.emit()
+      if (runTrailing) {
+        queueMicrotask(() => {
+          void this.request('local-change', this.host.isOnline()).then(
+            (outcome) => this.resolveTrailingLocalChange(outcome),
+            () => this.resolveTrailingLocalChange(null),
+          )
+        })
+      }
     }
   }
 

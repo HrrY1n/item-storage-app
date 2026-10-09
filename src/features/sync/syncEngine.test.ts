@@ -867,6 +867,7 @@ describe('⭐ push 失败 / 竞态时绝不动本地数据（复审第 6 条 · 
     expect(await syncRepository.pendingCount()).toBe(1)
     // 游标未推进（本轮根本没pull）
     expect((await syncRepository.getState())?.lastPulledRevision).toBe(0)
+    expect((await syncRepository.getState())?.lastError).toBe('offline')
   })
 
   it('★ 同步期间用户再次编辑同一实体 → 新 outbox 必须保留（V1/V2 race）', async () => {
@@ -901,6 +902,48 @@ describe('⭐ push 失败 / 竞态时绝不动本地数据（复审第 6 条 · 
     // 云端最终应是 V2（第二轮才推上去的）
     const final = cloud.payloadOf(`item:${item.id}`) as { name?: string } | undefined
     expect(final?.name).toBe('V2')
+  })
+
+  it('★ 飞行中连续本地修改 → 只安排一次 trailing sync，最终上传最新值', async () => {
+    const { engine } = makeDevice()
+    await pairDevice('dev-a')
+    const item = await itemRepository.create({ ...baseInput, name: 'V1' })
+    let trailingA: ReturnType<SyncEngine['request']> | null = null
+    let trailingB: ReturnType<SyncEngine['request']> | null = null
+
+    cloud.onBeforePush = async () => {
+      await itemRepository.update(item.id, { ...baseInput, name: 'V2' })
+      trailingA = engine.request('local-change', true)
+      await itemRepository.update(item.id, { ...baseInput, name: 'V3' })
+      trailingB = engine.request('local-change', true)
+    }
+
+    const first = await engine.run()
+    expect(first.ok).toBe(true)
+    expect((await trailingA!)?.ok).toBe(true)
+    expect((await trailingB!)?.ok).toBe(true)
+    expect(cloud.payloadOf(`item:${item.id}`)).toMatchObject({ name: 'V3' })
+    expect(cloud.calls.filter((call) => call.startsWith('POST '))).toHaveLength(2)
+    expect(await syncRepository.pendingCount()).toBe(0)
+  })
+
+  it('★ trailing sync 失败后不会自我循环重试', async () => {
+    const { engine } = makeDevice()
+    await pairDevice('dev-a')
+    const item = await itemRepository.create({ ...baseInput, name: 'V1' })
+    let trailing: ReturnType<SyncEngine['request']> | null = null
+
+    cloud.onBeforePush = async () => {
+      await itemRepository.update(item.id, { ...baseInput, name: 'V2' })
+      trailing = engine.request('local-change', true)
+      cloud.failNextPush = true
+    }
+
+    await engine.run()
+    const result = await trailing!
+    expect(result?.ok).toBe(false)
+    expect(cloud.calls.filter((call) => call.startsWith('POST '))).toHaveLength(2)
+    expect(await syncRepository.pendingCount()).toBe(1)
   })
 
   it('push 失败后下一轮成功：outbox 全部清空且数据最终一致', async () => {

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { syncRepository } from '../../db/repositories/syncRepository'
 import type { SyncConflict } from '../../domain/types'
 import type { SyncReason, SyncStatusSummary } from './syncPolicy'
+import type { SyncOutcome } from './syncEngine'
 import { getSyncEngine } from '../../services/syncService'
 
 /**
@@ -19,7 +20,7 @@ export interface SyncContextValue {
   /** 立即刷新状态 */
   refresh(): Promise<void>
   /** 手动触发一次同步（忽略节流） */
-  syncNow(): Promise<void>
+  syncNow(): Promise<SyncOutcome>
   /** 是否已启用 */
   enabled: boolean
   /** 最近一次覆盖记录 */
@@ -53,8 +54,9 @@ export function SyncProvider({ children }: SyncProviderProps) {
 
   const syncNow = useCallback(async () => {
     const e = getSyncEngine()
-    await e.run()
+    const outcome = await e.run()
     await refresh()
+    return outcome
   }, [refresh])
 
   // 引擎状态变化时刷新 UI（订阅只注册一次）
