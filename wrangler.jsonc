@@ -35,8 +35,8 @@
   // ⚠️ 绑定名统一为 SYNC_DB，**不要**改成 Dashboard 示例里那个泛化的 "DB" ——
   //    代码里读的是 env.SYNC_DB（worker/index.ts 的 Env 接口），改名会直接 500。
   //
-  // 建表同样不需要命令行认证：在该数据库的 Console 里粘贴
-  // worker/migrations/0001_init.sql 执行即可（脚本可重复执行安全）。
+  // 建表同样不需要命令行认证：在该数据库的 Console 里按顺序执行
+  // worker/migrations/*.sql；迁移脚本可重复执行，不能跳过新增约束迁移。
   "d1_databases": [
     {
       "binding": "SYNC_DB",
