@@ -93,6 +93,10 @@ describe('classifyStatus', () => {
     expect(classifyStatus(429)).toBe('rate-limited')
   })
 
+  it('426 是协议不兼容', () => {
+    expect(classifyStatus(426)).toBe('protocol')
+  })
+
   it('5xx 是服务端故障', () => {
     expect(classifyStatus(500)).toBe('server')
     expect(classifyStatus(503)).toBe('server')
@@ -111,6 +115,10 @@ describe('shouldAutoRetry', () => {
 
   it('离线不靠定时器重试，等 online 事件', () => {
     expect(shouldAutoRetry('offline', 1)).toBe(false)
+  })
+
+  it('协议错误不自动重试，避免反复发送不兼容请求', () => {
+    expect(shouldAutoRetry('protocol', 1)).toBe(false)
   })
 
   it('服务端故障在重试上限内才重试', () => {

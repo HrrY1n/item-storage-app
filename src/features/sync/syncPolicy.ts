@@ -115,6 +115,10 @@ export type SyncErrorKind =
   | 'rate-limited'
   /** 5xx：Cloudflare / D1 侧故障 —— 退避后重试 */
   | 'server'
+  /** 协议版本不兼容或成功响应结构非法 —— 需要升级/修复服务端，不自动重试 */
+  | 'protocol'
+  /** 服务端拒绝了一个不可合并的业务冲突（例如分类成环） */
+  | 'conflict'
   /** 其他错误（含解析失败） —— 退避后重试 */
   | 'unknown'
 
@@ -122,6 +126,7 @@ export type SyncErrorKind =
 export function classifyStatus(status: number): SyncErrorKind {
   if (status === 401) return 'unauthorized'
   if (status === 429) return 'rate-limited'
+  if (status === 426) return 'protocol'
   if (status >= 500) return 'server'
   return 'unknown'
 }
@@ -135,6 +140,8 @@ export function classifyStatus(status: number): SyncErrorKind {
 export function shouldAutoRetry(kind: SyncErrorKind, attempt: number): boolean {
   if (kind === 'unauthorized') return false
   if (kind === 'offline') return false // 等 online 事件，不靠定时器
+  if (kind === 'protocol') return false
+  if (kind === 'conflict') return false
   return attempt < SYNC_MAX_AUTO_RETRIES
 }
 

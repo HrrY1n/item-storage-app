@@ -149,6 +149,15 @@ describe('validateBackupData', () => {
     expect(validateCurrent(d).ok).toBe(false)
   })
 
+  it('分类父链形成循环时拒绝导入', () => {
+    const d = validData()
+    d.categories.push({ ...d.categories[0], id: 'cat-2', parentId: 'cat-1' })
+    d.categories[0].parentId = 'cat-2'
+    const r = validateCurrent(d)
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.error).toContain('循环引用')
+  })
+
   it('itemTags 字段类型错误被拒绝', () => {
     const d = validData()
     ;(d.itemTags[0] as unknown as { tagId: unknown }).tagId = 42

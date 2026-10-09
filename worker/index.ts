@@ -44,6 +44,7 @@ import {
   SELECT_AUTH_SQL,
 } from './syncSql'
 import { executePush } from './pushPipeline'
+import { SYNC_PROTOCOL_VERSION } from '../src/domain/syncProtocol'
 
 interface Env {
   /** D1 绑定名（与 wrangler.jsonc 的 d1_databases[].binding 一致） */
@@ -130,7 +131,11 @@ async function authenticate(request: Request, env: Env): Promise<Response | null
  * 第二次 INSERT 必然违反 CHECK → 这里统一转成 409。
  */
 async function handleBootstrap(request: Request, env: Env): Promise<Response> {
-  const body = (await request.json()) as { secret?: unknown; keyId?: unknown }
+  const rawBody = await request.json()
+  const body = isRecord(rawBody) ? rawBody : {}
+  if (body.protocolVersion !== undefined && body.protocolVersion !== SYNC_PROTOCOL_VERSION) {
+    return fail(426, 'protocol-version-required')
+  }
   const secret = body.secret
   if (typeof secret !== 'string' || secret.length < 32) {
     return fail(400, 'weak-secret')
@@ -153,7 +158,7 @@ async function handleBootstrap(request: Request, env: Env): Promise<Response> {
   }
 
   // ⚠️ secret 明文到此为止不再出现：库里只有哈希，响应里也不回显
-  return json({ ok: true, keyId })
+  return json({ protocolVersion: SYNC_PROTOCOL_VERSION, ok: true, keyId })
 }
 
 /** 连通性 + 凭据校验（**已认证**）。B 设备用它校验配对码里的 secret。 */
@@ -165,16 +170,21 @@ async function handleStatus(request: Request, env: Env): Promise<Response> {
     env.SYNC_DB.prepare(CURRENT_REVISION_SQL).bind().first<{ revision: number }>(),
     env.SYNC_DB.prepare(COUNT_RECORDS_SQL).bind().first<{ n: number }>(),
   ])
-  return json({ currentRevision: revision?.revision ?? 0, recordCount: count?.n ?? 0 })
+  return json({ protocolVersion: SYNC_PROTOCOL_VERSION, currentRevision: revision?.revision ?? 0, recordCount: count?.n ?? 0 })
 }
 
 async function handlePush(request: Request, env: Env): Promise<Response> {
   const authErr = await authenticate(request, env)
   if (authErr !== null) return authErr
 
-  const body = (await request.json()) as { deviceId?: unknown; changes?: unknown }
+  const rawBody = await request.json()
+  const body = isRecord(rawBody) ? rawBody : {}
+  if (body.protocolVersion !== SYNC_PROTOCOL_VERSION) return fail(426, 'protocol-version-required')
   const deviceId = typeof body.deviceId === 'string' && body.deviceId !== '' ? body.deviceId : 'unknown'
-  const changes = Array.isArray(body.changes) ? (body.changes as PushChange[]) : []
+  const changes = Array.isArray(body.changes) && body.changes.every(isPushChange)
+    ? (body.changes as PushChange[])
+    : null
+  if (changes === null) return fail(400, 'bad-changes')
   if (changes.length > MAX_PUSH) return fail(413, 'too-many-changes')
 
   // 编排（preload / 判定 / 整批 + 最多一次完整重试）都在 pushPipeline，
@@ -182,19 +192,23 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
   const outcome = await executePush(env.SYNC_DB, changes, deviceId)
   if (!outcome.ok) return fail(500, outcome.error)
 
-  return json(outcome.result)
+  return json({ protocolVersion: SYNC_PROTOCOL_VERSION, ...outcome.result })
 }
 
 async function handlePull(request: Request, env: Env, url: URL): Promise<Response> {
   const authErr = await authenticate(request, env)
   if (authErr !== null) return authErr
 
+  if (url.searchParams.get('protocolVersion') !== String(SYNC_PROTOCOL_VERSION)) {
+    return fail(426, 'protocol-version-required')
+  }
   const afterRaw = url.searchParams.get('after')
   const after = afterRaw === null ? 0 : Number(afterRaw)
-  if (!Number.isFinite(after) || after < 0) return fail(400, 'bad-after')
+  if (!Number.isSafeInteger(after) || after < 0) return fail(400, 'bad-after')
 
   const limitRaw = url.searchParams.get('limit')
   const parsedLimit = limitRaw === null ? MAX_PULL : Number(limitRaw)
+  if (!Number.isSafeInteger(parsedLimit) || parsedLimit < 1) return fail(400, 'bad-limit')
   const limit = Math.min(MAX_PULL, Math.max(1, Math.floor(parsedLimit)))
 
   const rows = await env.SYNC_DB.prepare(PULL_SQL)
@@ -209,7 +223,25 @@ async function handlePull(request: Request, env: Env, url: URL): Promise<Respons
       device_id: string
     }>()
 
-  return json(buildPullPage(rows.results ?? [], after, limit))
+  return json({ protocolVersion: SYNC_PROTOCOL_VERSION, ...buildPullPage(rows.results ?? [], after, limit) })
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isPushChange(value: unknown): value is PushChange {
+  if (!isRecord(value)) return false
+  return (
+    typeof value.queueId === 'string' && value.queueId !== '' &&
+    (value.entity === 'item' || value.entity === 'category' || value.entity === 'tag') &&
+    typeof value.entityId === 'string' && value.entityId !== '' &&
+    typeof value.payload === 'object' && value.payload !== null && !Array.isArray(value.payload) &&
+    (value.deletedAt === null || typeof value.deletedAt === 'string') &&
+    typeof value.clientUpdatedAt === 'string' && value.clientUpdatedAt !== '' &&
+    Number.isSafeInteger(value.baseRevision) && (value.baseRevision as number) >= 0 &&
+    (value.undeleteIntent === undefined || typeof value.undeleteIntent === 'boolean')
+  )
 }
 
 /* ---------------------------------------------------------------------- */

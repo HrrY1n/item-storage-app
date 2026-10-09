@@ -7,6 +7,8 @@ import { syncRepository } from '../../db/repositories/syncRepository'
 import { SyncEngine } from './syncEngine'
 import type { SyncEngineHost } from './syncEngine'
 import type { RemoteChange } from './syncTransport'
+import type { SyncEntity } from '../../domain/syncPayload'
+import { SYNC_PROTOCOL_VERSION } from '../../domain/syncProtocol'
 
 /**
  * 同步引擎的端到端测试（node 环境 + fake-indexeddb）。
@@ -52,20 +54,22 @@ class FakeCloud {
   /** push 之前触发的钩子：用于模拟「用户在这期间又改了同一实体」 */
   onBeforePush: (() => Promise<void>) | null = null
 
-  async push(deviceId: string, changes: Array<{ entity: string; entityId: string; payload: unknown; deletedAt: string | null; clientUpdatedAt: string; baseRevision: number; undeleteIntent?: boolean }>): Promise<{ accepted: number; acceptedIds: string[]; ignored: Array<{ entity: string; entityId: string; reason: string }>; currentRevision: number }> {
+  async push(deviceId: string, changes: Array<{ queueId?: string; entity: SyncEntity; entityId: string; payload: unknown; deletedAt: string | null; clientUpdatedAt: string; baseRevision: number; undeleteIntent?: boolean }>): Promise<{ accepted: number; acceptedQueueIds: string[]; ignored: Array<{ queueId: string; entity: SyncEntity; entityId: string; reason: string }>; currentRevision: number }> {
     if (this.failNextPush) {
       this.failNextPush = false
       throw new Error('simulated push failure')
     }
-    const acceptedIds: string[] = []
+    const acceptedQueueIds: string[] = []
+    const ignored: Array<{ queueId: string; entity: SyncEntity; entityId: string; reason: string }> = []
     const accepted = changes.filter((c) => {
       const key = `${c.entity}:${c.entityId}`
       const existing = this.rows.get(key)
       // ★ tombstone 规则：已删且无 undeleteIntent → 忽略（删除不被复活）
       if (existing !== undefined && existing.deletedAt !== null && c.undeleteIntent !== true) {
+        ignored.push({ queueId: c.queueId ?? `${c.entity}:${c.entityId}`, entity: c.entity, entityId: c.entityId, reason: 'tombstoned' })
         return false
       }
-      acceptedIds.push(c.entityId)
+      acceptedQueueIds.push(c.queueId ?? `${c.entity}:${c.entityId}`)
       this.seq += 1
       this.rows.set(key, {
         revision: this.seq,
@@ -89,7 +93,7 @@ class FakeCloud {
       this.onBeforePush = null
       await hook()
     }
-    return { accepted, acceptedIds, ignored: [], currentRevision: this.seq }
+    return { accepted, acceptedQueueIds, ignored, currentRevision: this.seq }
   }
 
   pull(after: number): { changes: RemoteChange[]; nextRevision: number; hasMore: boolean } {
@@ -134,7 +138,7 @@ function makeDevice(opts: { online?: boolean } = {}): { engine: SyncEngine; host
 
       // 模拟 Worker 的四个端点
       if (url.endsWith('/api/sync/status')) {
-        return { status: 200, text: async () => JSON.stringify({ currentRevision: 0, recordCount: cloud.recordCount }) }
+        return { status: 200, text: async () => JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, currentRevision: 0, recordCount: cloud.recordCount }) }
       }
       if (url.endsWith('/api/sync/push')) {
         const body = JSON.parse(init.body ?? '{}') as {
@@ -145,11 +149,12 @@ function makeDevice(opts: { online?: boolean } = {}): { engine: SyncEngine; host
         return {
           status: 200,
           text: async () =>
-            //acceptedIds 与 dedupDirectives 必须回传：客户端靠它们精确出队 / 去重
+            // acceptedQueueIds 与 dedupDirectives 必须回传：客户端靠它们精确出队 / 去重
             JSON.stringify({
+              protocolVersion: SYNC_PROTOCOL_VERSION,
               ...r,
-              acceptedIds: r.acceptedIds,
               dedupDirectives: [],
+              authoritativeChanges: [],
               conflicts: [],
             }),
         }
@@ -157,7 +162,7 @@ function makeDevice(opts: { online?: boolean } = {}): { engine: SyncEngine; host
       if (url.includes('/api/sync/pull')) {
         const after = Number(new URL(url).searchParams.get('after') ?? '0')
         const r = cloud.pull(after)
-        return { status: 200, text: async () => JSON.stringify(r) }
+        return { status: 200, text: async () => JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, ...r }) }
       }
       return { status: 404, text: async () => '' }
     },
@@ -472,7 +477,7 @@ describe('apply 远端变更', () => {
 
     cloud.push('dev-a', [
       { entity: 'item', entityId: 'bad-1', payload: { name: '' }, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
-      { entity: 'item', entityId: 'not-json', payload: 'string', deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
+      { entity: 'item', entityId: 'not-json', payload: { name: '' }, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
       {
         entity: 'item',
         entityId: 'good',
@@ -488,6 +493,159 @@ describe('apply 远端变更', () => {
     expect(r.ok).toBe(true)
     expect(await db.items.get('bad-1')).toBeUndefined()
     expect(await db.items.get('good')).toBeDefined()
+  })
+})
+
+describe('F03 分类冲突收敛', () => {
+  it('服务端拒绝成环移动后，客户端精确出队并应用权威分类快照', async () => {
+    const a = await categoryRepository.create('A', null)
+    const b = await categoryRepository.create('B', null)
+    await syncRepository.clearQueue()
+    await categoryRepository.move(a.id, b.id)
+    await syncRepository.setState({ enabled: true, deviceId: 'dev-category', secret: SECRET, keyId: 'key-category', lastPulledRevision: 0 })
+
+    const host: SyncEngineHost = {
+      isOnline: () => true,
+      now: () => 1_000_000,
+      async fetch(url, init) {
+        if (url.includes('/api/sync/push')) {
+          const body = JSON.parse(init.body ?? '{}') as { changes: Array<{ queueId: string }> }
+          const queueId = body.changes[0]!.queueId
+          return {
+            status: 200,
+            text: async () =>
+              JSON.stringify({
+                protocolVersion: SYNC_PROTOCOL_VERSION,
+                accepted: 0,
+                acceptedQueueIds: [],
+                ignored: [{ queueId, entity: 'category', entityId: a.id, reason: 'category-cycle' }],
+                dedupDirectives: [],
+                authoritativeChanges: [{
+                  revision: 1,
+                  entity: 'category',
+                  entityId: a.id,
+                  payload: { ...a, parentId: null },
+                  deletedAt: null,
+                  clientUpdatedAt: a.updatedAt,
+                  deviceId: 'remote-device',
+                }],
+                conflicts: [],
+                currentRevision: 1,
+              }),
+          }
+        }
+        const after = Number(new URL(url).searchParams.get('after') ?? '0')
+        return {
+          status: 200,
+          text: async () => JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, changes: [], nextRevision: after, hasMore: false }),
+        }
+      },
+    }
+
+    const result = await new SyncEngine(host, { baseUrl: BASE }).run()
+    expect(result).toMatchObject({ ok: true, pushed: 0, conflicts: 1 })
+    expect(await syncRepository.pendingCount()).toBe(0)
+    expect((await db.categories.get(a.id))?.parentId).toBeNull()
+    expect((await syncRepository.listConflicts(1))[0]?.reason).toBe('category-cycle')
+    expect((await db.categories.get(b.id))?.name).toBe('B')
+  })
+
+  it('同批次新分类形成环时，权威 tombstone 能解除本地环并清空两个队列', async () => {
+    const a = await categoryRepository.create('A', null)
+    const b = await categoryRepository.create('B', null)
+    await syncRepository.clearQueue()
+    await db.categories.update(a.id, { parentId: b.id })
+    await db.categories.update(b.id, { parentId: a.id })
+    await syncRepository.enqueue('category', a.id)
+    await syncRepository.enqueue('category', b.id)
+    await syncRepository.setState({ enabled: true, deviceId: 'dev-category', secret: SECRET, keyId: 'key-category', lastPulledRevision: 0 })
+
+    const host: SyncEngineHost = {
+      isOnline: () => true,
+      now: () => 1_000_000,
+      async fetch(url, init) {
+        if (url.includes('/api/sync/push')) {
+          const body = JSON.parse(init.body ?? '{}') as {
+            changes: Array<{ queueId: string; entityId: string; payload: unknown; clientUpdatedAt: string }>
+          }
+          return {
+            status: 200,
+            text: async () => JSON.stringify({
+              protocolVersion: SYNC_PROTOCOL_VERSION,
+              accepted: 0,
+              acceptedQueueIds: [],
+              ignored: body.changes.map((change) => ({ queueId: change.queueId, entity: 'category', entityId: change.entityId, reason: 'category-cycle' })),
+              dedupDirectives: [],
+              authoritativeChanges: body.changes.map((change) => ({
+                revision: 0,
+                entity: 'category',
+                entityId: change.entityId,
+                payload: change.payload,
+                deletedAt: '2026-03-01T00:00:00.000Z',
+                clientUpdatedAt: change.clientUpdatedAt,
+                deviceId: 'server',
+              })),
+              conflicts: [],
+              currentRevision: 0,
+            }),
+          }
+        }
+        const after = Number(new URL(url).searchParams.get('after') ?? '0')
+        return {
+          status: 200,
+          text: async () => JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, changes: [], nextRevision: after, hasMore: false }),
+        }
+      },
+    }
+
+    const result = await new SyncEngine(host, { baseUrl: BASE }).run()
+    expect(result).toMatchObject({ ok: true, conflicts: 2 })
+    expect(await syncRepository.pendingCount()).toBe(0)
+    expect((await db.categories.get(a.id))?.deletedAt).toBe('2026-03-01T00:00:00.000Z')
+    expect((await db.categories.get(b.id))?.deletedAt).toBe('2026-03-01T00:00:00.000Z')
+  })
+})
+
+describe('协议失败的本地保护', () => {
+  it('非法 dedup 回执不会改动标签或清除 outbox', async () => {
+    const duplicate = await tagRepository.create('待合并标签')
+    await syncRepository.setState({ enabled: true, deviceId: 'dev-dedup', secret: SECRET, keyId: 'key-dedup', lastPulledRevision: 0 })
+    const queue = await syncRepository.listQueue()
+    const tagQueue = queue.find((entry) => entry.entity === 'tag' && entry.entityId === duplicate.id)
+    expect(tagQueue).toBeDefined()
+    if (!tagQueue) return
+
+    const host: SyncEngineHost = {
+      isOnline: () => true,
+      now: () => 1_000_000,
+      async fetch(url) {
+        if (url.includes('/api/sync/push')) {
+          return {
+            status: 200,
+            text: async () => JSON.stringify({
+              protocolVersion: SYNC_PROTOCOL_VERSION,
+              accepted: 0,
+              acceptedQueueIds: [],
+              ignored: [],
+              dedupDirectives: [{ kind: 'merge-tag-into', queueId: tagQueue.id, duplicateId: 'wrong-tag', canonicalId: 'canonical-tag' }],
+              authoritativeChanges: [],
+              conflicts: [],
+              currentRevision: 0,
+            }),
+          }
+        }
+        const after = Number(new URL(url).searchParams.get('after') ?? '0')
+        return {
+          status: 200,
+          text: async () => JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, changes: [], nextRevision: after, hasMore: false }),
+        }
+      },
+    }
+
+    const result = await new SyncEngine(host, { baseUrl: BASE }).run()
+    expect(result).toMatchObject({ ok: false, errorKind: 'protocol' })
+    expect(await db.tags.get(duplicate.id)).toEqual(duplicate)
+    expect((await syncRepository.listQueue()).map((entry) => entry.id)).toContain(tagQueue.id)
   })
 })
 

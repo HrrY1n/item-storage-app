@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Category } from './types'
-import { categoryPath, childrenOf, collectSubtreeIds, wouldCreateCycle } from './categoryTree'
+import { categoryPath, childrenOf, collectSubtreeIds, hasCategoryCycle, wouldCreateCycle } from './categoryTree'
 
 function cat(id: string, parentId: string | null, sortOrder = 1): Category {
   return {
@@ -58,6 +58,18 @@ describe('collectSubtreeIds', () => {
     expect([...collectSubtreeIds(tree, 'A')].sort()).toEqual(['A', 'B', 'C', 'D'])
     expect([...collectSubtreeIds(tree, 'B')]).toEqual(['B', 'C'])
     expect([...collectSubtreeIds(tree, 'E')]).toEqual(['E'])
+  })
+})
+
+describe('hasCategoryCycle', () => {
+  it('报告历史分类环，但不修改分类', () => {
+    const dirty = [cat('A', 'B'), cat('B', 'A')]
+    expect(hasCategoryCycle(dirty)).toBe(true)
+    expect(dirty.map((c) => c.parentId)).toEqual(['B', 'A'])
+  })
+
+  it('忽略缺失父分类，不把跨页合法暂态误判为环', () => {
+    expect(hasCategoryCycle([cat('child', 'parent-not-yet-arrived')])).toBe(false)
   })
 })
 

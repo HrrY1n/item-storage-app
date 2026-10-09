@@ -557,13 +557,22 @@ export default function SettingsPage() {
         <Group title="最近的覆盖记录">
           {conflicts.map((c) => (
             <div key={c.id} className="px-4 py-3">
-              <p className="text-caption text-ink-secondary">
-                {c.entity === 'item' ? '物品' : c.entity === 'category' ? '分类' : '标签'}
-                ：{c.loserSummary ?? c.entityId}
-              </p>
-              <p className="mt-0.5 text-caption text-ink-tertiary">
-                已被另一台设备的修改覆盖（{c.winnerSummary ?? '—'}）
-              </p>
+              {c.reason === 'category-cycle' ? (
+                <>
+                  <p className="text-caption text-ink-secondary">分类：{c.entityId}</p>
+                  <p className="mt-0.5 text-caption text-ink-tertiary">分类移动被云端拒绝：会形成循环，已保留云端分类状态。</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-caption text-ink-secondary">
+                    {c.entity === 'item' ? '物品' : c.entity === 'category' ? '分类' : '标签'}
+                    ：{c.loserSummary ?? c.entityId}
+                  </p>
+                  <p className="mt-0.5 text-caption text-ink-tertiary">
+                    已被另一台设备的修改覆盖（{c.winnerSummary ?? '—'}）
+                  </p>
+                </>
+              )}
             </div>
           ))}
         </Group>

@@ -11,6 +11,8 @@ import { SyncEngine, type SyncEngineHost } from './syncEngine'
 import { exportBackup } from '../../services/backupService'
 import { commitJoin, currentPairingCode, encodePairingCode, parsePairingCode } from '../../services/syncService'
 import type { RemoteChange } from './syncTransport'
+import type { SyncEntity } from '../../domain/syncPayload'
+import { SYNC_PROTOCOL_VERSION } from '../../domain/syncProtocol'
 
 /**
  * Phase 3B.1 —— 主力手机场景的云端同步细化。
@@ -58,14 +60,15 @@ class FakeCloud {
   push(
     deviceId: string,
     changes: Array<{
-      entity: string
+      queueId: string
+      entity: SyncEntity
       entityId: string
       payload: unknown
       deletedAt: string | null
       clientUpdatedAt: string
     }>,
-  ): { accepted: number; acceptedIds: string[] } {
-    const acceptedIds: string[] = []
+  ): { accepted: number; acceptedQueueIds: string[]; currentRevision: number } {
+    const acceptedQueueIds: string[] = []
     for (const c of changes) {
       const key = `${c.entity}:${c.entityId}`
       this.seq += 1
@@ -82,9 +85,9 @@ class FakeCloud {
           deviceId,
         },
       })
-      acceptedIds.push(c.entityId)
+      acceptedQueueIds.push(c.queueId)
     }
-    return { accepted: acceptedIds.length, acceptedIds }
+    return { accepted: acceptedQueueIds.length, acceptedQueueIds, currentRevision: this.seq }
   }
 
   pull(after: number): { changes: RemoteChange[]; nextRevision: number; hasMore: boolean } {
@@ -100,7 +103,7 @@ class FakeCloud {
   }
 
   /** 直接播种一条记录（模拟"旧手机已经同步上云的数据"） */
-  seed(entity: string, entityId: string, payload: unknown): void {
+  seed(entity: SyncEntity, entityId: string, payload: unknown): void {
     this.seq += 1
     this.rows.set(`${entity}:${entityId}`, {
       revision: this.seq,
@@ -135,7 +138,7 @@ function makeDevice(opts: { online?: boolean } = {}): SyncEngine {
       if (url.endsWith('/api/sync/status')) {
         return {
           status: 200,
-          text: async () => JSON.stringify({ currentRevision: 0, recordCount: cloud.recordCount }),
+          text: async () => JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, currentRevision: 0, recordCount: cloud.recordCount }),
         }
       }
       if (url.endsWith('/api/sync/push')) {
@@ -146,12 +149,12 @@ function makeDevice(opts: { online?: boolean } = {}): SyncEngine {
         const r = cloud.push(state.deviceId, body.changes)
         return {
           status: 200,
-          text: async () => JSON.stringify({ ...r, dedupDirectives: [], conflicts: [] }),
+          text: async () => JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, ...r, ignored: [], dedupDirectives: [], authoritativeChanges: [], conflicts: [] }),
         }
       }
       if (url.includes('/api/sync/pull')) {
         const after = Number(new URL(url).searchParams.get('after') ?? '0')
-        return { status: 200, text: async () => JSON.stringify(cloud.pull(after)) }
+        return { status: 200, text: async () => JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, ...cloud.pull(after) }) }
       }
       return { status: 404, text: async () => '' }
     },

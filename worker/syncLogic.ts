@@ -15,8 +15,16 @@ export type SyncEntity = 'item' | 'category' | 'tag'
 
 export const SYNC_ENTITIES: readonly SyncEntity[] = ['item', 'category', 'tag']
 
+/** 只用于服务端检查分类父链的最小形态。 */
+export interface CategoryParent {
+  id: string
+  parentId: string | null
+}
+
 /** 一次 push 里每条变更的请求形态 */
 export interface PushChange {
+  /** Client outbox entry id; all terminal push acknowledgements use this id. */
+  queueId: string
   entity: SyncEntity
   entityId: string
   payload: unknown
@@ -122,6 +130,58 @@ export function summarize(payload: unknown): string | null {
   if (note === '') return name
   const clipped = note.length > 80 ? `${note.slice(0, 80)}…` : note
   return `${name} · ${clipped}`
+}
+
+/** 从分类载荷读取父 id；结构校验由客户端/业务解码器继续负责。 */
+export function readCategoryParentId(payload: unknown): string | null {
+  if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) return null
+  const value = (payload as Record<string, unknown>).parentId
+  return typeof value === 'string' && value !== '' ? value : null
+}
+
+/**
+ * 按请求顺序模拟本批分类更新，返回会形成环的 queue id。
+ * 这只是快速业务反馈；最终一致性由 D1 trigger 在同一写事务内兜底。
+ */
+export function findCategoryCycleQueueIds(
+  existing: ReadonlyArray<CategoryParent>,
+  changes: ReadonlyArray<Pick<PushChange, 'queueId' | 'entity' | 'entityId' | 'payload' | 'deletedAt'>>,
+): Set<string> {
+  const graph = new Map(existing.map((category) => [category.id, category.parentId]))
+  const categoryChanges = changes.filter((change) => change.entity === 'category')
+
+  // Evaluate the batch's final graph, not an arbitrary request-order prefix.
+  // Otherwise a same-batch A→B / B→A pair could accept one write and leave the
+  // client with a local cycle after only the other write is rejected.
+  for (const change of categoryChanges) {
+    if (change.deletedAt !== null) graph.delete(change.entityId)
+  }
+  for (const change of categoryChanges) {
+    if (change.deletedAt === null) graph.set(change.entityId, readCategoryParentId(change.payload))
+  }
+
+  const cycleIds = findCategoryCycleIds(graph)
+  return new Set(categoryChanges.filter((change) => cycleIds.has(change.entityId)).map((change) => change.queueId))
+}
+
+function findCategoryCycleIds(graph: ReadonlyMap<string, string | null>): Set<string> {
+  const cycleIds = new Set<string>()
+  for (const start of graph.keys()) {
+    const path: string[] = []
+    const seen = new Map<string, number>()
+    let cursor: string | null = start
+    while (cursor !== null && graph.has(cursor)) {
+      const cycleStart = seen.get(cursor)
+      if (cycleStart !== undefined) {
+        for (const id of path.slice(cycleStart)) cycleIds.add(id)
+        break
+      }
+      seen.set(cursor, path.length)
+      path.push(cursor)
+      cursor = graph.get(cursor) ?? null
+    }
+  }
+  return cycleIds
 }
 
 /* ---------------------------------------------------------------------- */

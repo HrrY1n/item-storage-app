@@ -39,6 +39,7 @@ const change = (over: Partial<PushChange> & Pick<PushChange, 'entity' | 'entityI
   clientUpdatedAt: '2026-10-06T00:00:00.000Z',
   baseRevision: 0,
   ...over,
+  queueId: over.queueId ?? `${over.entity}:${over.entityId}`,
 })
 
 const item = (id: string, over: Partial<PushChange> = {}): PushChange =>
@@ -49,6 +50,14 @@ const tag = (id: string, nameNormalized: string, over: Partial<PushChange> = {})
     entity: 'tag',
     entityId: id,
     payload: { name: nameNormalized, nameNormalized },
+    ...over,
+  })
+
+const category = (id: string, parentId: string | null, over: Partial<PushChange> = {}): PushChange =>
+  change({
+    entity: 'category',
+    entityId: id,
+    payload: { name: id, parentId, sortOrder: 0, createdAt: 't', updatedAt: 't' },
     ...over,
   })
 
@@ -193,7 +202,7 @@ describe('B. 正常 batch 的原子性', () => {
     expect(seqOf(d1)).toBe(3)
     expect(out.result.currentRevision).toBe(3)
     expect(out.result.accepted).toBe(3)
-    expect(out.result.acceptedIds).toEqual(['a', 'b', 'c'])
+    expect(out.result.acceptedQueueIds).toEqual(['item:a', 'item:b', 'item:c'])
     expectSeqEqualsMaxRevision(d1)
   })
 
@@ -254,6 +263,66 @@ describe('B. 正常 batch 的原子性', () => {
   })
 })
 
+describe('F03 分类环约束', () => {
+  it('跨批次移动成环时只忽略该 queue，并返回权威分类快照', async () => {
+    const d1 = createSqliteD1()
+    await executePush(d1.db, [category('A', null), category('B', 'A')], 'dev-A')
+
+    const out = await executePush(d1.db, [category('A', 'B')], 'dev-B')
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    expect(out.result.acceptedQueueIds).toEqual([])
+    expect(out.result.ignored).toEqual([
+      { queueId: 'category:A', entity: 'category', entityId: 'A', reason: 'category-cycle' },
+    ])
+    expect(out.result.authoritativeChanges).toEqual([
+      expect.objectContaining({ entity: 'category', entityId: 'A', revision: 1, payload: expect.objectContaining({ parentId: null }) }),
+    ])
+    const row = d1.raw.prepare("SELECT json_extract(payload,'$.parentId') AS parentId FROM sync_records WHERE entity='category' AND entity_id='A'").get() as { parentId: string | null }
+    expect(row.parentId).toBeNull()
+  })
+
+  it('同批次相反移动不写入环：后一个终态被拒绝，已接受的变更保持合法', async () => {
+    const d1 = createSqliteD1()
+    const out = await executePush(d1.db, [category('A', 'B'), category('B', 'A')], 'dev-A')
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    expect(out.result.acceptedQueueIds).toEqual([])
+    expect(out.result.ignored).toEqual([
+      { queueId: 'category:A', entity: 'category', entityId: 'A', reason: 'category-cycle' },
+      { queueId: 'category:B', entity: 'category', entityId: 'B', reason: 'category-cycle' },
+    ])
+    expect(out.result.authoritativeChanges).toHaveLength(2)
+    expect(out.result.authoritativeChanges).toEqual([
+      expect.objectContaining({ entity: 'category', entityId: 'A', revision: 0, deletedAt: expect.any(String) }),
+      expect.objectContaining({ entity: 'category', entityId: 'B', revision: 0, deletedAt: expect.any(String) }),
+    ])
+    expectSeqEqualsMaxRevision(d1)
+  })
+
+  it('D1 trigger 捕获预检后的并发移动，重试后仍返回可出队的 cycle 终态', async () => {
+    let injected = false
+    let ready = false
+    const d1 = createSqliteD1({
+      onBeforeBatch: () => {
+        if (!ready || injected) return
+        injected = true
+        d1.raw
+          .prepare("UPDATE sync_records SET payload = ?1 WHERE entity='category' AND entity_id='B'")
+          .run(JSON.stringify({ name: 'B', parentId: 'A', sortOrder: 0, createdAt: 't', updatedAt: 't' }))
+      },
+    })
+    await executePush(d1.db, [category('A', null), category('B', null)], 'dev-A')
+    ready = true
+
+    const out = await executePush(d1.db, [category('A', 'B')], 'dev-B')
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    expect(out.result.ignored[0]).toMatchObject({ queueId: 'category:A', reason: 'category-cycle' })
+    expect(d1.queryLog.filter((q) => q === 'BATCH')).toHaveLength(2)
+  })
+})
+
 /* ---------------------------------------------------------------------- */
 /* C. tag 并发 unique 冲突 → 整批回滚 → 重读 → 合并                        */
 /* ---------------------------------------------------------------------- */
@@ -308,7 +377,7 @@ describe('C. tag 并发唯一索引冲突（整批重试，绝不逐条）', () 
     expect(activeTags(d1)).toEqual([{ entity_id: 'tag-A', nameNormalized: 'apple' }])
     // 客户端拿到正确的 canonicalId
     expect(out.result.dedupDirectives).toEqual([
-      { kind: 'merge-tag-into', duplicateId: 'tag-B', canonicalId: 'tag-A' },
+      { kind: 'merge-tag-into', queueId: 'tag:tag-B', duplicateId: 'tag-B', canonicalId: 'tag-A' },
     ])
   })
 
@@ -437,7 +506,7 @@ describe('C. tag 并发唯一索引冲突（整批重试，绝不逐条）', () 
     if (!out.ok) return
 
     expect(out.result.dedupDirectives).toEqual([
-      { kind: 'merge-tag-into', duplicateId: 'tag-B', canonicalId: 'tag-A' },
+      { kind: 'merge-tag-into', queueId: 'tag:tag-B', duplicateId: 'tag-B', canonicalId: 'tag-A' },
     ])
     // 第一次 batch 回滚 → 重试批次 = [item] + bump，共 2 次 batch
     expect(d1.queryLog.filter((q) => q === 'BATCH')).toHaveLength(2)

@@ -216,4 +216,6 @@ export interface SyncConflict {
   loserSummary: string | null
   /** 胜出内容的可读摘要 */
   winnerSummary: string | null
+  /** 可选的业务拒绝原因（例如服务端拒绝分类成环）。 */
+  reason?: string
 }

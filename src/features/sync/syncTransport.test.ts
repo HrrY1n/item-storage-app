@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { SyncTransport, type TransportHost } from './syncTransport'
+import { SYNC_PROTOCOL_VERSION } from '../../domain/syncProtocol'
 
 /**
  * 传输层测试：超时（复审第 7 条）与凭据头。
@@ -31,7 +32,10 @@ function makeHost(options: { delayMs?: number; status?: number; neverResolve?: b
       if (options.delayMs !== undefined) {
         await new Promise((r) => setTimeout(r, options.delayMs))
       }
-      return { status: options.status ?? 200, text: async () => JSON.stringify({ recordCount: 0, currentRevision: 0 }) }
+      return {
+        status: options.status ?? 200,
+        text: async () => JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, recordCount: 0, currentRevision: 0 }),
+      }
     },
   }
   return { host, received }
@@ -132,5 +136,98 @@ describe('请求头与错误分类', () => {
     expect(called).toBe(false)
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.kind).toBe('offline')
+  })
+})
+
+describe('v2 成功响应校验', () => {
+  it('200 但响应不是对象 → protocol，不把空/数组当成功', async () => {
+    const host: TransportHost = {
+      isOnline: () => true,
+      now: () => 0,
+      async fetch() {
+        return { status: 200, text: async () => '[]' }
+      },
+    }
+    const result = await new SyncTransport(host, config).status()
+    expect(result).toEqual({ ok: false, kind: 'protocol' })
+  })
+
+  it('push 混合确认按 queueId 解析，并要求所有请求条目都有终态', async () => {
+    const changes = [
+      { queueId: 'q-accepted', entity: 'item' as const, entityId: 'i1', payload: { name: 'A' }, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
+      { queueId: 'q-ignored', entity: 'item' as const, entityId: 'i2', payload: {}, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
+      { queueId: 'q-dedup', entity: 'tag' as const, entityId: 'tag-dup', payload: {}, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
+    ]
+    const host: TransportHost = {
+      isOnline: () => true,
+      now: () => 0,
+      async fetch() {
+        return {
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              protocolVersion: SYNC_PROTOCOL_VERSION,
+              accepted: 1,
+              acceptedQueueIds: ['q-accepted'],
+              ignored: [{ queueId: 'q-ignored', entity: 'item', entityId: 'i2', reason: 'tombstoned' }],
+              dedupDirectives: [{ kind: 'merge-tag-into', queueId: 'q-dedup', duplicateId: 'tag-dup', canonicalId: 'tag-canonical' }],
+              authoritativeChanges: [],
+              conflicts: [],
+              currentRevision: 7,
+            }),
+        }
+      },
+    }
+    const result = await new SyncTransport(host, config).push(changes)
+    expect(result).toMatchObject({ ok: true, acceptedQueueIds: ['q-accepted'], currentRevision: 7 })
+    if (result.ok) {
+      expect(result.ignored[0]!.queueId).toBe('q-ignored')
+      expect(result.dedupDirectives[0]!.queueId).toBe('q-dedup')
+    }
+  })
+
+  it('push 缺少一个条目的终态 → protocol，客户端不应部分出队', async () => {
+    const host: TransportHost = {
+      isOnline: () => true,
+      now: () => 0,
+      async fetch() {
+        return {
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              protocolVersion: SYNC_PROTOCOL_VERSION,
+              accepted: 1,
+              acceptedQueueIds: ['q-1'],
+              ignored: [],
+              dedupDirectives: [],
+              authoritativeChanges: [],
+              conflicts: [],
+              currentRevision: 1,
+            }),
+        }
+      },
+    }
+    const result = await new SyncTransport(host, config).push([
+      { queueId: 'q-1', entity: 'item', entityId: 'i1', payload: {}, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
+      { queueId: 'q-2', entity: 'item', entityId: 'i2', payload: {}, deletedAt: null, clientUpdatedAt: 't', baseRevision: 0 },
+    ])
+    expect(result).toEqual({ ok: false, kind: 'protocol' })
+  })
+
+  it('pull 空页却宣称 hasMore，或页内游标不前进 → protocol', async () => {
+    const host: TransportHost = {
+      isOnline: () => true,
+      now: () => 0,
+      async fetch(url) {
+        const after = Number(new URL(url).searchParams.get('after'))
+        return {
+          status: 200,
+          text: async () =>
+            JSON.stringify({ protocolVersion: SYNC_PROTOCOL_VERSION, changes: [], nextRevision: after, hasMore: true }),
+        }
+      },
+    }
+    const result = await new SyncTransport(host, config).pull(5)
+    expect(result).toEqual({ ok: false, kind: 'protocol' })
   })
 })

@@ -17,6 +17,7 @@ import {
   type SyncEntity,
 } from '../../domain/syncPayload'
 import type { Category, Item, Tag } from '../../domain/types'
+import { hasCategoryCycle } from '../../domain/categoryTree'
 import {
   chunk,
   shouldRequestSync,
@@ -141,8 +142,6 @@ export class SyncEngine {
       //   因为本地还有未成功上云的修改，若继续 pull，apply 会用远端旧值
       //   覆盖它们、再清掉 outbox 条目 → 用户的本地改动凭空消失且无法找回。
       const queue = await syncRepository.listQueue()
-      // 本轮成功提交的 outbox entry id 集合（用于精确 dequeue 与精确回声防护）
-      const succeededEntryIds = new Set<string>()
       if (queue.length > 0) {
         const batches = chunk(queue, SYNC_PUSH_BATCH_SIZE)
         for (const batch of batches) {
@@ -152,26 +151,41 @@ export class SyncEngine {
             errorKind = result.kind
             break
           }
-          // ⚠️ 出队只认**entry id**，绝不按 entityId 匹配。
-          //
-          //   原因：outbox 的 enqueue 是「先删后插」，所以同一次 push 飞行期间
-          //   用户再编辑同一实体时，V1（老 id）被删、V2（新 id）被插入。
-          //   若按 entityId 匹配出队，V2 会被一起删掉 → 那次编辑永远同步不上。
-          //
-          //   因此这里校验：本批entry 的 id 是否**仍然是 outbox 里那一条**
-          //（V1 若已被 V2 顶掉，就不该再出队），是则精确删除它。
+          // ⚠️ 只按服务端确认的 queue id 出队，且再次确认该 id 仍是本地当前条目。
           const currentIds = new Set((await syncRepository.listQueue()).map((r) => r.id))
-          const doneEntries = batch.filter((r) => currentIds.has(r.id))
-          for (const e of doneEntries) succeededEntryIds.add(e.id)
+
+          // tag 去重必须先改本地引用，随后统一按 queue id 出队；若 V1 已被 V2
+          // 替换，mergeDuplicateTag 会安全地跳过，V2 留给下一轮处理。
+          for (const d of result.dedupDirectives) {
+            if (!(await this.mergeDuplicateTag(d.queueId, d.duplicateId, d.canonicalId, activeSession))) {
+              return { ok: false, pushed, pulled, conflicts, errorKind: null }
+            }
+          }
+
+          const terminalIds = new Set([
+            ...result.acceptedQueueIds,
+            ...result.ignored.map((entry) => entry.queueId),
+            ...result.dedupDirectives.map((entry) => entry.queueId),
+          ])
+          const doneEntries = batch.filter((r) => terminalIds.has(r.id) && currentIds.has(r.id))
           if (!(await syncRepository.dequeueForSession(activeSession, doneEntries.map((r) => r.id)))) {
             return { ok: false, pushed, pulled, conflicts, errorKind: null }
           }
           pushed += result.accepted
 
-          // ⭐ tag 跨设备去重（复审第 9 条）：把本地的重复 tag 合并到云端既有那条
-          for (const d of result.dedupDirectives) {
-            if (!(await this.mergeDuplicateTag(d.duplicateId, d.canonicalId, activeSession))) {
+          for (const ignored of result.ignored) {
+            if (ignored.reason !== 'category-cycle') continue
+            if (!(await this.recordCategoryCycle(ignored.entityId, activeSession))) {
               return { ok: false, pushed, pulled, conflicts, errorKind: null }
+            }
+            conflicts += 1
+          }
+
+          if (result.authoritativeChanges.length > 0) {
+            const applied = await this.applyRemote(result.authoritativeChanges, activeSession)
+            if (applied !== 'ok') {
+              if (applied === 'category-cycle') errorKind = 'conflict'
+              return { ok: false, pushed, pulled, conflicts, errorKind }
             }
           }
 
@@ -190,17 +204,6 @@ export class SyncEngine {
         return { ok: false, pushed, pulled: 0, conflicts, errorKind }
       }
 
-      // 本轮真正出队的 entry id 集合。
-      // apply 时按 **entry id** 判断是否清除该实体的 outbox 条目 ——
-      // 只有"本批那个 entry"仍然在场时才清，绝不碰用户飞行期间新产生的那条。
-      const currentAfterPush = new Set((await syncRepository.listQueue()).map((r) => r.id))
-      const succeededEntities = new Set<string>()
-      for (const entry of queue) {
-        if (!succeededEntryIds.has(entry.id)) continue
-        if (!currentAfterPush.has(entry.id)) continue
-        succeededEntities.add(`${entry.entity}:${entry.entityId}`)
-      }
-
       let cursor = (await syncRepository.getState())?.lastPulledRevision ?? 0
       for (;;) {
         const result = await transport.pull(cursor)
@@ -209,12 +212,18 @@ export class SyncEngine {
           break
         }
         if (result.changes.length === 0) break
-        if (!(await this.applyRemote(result.changes, succeededEntities, activeSession))) {
-          return { ok: false, pushed, pulled, conflicts, errorKind: null }
+        const applied = await this.applyRemote(result.changes, activeSession)
+        if (applied !== 'ok') {
+          if (applied === 'category-cycle') errorKind = 'conflict'
+          return { ok: false, pushed, pulled, conflicts, errorKind }
         }
         cursor = result.nextRevision
         pulled += result.changes.length
         if (!result.hasMore) break
+      }
+      if (errorKind !== null) {
+        // 拉取协议/网络失败时，游标与 lastSyncAt 都必须保持原样。
+        return { ok: false, pushed, pulled, conflicts, errorKind }
       }
       if (!(await syncRepository.markSyncedForSession(activeSession, cursor))) {
         return { ok: false, pushed, pulled, conflicts, errorKind: null }
@@ -226,6 +235,7 @@ export class SyncEngine {
       return { ok: errorKind === null, pushed, pulled, conflicts, errorKind }
     } catch {
       // 兜底：任何意外都不得影响App 使用
+      errorKind = 'unknown'
       return { ok: false, pushed, pulled, conflicts, errorKind: 'unknown' }
     } finally {
       this.inFlight = false
@@ -241,9 +251,10 @@ export class SyncEngine {
 
   /** 把 outbox 条目组装成 push 请求（含从业务表读当前值） */
   private async buildPushChanges(
-    batch: Array<{ entity: SyncEntity; entityId: string; op?: 'upsert' | 'delete'; deletedAt?: string | null; clientUpdatedAt?: string | null }>,
+    batch: Array<{ id: string; entity: SyncEntity; entityId: string; op?: 'upsert' | 'delete'; deletedAt?: string | null; clientUpdatedAt?: string | null }>,
   ): Promise<
     Array<{
+      queueId: string
       entity: SyncEntity
       entityId: string
       payload: unknown
@@ -255,6 +266,7 @@ export class SyncEngine {
     const state = await syncRepository.getState()
     const baseRevision = state?.lastPulledRevision ?? 0
     const out: Array<{
+      queueId: string
       entity: SyncEntity
       entityId: string
       payload: unknown
@@ -268,6 +280,7 @@ export class SyncEngine {
       //   删除时间等信息必须来自 outbox 条目本身。
       if (entry.op === 'delete') {
         out.push({
+          queueId: entry.id,
           entity: entry.entity,
           entityId: entry.entityId,
           payload: {},
@@ -284,6 +297,7 @@ export class SyncEngine {
           // 本地已被物理删除（只可能来自 restoreFromPayload）：跳过，
           // 留一条删除标记让云端也清掉
           out.push({
+            queueId: entry.id,
             entity: 'item',
             entityId: entry.entityId,
             payload: {},
@@ -295,6 +309,7 @@ export class SyncEngine {
         }
         const tagIds = await itemRepository.tagIdsOf(item.id)
         out.push({
+          queueId: entry.id,
           entity: 'item',
           entityId: item.id,
           payload: encodeItemPayload(item, tagIds),
@@ -306,6 +321,7 @@ export class SyncEngine {
         const category = await db.categories.get(entry.entityId)
         if (category === undefined) continue
         out.push({
+          queueId: entry.id,
           entity: 'category',
           entityId: category.id,
           payload: encodeCategoryPayload(category),
@@ -317,6 +333,7 @@ export class SyncEngine {
         const tag = await db.tags.get(entry.entityId)
         if (tag === undefined) continue
         out.push({
+          queueId: entry.id,
           entity: 'tag',
           entityId: tag.id,
           payload: encodeTagPayload(tag),
@@ -341,6 +358,7 @@ export class SyncEngine {
    * 直接 bulkAdd 会撞约束 —— 先查再决定 put还是跳过。
    */
   private async mergeDuplicateTag(
+    queueId: string,
     duplicateId: string,
     canonicalId: string,
     session: SyncSession,
@@ -350,6 +368,9 @@ export class SyncEngine {
       [db.items, db.itemTags, db.tags, db.syncQueue, db.syncState],
       async (tx) => {
         if (!(await isSessionCurrentInTransaction(db.syncState, session))) return false
+        const queued = await db.syncQueue.get(queueId)
+        if (queued === undefined) return true
+        if (queued.entity !== 'tag' || queued.entityId !== duplicateId) return false
         const dup = await db.tags.get(duplicateId)
         // 重复的tag 已不存在 → 无需合并（幂等）
         if (dup === undefined) return true
@@ -384,6 +405,20 @@ export class SyncEngine {
     })
   }
 
+  private async recordCategoryCycle(categoryId: string, session: SyncSession): Promise<boolean> {
+    return syncRepository.recordConflictForSession(session, {
+      entity: 'category',
+      entityId: categoryId,
+      detectedAt: new Date().toISOString(),
+      loserUpdatedAt: null,
+      winnerDeviceId: null,
+      winnerUpdatedAt: null,
+      loserSummary: '分类移动被拒绝：会形成循环',
+      winnerSummary: null,
+      reason: 'category-cycle',
+    })
+  }
+
   /**
    * ⭐ 在**单个事务**里应用一批远端变更。
    *
@@ -393,18 +428,14 @@ export class SyncEngine {
    */
   private async applyRemote(
     changes: RemoteChange[],
-    /**
-     * 本轮 push **成功提交**的实体集合（形如 `item:i1`）。
-     * 只有这些实体的 outbox 条目才允许在 apply 时被清除。
-     */
-    succeededQueueIds: Set<string> | null,
     session: SyncSession,
-  ): Promise<boolean> {
+  ): Promise<'ok' | 'stale' | 'category-cycle'> {
+    if (!(await this.remoteCategoryBatchIsAcyclic(changes))) return 'category-cycle'
     return db.transaction(
       'rw',
       [db.items, db.itemTags, db.categories, db.tags, db.syncQueue, db.syncState],
       async (tx) => {
-        if (!(await isSessionCurrentInTransaction(db.syncState, session))) return false
+        if (!(await isSessionCurrentInTransaction(db.syncState, session))) return 'stale'
         // ⚠️ 顺序很重要：**先处理删除，再处理 upsert**。
         //   若某物品的旧载荷（tagIds 里还带着已删的 tag-x）先被应用，
         //   它会把关联重新建回来；随后 tag 删除才清一次 —— 但如果 item 因为
@@ -467,11 +498,6 @@ export class SyncEngine {
             continue
           }
 
-          // 回声防护：只有本轮确实推送成功过的实体，才清它的 outbox 条目
-          if (succeededQueueIds !== null && succeededQueueIds.has(`${entity}:${change.entityId}`)) {
-            await syncRepository.clearEntity(entity, change.entityId)
-          }
-
           if (entity === 'item') {
             await this.applyRemoteItem(change)
           } else if (entity === 'category') {
@@ -480,9 +506,33 @@ export class SyncEngine {
             await this.applyRemoteTag(change)
           }
         }
-        return true
+        return 'ok'
       },
     )
+  }
+
+  /** 预演本页分类更新；缺失父节点允许跨页暂态，但已成环数据只读报告。 */
+  private async remoteCategoryBatchIsAcyclic(changes: RemoteChange[]): Promise<boolean> {
+    const categories = (await db.categories.toArray())
+      .filter((category) => category.deletedAt === null)
+      .map((category) => ({ id: category.id, parentId: category.parentId }))
+    const graph = new Map(categories.map((category) => [category.id, category.parentId]))
+    const categoryChanges = changes.filter((change) => change.entity === 'category')
+    // Evaluate the page's final graph. This also lets an authoritative
+    // tombstone break a pre-existing local cycle without applying a new one.
+    for (const change of categoryChanges) {
+      if (change.entity !== 'category') continue
+      if (change.deletedAt !== null) {
+        graph.delete(change.entityId)
+      }
+    }
+    for (const change of categoryChanges) {
+      if (change.deletedAt !== null) continue
+      const category = decodeCategoryPayload(change.entityId, change.payload)
+      if (category === null) continue
+      graph.set(category.id, category.parentId)
+    }
+    return !hasCategoryCycle([...graph].map(([id, parentId]) => ({ id, parentId })))
   }
 
   private async applyRemoteItem(change: RemoteChange): Promise<void> {

@@ -15,6 +15,7 @@ import {
  */
 
 const change = (over: Partial<Parameters<typeof decidePush>[0]['change']> = {}) => ({
+  queueId: 'q-i1',
   entity: 'item' as const,
   entityId: 'i1',
   payload: { name: 'X' },
@@ -279,6 +280,7 @@ describe('冲突回报的字段方向（复审第 8 条）', () => {
       payload: { name: '旧值' },
     }
     const change = {
+      queueId: 'q-i1',
       entity: 'item' as const,
       entityId: 'i1',
       payload: { name: '新值' },
@@ -311,6 +313,7 @@ describe('冲突回报的字段方向（复审第 8 条）', () => {
       payload: { name: '旧值' },
     }
     const change = {
+      queueId: 'q-i1',
       entity: 'item' as const,
       entityId: 'i1',
       payload: { name: '新值' },

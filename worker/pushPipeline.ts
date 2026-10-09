@@ -30,6 +30,7 @@
 import {
   buildUpsertBindValues,
   BUMP_REVISION_SQL,
+  CATEGORY_GRAPH_SQL,
   CURRENT_REVISION_SQL,
   PRELOAD_CHUNK,
   PULL_TAG_KEYS_SQL,
@@ -42,6 +43,8 @@ import {
   summarize,
   type ExistingRecord,
   type PushChange,
+  findCategoryCycleQueueIds,
+  type CategoryParent,
 } from './syncLogic'
 import { collectTagKeys, resolveTagDedup, type TagDedupDirective } from '../src/features/sync/tagDedup'
 
@@ -67,17 +70,31 @@ export interface PushDatabase {
 /* ---------------------------------------------------------------------- */
 
 export interface PushIgnored {
+  queueId: string
   entity: string
   entityId: string
   reason: string
 }
 
+export type PushDedupDirective = TagDedupDirective & { queueId: string }
+
+export interface PushAuthoritativeChange {
+  revision: number
+  entity: 'category'
+  entityId: string
+  payload: unknown
+  deletedAt: string | null
+  clientUpdatedAt: string
+  deviceId: string
+}
+
 /** push 的业务结果（成功时原样作为响应体） */
 export interface PushSuccess {
   accepted: number
-  acceptedIds: string[]
+  acceptedQueueIds: string[]
   ignored: PushIgnored[]
-  dedupDirectives: TagDedupDirective[]
+  dedupDirectives: PushDedupDirective[]
+  authoritativeChanges: PushAuthoritativeChange[]
   conflicts: Array<Record<string, unknown>>
   currentRevision: number
 }
@@ -132,21 +149,66 @@ export async function executePush(
  */
 async function attemptPush(db: PushDatabase, changes: PushChange[], deviceId: string): Promise<Attempt> {
   const { records: existingMap, tagKeys } = await preloadExisting(db, changes)
+  const graphRows = await db.prepare(CATEGORY_GRAPH_SQL).bind().all<{ entity_id: string; payload: string }>()
+  const existingCategories: CategoryParent[] = (graphRows.results ?? []).map((row) => ({
+    id: row.entity_id,
+    parentId: readCategoryParent(row.payload),
+  }))
+  const cycleQueueIds = findCategoryCycleQueueIds(existingCategories, changes)
 
-  const ignored: PushIgnored[] = []
-  const acceptedIds: string[] = []
+  const ignored: PushIgnored[] = changes
+    .filter((change) => cycleQueueIds.has(change.queueId))
+    .map((change) => ({
+      queueId: change.queueId,
+      entity: change.entity,
+      entityId: change.entityId,
+      reason: 'category-cycle',
+    }))
+  const acceptedQueueIds: string[] = []
   const conflicts: Array<Record<string, unknown>> = []
-  const dedupDirectives: TagDedupDirective[] = []
+  const dedupDirectives: PushDedupDirective[] = []
+  const authoritativeChanges: PushAuthoritativeChange[] = []
+  const rejectedAt = new Date().toISOString()
+  for (const change of changes) {
+    if (!cycleQueueIds.has(change.queueId)) continue
+    const existing = existingMap.get(`${change.entity}:${change.entityId}`)
+    if (existing !== undefined) {
+      authoritativeChanges.push({
+        revision: existing.revision,
+        entity: 'category',
+        entityId: change.entityId,
+        payload: parseJsonPayload(existing.payload),
+        deletedAt: existing.deletedAt,
+        clientUpdatedAt: existing.clientUpdatedAt,
+        deviceId: existing.deviceId,
+      })
+    } else {
+      // A same-batch cycle can consist entirely of new local categories. There
+      // is no server row to echo, so return an authoritative tombstone; the
+      // client can dequeue the rejected write without retaining a local cycle.
+      authoritativeChanges.push({
+        revision: 0,
+        entity: 'category',
+        entityId: change.entityId,
+        payload: change.payload,
+        deletedAt: rejectedAt,
+        clientUpdatedAt: change.clientUpdatedAt,
+        deviceId: 'server',
+      })
+    }
+  }
   /** 本批要写库的 upsert。offset 从 0 连续编号，revision 因此连续 */
   const upserts: PushStatement[] = []
   let hasTagChange = false
 
   for (const change of changes) {
+    if (cycleQueueIds.has(change.queueId)) continue
     const existing = existingMap.get(`${change.entity}:${change.entityId}`) ?? null
     const decision = decidePush({ change, existing, revisionFrom: 1 })
 
     if (decision.kind === 'ignore-tombstone' || decision.kind === 'ignore-invalid') {
       ignored.push({
+        queueId: change.queueId,
         entity: String(change.entity),
         entityId: String(change.entityId),
         reason: decision.ignoreReason ?? 'ignored',
@@ -159,7 +221,7 @@ async function attemptPush(db: PushDatabase, changes: PushChange[], deviceId: st
       hasTagChange = true
       const dedup = resolveTagDedup(change, tagKeys)
       if (dedup !== null) {
-        dedupDirectives.push(dedup)
+        dedupDirectives.push({ ...dedup, queueId: change.queueId })
         continue
       }
     }
@@ -167,7 +229,7 @@ async function attemptPush(db: PushDatabase, changes: PushChange[], deviceId: st
     // tombstone 二次判定：应用层给出准确的 ignored 回报；
     // 即便这里漏判，UPSERT_SQL 的 WHERE 也会在数据库层挡住。
     if (existing !== null && existing.deletedAt !== null && change.undeleteIntent !== true) {
-      ignored.push({ entity: change.entity, entityId: change.entityId, reason: 'tombstoned' })
+      ignored.push({ queueId: change.queueId, entity: change.entity, entityId: change.entityId, reason: 'tombstoned' })
       continue
     }
 
@@ -175,11 +237,12 @@ async function attemptPush(db: PushDatabase, changes: PushChange[], deviceId: st
     upserts.push(
       db.prepare(UPSERT_SQL).bind(...buildUpsertBindValues(change, deviceId, upserts.length)),
     )
-    acceptedIds.push(change.entityId)
+    acceptedQueueIds.push(change.queueId)
 
     if (decision.recordConflict && existing !== null) {
       // 本请求的设备是**胜方**（覆盖方），existing 是**败方**（被覆盖的那条）。
       conflicts.push({
+        queueId: change.queueId,
         entity: change.entity,
         entityId: change.entityId,
         loserUpdatedAt: existing.clientUpdatedAt,
@@ -194,7 +257,7 @@ async function attemptPush(db: PushDatabase, changes: PushChange[], deviceId: st
   }
 
   if (upserts.length === 0) {
-    return { status: 'ok', upserts, payload: { accepted: acceptedIds.length, acceptedIds, ignored, dedupDirectives, conflicts } }
+    return { status: 'ok', upserts, payload: { accepted: acceptedQueueIds.length, acceptedQueueIds, ignored, dedupDirectives, authoritativeChanges, conflicts } }
   }
 
   try {
@@ -202,11 +265,36 @@ async function attemptPush(db: PushDatabase, changes: PushChange[], deviceId: st
     //   revision 分配与记录写入因此处于同一 transaction。
     await db.batch([...upserts, db.prepare(BUMP_REVISION_SQL).bind(upserts.length)])
   } catch (err) {
-    if (hasTagChange && isTagUniqueConflict(err)) return { status: 'retryable' }
+    if ((hasTagChange && isTagUniqueConflict(err)) || isCategoryCycleConflict(err)) return { status: 'retryable' }
     return { status: 'failed' }
   }
 
-  return { status: 'ok', upserts, payload: { accepted: acceptedIds.length, acceptedIds, ignored, dedupDirectives, conflicts } }
+  return { status: 'ok', upserts, payload: { accepted: acceptedQueueIds.length, acceptedQueueIds, ignored, dedupDirectives, authoritativeChanges, conflicts } }
+}
+
+function readCategoryParent(payload: string): string | null {
+  try {
+    const value = JSON.parse(payload) as unknown
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+    const parentId = (value as Record<string, unknown>).parentId
+    return typeof parentId === 'string' && parentId !== '' ? parentId : null
+  } catch {
+    return null
+  }
+}
+
+function parseJsonPayload(payload: unknown): unknown {
+  if (typeof payload !== 'string') return payload
+  try {
+    return JSON.parse(payload) as unknown
+  } catch {
+    return null
+  }
+}
+
+export function isCategoryCycleConflict(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err)
+  return message.includes('category-cycle')
 }
 
 /**

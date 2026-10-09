@@ -24,6 +24,7 @@ import type {
 } from './types'
 import { CURRENT_SCHEMA_VERSION } from './types'
 import { sanitizeLifecycle } from './lifecycle'
+import { hasCategoryCycle } from './categoryTree'
 
 /**
  * 当前写入的备份格式版本。
@@ -416,6 +417,9 @@ export function validateBackupData(raw: unknown, schemaVersion: number): Validat
 
   const categories = mapValidated<Category, Category>(raw.categories, 'categories', validateCategory)
   if (!categories.ok) return categories
+  if (hasCategoryCycle(categories.value)) {
+    return { ok: false, error: 'categories 包含循环引用，拒绝导入' }
+  }
 
   const tags = mapValidated<Tag, Tag>(raw.tags, 'tags', validateTag)
   if (!tags.ok) return tags

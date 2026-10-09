@@ -9,6 +9,7 @@ import { restoreFromPayload } from '../../services/backupService'
 import { commitJoin } from '../../services/syncService'
 import { SyncEngine, type SyncEngineHost } from './syncEngine'
 import type { RemoteChange } from './syncTransport'
+import { SYNC_PROTOCOL_VERSION } from '../../domain/syncProtocol'
 
 const OLD_SECRET = 'old-secret-012345678901234567890123456789'
 const NEW_SECRET = 'new-secret-012345678901234567890123456789'
@@ -110,14 +111,18 @@ function makeControlledHost(options: {
       if (url.includes('/api/sync/push')) {
         options.push?.gate.open()
         await options.push?.gate.wait()
+        const body = JSON.parse(init.body ?? '{}') as { changes?: Array<{ queueId: string }> }
+        const acceptedQueueIds = (body.changes ?? []).map((change) => change.queueId)
         return {
           status: 200,
           text: async () =>
             JSON.stringify({
-              accepted: 1,
-              acceptedIds: [],
+              protocolVersion: SYNC_PROTOCOL_VERSION,
+              accepted: acceptedQueueIds.length,
+              acceptedQueueIds,
               ignored: [],
               dedupDirectives: [],
+              authoritativeChanges: [],
               conflicts: [],
               currentRevision: 1,
             }),
@@ -127,12 +132,14 @@ function makeControlledHost(options: {
         options.pull?.gate.open()
         await options.pull?.gate.wait()
         const change = options.pull?.change
+        const after = Number(new URL(url).searchParams.get('after') ?? '0')
         return {
           status: 200,
           text: async () =>
             JSON.stringify({
+              protocolVersion: SYNC_PROTOCOL_VERSION,
               changes: change ? [change] : [],
-              nextRevision: change?.revision ?? 0,
+              nextRevision: change?.revision ?? after,
               hasMore: false,
             }),
         }
@@ -408,7 +415,7 @@ describe('F01 持久化同步会话代次', () => {
     const pushBody = JSON.parse(push!.body!) as { changes: Array<{ baseRevision: number }> }
     expect(pushBody.changes.length).toBeGreaterThan(0)
     expect(pushBody.changes.every((change) => change.baseRevision === 0)).toBe(true)
-    expect(requests.some((request) => request.url.includes('/api/sync/pull?after=0&'))).toBe(true)
+    expect(requests.some((request) => request.url.includes('/api/sync/pull') && request.url.includes('after=0'))).toBe(true)
   })
 
   it('保留已有 V1/V2 飞行中编辑保护的测试入口', async () => {

@@ -1,6 +1,7 @@
 import { classifyStatus, type SyncErrorKind } from './syncPolicy'
 import { SYNC_PULL_PAGE_SIZE, SYNC_PUSH_BATCH_SIZE } from './syncLimits'
 import type { SyncEntity } from '../../domain/syncPayload'
+import { SYNC_PROTOCOL_VERSION } from '../../domain/syncProtocol'
 
 /**
  * 与 Worker 通信的**薄传输层**。
@@ -14,7 +15,7 @@ import type { SyncEntity } from '../../domain/syncPayload'
 /** 服务端会返回的形态（这里只声明用到的字段） */
 export interface RemoteChange {
   revision: number
-  entity: string
+  entity: SyncEntity
   entityId: string
   payload: unknown
   deletedAt: string | null
@@ -25,12 +26,14 @@ export interface RemoteChange {
 /** 服务端要求客户端把重复 tag 合并到既有 id 的指令 */
 export interface TagDedupDirectiveWire {
   kind: 'merge-tag-into'
+  queueId: string
   duplicateId: string
   canonicalId: string
 }
 
 export interface PushConflict {
-  entity: string
+  queueId: string
+  entity: SyncEntity
   entityId: string
   loserUpdatedAt: string | null
   winnerDeviceId: string | null
@@ -52,7 +55,9 @@ export interface PushResult {
   acceptedQueueIds: string[]
   /** tag 跨设备去重指令：客户端要把 duplicateId 合并到 canonicalId */
   dedupDirectives: TagDedupDirectiveWire[]
-  ignored: Array<{ entity: string; entityId: string; reason: string }>
+  /** 服务端拒绝分类环时返回的权威分类快照。 */
+  authoritativeChanges: RemoteChange[]
+  ignored: Array<{ queueId: string; entity: SyncEntity; entityId: string; reason: string }>
   conflicts: PushConflict[]
   currentRevision: number
 }
@@ -164,11 +169,16 @@ export class SyncTransport {
     const res = await this.call('/api/sync/status', { method: 'GET', auth: true })
     if (res.status === 0) return { ok: false, kind: 'offline' }
     if (res.status !== 200) return { ok: false, kind: classifyStatus(res.status) }
-    return {
-      ok: true,
-      recordCount: Number(res.data?.recordCount ?? 0),
-      currentRevision: Number(res.data?.currentRevision ?? 0),
+    const data = asRecord(res.data)
+    if (
+      data === null ||
+      data.protocolVersion !== SYNC_PROTOCOL_VERSION ||
+      !isSafeNonNegativeInteger(data.recordCount) ||
+      !isSafeNonNegativeInteger(data.currentRevision)
+    ) {
+      return { ok: false, kind: 'protocol' }
     }
+    return { ok: true, recordCount: data.recordCount, currentRevision: data.currentRevision }
   }
 
   /**
@@ -180,17 +190,22 @@ export class SyncTransport {
   async bootstrap(secret: string, keyId: string): Promise<{ ok: boolean; kind?: SyncErrorKind; keyId?: string }> {
     const res = await this.call('/api/sync/bootstrap', {
       method: 'POST',
-      body: { secret, keyId },
+      body: { protocolVersion: SYNC_PROTOCOL_VERSION, secret, keyId },
       auth: false,
     })
     if (res.status === 0) return { ok: false, kind: 'offline' }
     if (res.status !== 200) return { ok: false, kind: classifyStatus(res.status) }
-    return { ok: true, keyId: typeof res.data?.keyId === 'string' ? res.data.keyId : keyId }
+    const data = asRecord(res.data)
+    if (data === null || data.protocolVersion !== SYNC_PROTOCOL_VERSION || !isNonEmptyString(data.keyId)) {
+      return { ok: false, kind: 'protocol' }
+    }
+    return { ok: true, keyId: data.keyId }
   }
 
   /** 推送一批变更。调用方负责按 SYNC_PUSH_BATCH_SIZE 分批。 */
   async push(
     changes: Array<{
+      queueId: string
       entity: SyncEntity
       entityId: string
       payload: unknown
@@ -203,44 +218,228 @@ export class SyncTransport {
     // 让客户端能精确知道哪些 outbox 条目可以出队。
     const res = await this.call('/api/sync/push', {
       method: 'POST',
-      body: { deviceId: this.config.deviceId, changes },
+      body: { protocolVersion: SYNC_PROTOCOL_VERSION, deviceId: this.config.deviceId, changes },
       auth: true,
     })
     if (res.status === 0) return { ok: false, kind: 'offline' }
-    if (res.status !== 200) return { ok: false, kind: classifyStatus(res.status), status: res.status }
-
-    return {
-      ok: true,
-      accepted: Number(res.data?.accepted ?? 0),
-      acceptedQueueIds: Array.isArray(res.data?.acceptedIds)
-        ? (res.data!.acceptedIds as string[])
-        : [],
-      ignored: Array.isArray(res.data?.ignored) ? (res.data!.ignored as PushResult['ignored']) : [],
-      dedupDirectives: Array.isArray(res.data?.dedupDirectives)
-        ? (res.data!.dedupDirectives as TagDedupDirectiveWire[])
-        : [],
-      conflicts: Array.isArray(res.data?.conflicts) ? (res.data!.conflicts as PushConflict[]) : [],
-      currentRevision: Number(res.data?.currentRevision ?? 0),
+    if (res.status !== 200) {
+      return { ok: false, kind: res.status === 409 ? 'conflict' : classifyStatus(res.status), status: res.status }
     }
+
+    const parsed = parsePushResult(res.data, changes)
+    return parsed === null ? { ok: false, kind: 'protocol' } : parsed
   }
 
   /** 拉取 revision > after 的变更 */
   async pull(after: number): Promise<PullOutcome> {
-    const res = await this.call(`/api/sync/pull?after=${after}&limit=${SYNC_PULL_PAGE_SIZE}`, {
+    if (!isSafeNonNegativeInteger(after)) return { ok: false, kind: 'protocol' }
+    const res = await this.call(`/api/sync/pull?protocolVersion=${SYNC_PROTOCOL_VERSION}&after=${after}&limit=${SYNC_PULL_PAGE_SIZE}`, {
       method: 'GET',
       auth: true,
     })
     if (res.status === 0) return { ok: false, kind: 'offline' }
     if (res.status !== 200) return { ok: false, kind: classifyStatus(res.status), status: res.status }
 
-    const changes = Array.isArray(res.data?.changes) ? (res.data!.changes as RemoteChange[]) : []
-    return {
-      ok: true,
-      changes,
-      nextRevision: Number(res.data?.nextRevision ?? after),
-      hasMore: res.data?.hasMore === true,
+    const data = asRecord(res.data)
+    if (data === null || data.protocolVersion !== SYNC_PROTOCOL_VERSION || !Array.isArray(data.changes)) {
+      return { ok: false, kind: 'protocol' }
     }
+    const changes = data.changes
+    if (changes.length > SYNC_PULL_PAGE_SIZE || !changes.every(isRemoteChange)) {
+      return { ok: false, kind: 'protocol' }
+    }
+    let previous = after
+    for (const change of changes) {
+      if (change.revision <= previous) return { ok: false, kind: 'protocol' }
+      previous = change.revision
+    }
+    if (!isSafeNonNegativeInteger(data.nextRevision) || typeof data.hasMore !== 'boolean') {
+      return { ok: false, kind: 'protocol' }
+    }
+    if (changes.length === 0) {
+      if (data.nextRevision !== after || data.hasMore) return { ok: false, kind: 'protocol' }
+    } else if (data.nextRevision !== changes[changes.length - 1]!.revision) {
+      return { ok: false, kind: 'protocol' }
+    }
+    return { ok: true, changes, nextRevision: data.nextRevision, hasMore: data.hasMore }
   }
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0
+}
+
+function isSafeNonNegativeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
+}
+
+function isSyncEntity(value: unknown): value is SyncEntity {
+  return value === 'item' || value === 'category' || value === 'tag'
+}
+
+function isPayloadObject(value: unknown): boolean {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isRemoteChange(value: unknown): value is RemoteChange {
+  const data = asRecord(value)
+  return (
+    data !== null &&
+    isSafeNonNegativeInteger(data.revision) &&
+    isSyncEntity(data.entity) &&
+    isNonEmptyString(data.entityId) &&
+    isPayloadObject(data.payload) &&
+    (data.deletedAt === null || isNonEmptyString(data.deletedAt)) &&
+    isNonEmptyString(data.clientUpdatedAt) &&
+    isNonEmptyString(data.deviceId)
+  )
+}
+
+function isRemoteCategoryChange(value: unknown): value is RemoteChange {
+  return isRemoteChange(value) && value.entity === 'category'
+}
+
+function isUniqueStringList(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(isNonEmptyString) && new Set(value).size === value.length
+}
+
+function parsePushResult(data: unknown, changes: SyncTransportPushChange[]): PushResult | null {
+  const body = asRecord(data)
+  if (
+    body === null ||
+    body.protocolVersion !== SYNC_PROTOCOL_VERSION ||
+    !isSafeNonNegativeInteger(body.accepted) ||
+    !isUniqueStringList(body.acceptedQueueIds) ||
+    body.accepted !== body.acceptedQueueIds.length ||
+    !isSafeNonNegativeInteger(body.currentRevision) ||
+    !Array.isArray(body.ignored) ||
+    !Array.isArray(body.dedupDirectives) ||
+    !Array.isArray(body.authoritativeChanges) ||
+    !Array.isArray(body.conflicts)
+  ) return null
+
+  const submitted = new Map<string, SyncTransportPushChange>()
+  for (const change of changes) {
+    if (!isNonEmptyString(change.queueId) || submitted.has(change.queueId)) return null
+    submitted.set(change.queueId, change)
+  }
+  if (body.accepted > changes.length || body.acceptedQueueIds.some((id) => !submitted.has(id))) return null
+
+  const ignored: PushResult['ignored'] = []
+  for (const value of body.ignored) {
+    const entry = asRecord(value)
+    if (
+      entry === null ||
+      !isNonEmptyString(entry.queueId) ||
+      !isSyncEntity(entry.entity) ||
+      !isNonEmptyString(entry.entityId) ||
+      !isNonEmptyString(entry.reason)
+    ) return null
+    const submittedChange = submitted.get(entry.queueId)
+    if (submittedChange === undefined || submittedChange.entity !== entry.entity || submittedChange.entityId !== entry.entityId) return null
+    ignored.push({ queueId: entry.queueId, entity: entry.entity, entityId: entry.entityId, reason: entry.reason })
+  }
+
+  const dedupDirectives: TagDedupDirectiveWire[] = []
+  for (const value of body.dedupDirectives) {
+    const entry = asRecord(value)
+    if (
+      entry === null ||
+      entry.kind !== 'merge-tag-into' ||
+      !isNonEmptyString(entry.queueId) ||
+      !isNonEmptyString(entry.duplicateId) ||
+      !isNonEmptyString(entry.canonicalId) ||
+      entry.duplicateId === entry.canonicalId
+    ) return null
+    const submittedChange = submitted.get(entry.queueId)
+    if (submittedChange === undefined || submittedChange.entity !== 'tag' || submittedChange.entityId !== entry.duplicateId) return null
+    dedupDirectives.push({
+      kind: 'merge-tag-into',
+      queueId: entry.queueId,
+      duplicateId: entry.duplicateId,
+      canonicalId: entry.canonicalId,
+    })
+  }
+
+  const authoritativeChanges = body.authoritativeChanges
+  const categoryCycleKeys = new Set(
+    ignored
+      .filter((entry) => entry.reason === 'category-cycle')
+      .map((entry) => `${entry.entity}:${entry.entityId}`),
+  )
+  const authoritativeKeys = new Set<string>()
+  if (
+    !authoritativeChanges.every((value) => {
+      if (!isRemoteCategoryChange(value)) return false
+      const key = `${value.entity}:${value.entityId}`
+      if (authoritativeKeys.has(key) || !categoryCycleKeys.has(key)) return false
+      authoritativeKeys.add(key)
+      return true
+    })
+  ) return null
+
+  const conflicts: PushConflict[] = []
+  for (const value of body.conflicts) {
+    const entry = asRecord(value)
+    if (
+      entry === null ||
+      !isNonEmptyString(entry.queueId) ||
+      !isSyncEntity(entry.entity) ||
+      !isNonEmptyString(entry.entityId) ||
+      (entry.loserUpdatedAt !== null && !isNonEmptyString(entry.loserUpdatedAt)) ||
+      (entry.winnerDeviceId !== null && !isNonEmptyString(entry.winnerDeviceId)) ||
+      (entry.winnerUpdatedAt !== null && !isNonEmptyString(entry.winnerUpdatedAt)) ||
+      (entry.loserSummary !== null && typeof entry.loserSummary !== 'string') ||
+      (entry.winnerSummary !== null && typeof entry.winnerSummary !== 'string') ||
+      !isNonEmptyString(entry.detectedAt)
+    ) return null
+    const submittedChange = submitted.get(entry.queueId)
+    if (submittedChange === undefined || submittedChange.entity !== entry.entity || submittedChange.entityId !== entry.entityId) return null
+    conflicts.push({
+      queueId: entry.queueId,
+      entity: entry.entity,
+      entityId: entry.entityId,
+      loserUpdatedAt: entry.loserUpdatedAt as string | null,
+      winnerDeviceId: entry.winnerDeviceId as string | null,
+      winnerUpdatedAt: entry.winnerUpdatedAt as string | null,
+      loserSummary: entry.loserSummary as string | null,
+      winnerSummary: entry.winnerSummary as string | null,
+      detectedAt: entry.detectedAt,
+    })
+  }
+
+  const terminal = [
+    ...body.acceptedQueueIds,
+    ...ignored.map((entry) => entry.queueId),
+    ...dedupDirectives.map((entry) => entry.queueId),
+  ]
+  if (new Set(terminal).size !== terminal.length || terminal.length !== changes.length) return null
+  return {
+    ok: true,
+    accepted: body.accepted,
+    acceptedQueueIds: body.acceptedQueueIds,
+    ignored,
+    dedupDirectives,
+    authoritativeChanges,
+    conflicts,
+    currentRevision: body.currentRevision,
+  }
+}
+
+type SyncTransportPushChange = {
+  queueId: string
+  entity: SyncEntity
+  entityId: string
+  payload: unknown
+  deletedAt: string | null
+  clientUpdatedAt: string
+  baseRevision: number
 }
 
 export { SYNC_PUSH_BATCH_SIZE, SYNC_PULL_PAGE_SIZE }

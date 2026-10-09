@@ -18,7 +18,7 @@ export function childrenOf(categories: Category[], parentId: string | null): Cat
  * 覆盖两种违规：成为自己的父节点；移动到自己的后代节点下。
  */
 export function wouldCreateCycle(
-  categories: Category[],
+  categories: ReadonlyArray<Pick<Category, 'id' | 'parentId'>>,
   categoryId: string,
   newParentId: string | null,
 ): boolean {
@@ -30,6 +30,23 @@ export function wouldCreateCycle(
   for (let i = 0; i < guard && cursor !== null; i++) {
     if (cursor === categoryId) return true
     cursor = byId.get(cursor)?.parentId ?? null
+  }
+  return false
+}
+
+/** 检测当前分类父链是否已经包含环；只读诊断使用，不会修改输入。 */
+export function hasCategoryCycle(
+  categories: ReadonlyArray<Pick<Category, 'id' | 'parentId'>>,
+): boolean {
+  const parentOf = new Map(categories.map((c) => [c.id, c.parentId]))
+  for (const category of categories) {
+    const visited = new Set<string>()
+    let cursor: string | null = category.id
+    while (cursor !== null) {
+      if (visited.has(cursor)) return true
+      visited.add(cursor)
+      cursor = parentOf.get(cursor) ?? null
+    }
   }
   return false
 }

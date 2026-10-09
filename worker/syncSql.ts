@@ -147,6 +147,10 @@ export const COUNT_RECORDS_SQL = 'SELECT COUNT(*) AS n FROM sync_records'
 export const PULL_TAG_KEYS_SQL =
   "SELECT entity_id, payload FROM sync_records WHERE entity = 'tag' AND deleted_at IS NULL"
 
+/** Active category parent graph used for a fast cycle rejection before the write batch. */
+export const CATEGORY_GRAPH_SQL =
+  "SELECT entity_id, payload FROM sync_records WHERE entity = 'category' AND deleted_at IS NULL"
+
 /**
  * 预加载本批涉及的现有记录。**必须按 id 分片**以避开 100 绑定参数上限。
  */
