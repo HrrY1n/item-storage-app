@@ -187,8 +187,8 @@ async function run() {
   await s.shot('06-category-digital')
 
   /* ---- 7. 删除：确认后从首页/分类/搜索全部消失 ---- */
-  await s.nav(itemUrl, '删除此物品')
-  await s.clickText('button', '删除此物品')
+  await s.nav(itemUrl, '删除物品')
+  await s.clickText('button', '删除物品')
   await sleep(400)
   await s.shot('07-delete-confirm')
   // 点对话框里的确认按钮（对话框在 div.fixed 浮层内，避免误点页面上的「删除此物品」）
