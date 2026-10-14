@@ -6,7 +6,7 @@
 
 | 契约 | 当前值 | 说明 |
 |---|---:|---|
-| App/package | `1.0.1` | 产品版本，不等于数据或同步协议版本 |
+| App/package | `0.1.0` | 产品版本，不等于数据或同步协议版本 |
 | Dexie | `4` | IndexedDB schema；不得删除已有迁移链 |
 | Backup | `3` | ZIP `manifest.json`/`data.json` 契约；导入保留旧版本迁移 |
 | Sync wire | `2` | `src/domain/syncProtocol.ts`；push/pull 成功响应和请求必须带版本 |
