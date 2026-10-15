@@ -64,3 +64,5 @@ npm run build                          # 恢复正式版本 dist
 - iOS 挂起无法在无头浏览器中真实模拟：`visibilitychange` 是脚本派发的合成事件，真机仍需人工确认
 
 图标库 2.0 的扩展在 `http://127.0.0.1:4190` 交换构建并改变相同 URL 的 `phone.webp` 内容，检查响应 SHA-256 和浏览器 40px 解码像素均被替换、旧 SVG 元数据原位升级、preset 去重、物品/分类/标签及待同步条目保留，以及在线更新请求返回 503 时不会提示“最新”。它在 `try/finally` 中恢复临时修改的源码和图片；测试产物与测试数据保留在隔离目录，不删除 Profile、IndexedDB 或缓存。
+
+本次还从 `git archive cdb19c0` 在隔离目录构建真实 0.1.0，再与正式 0.2.0 的 `dist` 在 :4191 交换，验证旧版既有机制可更新、156 preset 自动补齐至 219、业务数据/outbox 保留及新图片离线解码。临时扩展脚本保留在 `.tmp/verify/legacy-to-v2.mjs`，结果入库为 `docs/screenshots/icon-library-v2/pwa-legacy-results.json`。此场景不修改当前源码，也不需要清空旧 Profile。

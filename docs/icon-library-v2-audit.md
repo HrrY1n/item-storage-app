@@ -123,12 +123,15 @@
 | `npm run build` | 通过；125 modules，386 个唯一预缓存项 |
 | `npm run verify:icons` | 28/28；项目 Edge Profile :9222，390×844 / 390×568 / 1280×900 |
 | 同源 Build A→B→A | 35/35；项目 Edge Profile :9223，origin :4190 |
+| 真实旧提交 156→219 | 34/34；git archive cdb19c0 构建 0.1.0，升级到正式 0.2.0，origin :4191 |
 | 资源/来源自检 | 219 key/文件/生成清单对应；63 张输出 SHA-256 对应；5 个 PWA PNG 也保留预缓存 |
 | Git 数据范围 | 原 156 WebP 和 156 SVG 未修改；没有数据库迁移或 Worker 逻辑变更 |
 
 构建与 Vitest 在本机受限执行环境曾因 Windows EPERM 在加载阶段失败，允许本地执行后完整通过；不是通过删测试或清数据绕过。首次 A/B 试跑因等待首次 SW 安装不足被作废，改为等待 active/controller 后重跑。最终 35/35 的已测脚本保存为 `scripts/verify-pwa-update.mjs`，执行体与本地通过版本相同。测试后已恢复源码、原 phone.webp 和正式 0.2.0 的 dist。
 
 本地更新测试分别验证：同 URL 旧/新图片响应及像素、旧 SVG 元数据及 createdAt、无重复 preset、物品/自建分类/标签/待同步条目保留、编辑时不刷新与离开后自动应用、手动最新/503 失败/离线提示，以及离线像素正确。所有测试都使用项目隔离 Profile；未访问日常登录 Profile，也未清空存储。复现命令见 [BROWSER_TESTING.md](../BROWSER_TESTING.md)。结果：[UI](screenshots/icon-library-v2/results.json)、[PWA](screenshots/icon-library-v2/pwa-results.json)。
+
+另外从真实 `cdb19c0` Git 归档在隔离目录构建旧版，确认初始 bundle 与线上一致（`index-CzHxvlbI.js`、0.1.0、156 preset），在同一 origin :4191 切到正式新构建后，不整页导航，由旧版已有的恢复前台检查发现并升级到 `index-BEFSfJdP.js`。自动补齐至 219 preset，旧引用/元数据/物品/自建分类/标签/outbox 保留，旧图片字节不变、新内存条离线可解码，共 34/34 通过。该验证没有切换或修改当前工作树，结果见 [真实旧版升级证据](screenshots/icon-library-v2/pwa-legacy-results.json)。两套 PWA 场景合计 69 项检查通过，仍不等于真实 iOS 验收。
 
 | 状态 | 截图 |
 |---|---|
@@ -179,6 +182,7 @@
 - [docs/screenshots/icon-library-v2/08-library-dark.png](../docs/screenshots/icon-library-v2/08-library-dark.png)
 - [docs/screenshots/icon-library-v2/09-desktop-dark.png](../docs/screenshots/icon-library-v2/09-desktop-dark.png)
 - [docs/screenshots/icon-library-v2/10-new-icon-selected-light.png](../docs/screenshots/icon-library-v2/10-new-icon-selected-light.png)
+- [docs/screenshots/icon-library-v2/pwa-legacy-results.json](../docs/screenshots/icon-library-v2/pwa-legacy-results.json)
 - [docs/screenshots/icon-library-v2/pwa-results.json](../docs/screenshots/icon-library-v2/pwa-results.json)
 - [docs/screenshots/icon-library-v2/resource-results.json](../docs/screenshots/icon-library-v2/resource-results.json)
 - [docs/screenshots/icon-library-v2/results.json](../docs/screenshots/icon-library-v2/results.json)
