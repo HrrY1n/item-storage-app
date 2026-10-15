@@ -3,9 +3,8 @@ import type { IconKey } from '../types'
 /**
  * 预置物品图标注册表（Icon Asset Library 的元数据唯一来源）。
  *
- * 视觉资产在 public/icons/items/<key>.svg，由 scripts/gen-item-icons.mjs 生成：
- * 统一 96×96 画布、统一描边与调色板、透明底（底衬交给 CSS 语义 token，
- * 因此浅色与深色主题共用同一套资源）。
+ * 视觉资产在 public/icons/items/<key>.webp，采用 768×768 透明底立体物品插画。
+ * 生成提示词见 assets/item-icons/prompts.json；浅色与深色主题共用同一套资源。
  *
  * 这里只管"有什么图标、怎么被找到"：key / 中文名 / 分类 / 检索关键词。
  * 组件与数据层都通过本文件的辅助函数取图标，不直接读路径。
@@ -54,7 +53,7 @@ const icon = (
   label: string,
   category: IconCategory,
   keywords: string[],
-): PresetIcon => ({ key, label, path: `/icons/items/${key}.svg`, category, keywords })
+): PresetIcon => ({ key, label, path: `/icons/items/${key}.webp`, category, keywords })
 
 export const PRESET_ICONS: PresetIcon[] = [
   // ------------------------------------------------------------ 数码
@@ -259,7 +258,7 @@ export function presetIconOfAssetId(assetId: string): PresetIcon | undefined {
 }
 
 export function getIconPath(key: IconKey): string {
-  return byKey.get(key)?.path ?? '/icons/items/other.svg'
+  return byKey.get(key)?.path ?? '/icons/items/other.webp'
 }
 
 export function getIconLabel(key: IconKey): string {

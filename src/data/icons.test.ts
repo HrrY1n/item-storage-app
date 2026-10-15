@@ -17,9 +17,9 @@ import {
  * 生产代码不使用任何 Node API，因此本仓库不引入 @types/node，
  * 测试也保持同样的约束。
  */
-const svgBasenames = new Set(
+const webpBasenames = new Set(
   Object.keys(
-    import.meta.glob('/public/icons/items/*.svg', { eager: true, query: '?raw', import: 'default' }),
+    import.meta.glob('/public/icons/items/*.webp', { eager: true, query: '?url', import: 'default' }),
   ).map((p) => p.split('/').pop() ?? ''),
 )
 
@@ -32,18 +32,18 @@ describe('PRESET_ICONS 元数据', () => {
     const keys = PRESET_ICONS.map((i) => i.key)
     expect(new Set(keys).size).toBe(keys.length)
     for (const icon of PRESET_ICONS) {
-      expect(icon.path).toBe(`/icons/items/${icon.key}.svg`)
+      expect(icon.path).toBe(`/icons/items/${icon.key}.webp`)
     }
   })
 
-  it('每个图标都有对应 SVG 资源（元数据与资产不能脱节）', () => {
-    const missing = PRESET_ICONS.filter((i) => !svgBasenames.has(`${i.key}.svg`)).map((i) => i.key)
+  it('每个图标都有对应 WebP 资源（元数据与资产不能脱节）', () => {
+    const missing = PRESET_ICONS.filter((i) => !webpBasenames.has(`${i.key}.webp`)).map((i) => i.key)
     expect(missing).toEqual([])
   })
 
-  it('没有游离的 SVG 资源（每个文件都被元数据引用）', () => {
-    const referenced = new Set(PRESET_ICONS.map((i) => `${i.key}.svg`))
-    const orphans = [...svgBasenames].filter((f) => !referenced.has(f))
+  it('没有游离的 WebP 资源（每个文件都被元数据引用）', () => {
+    const referenced = new Set(PRESET_ICONS.map((i) => `${i.key}.webp`))
+    const orphans = [...webpBasenames].filter((f) => !referenced.has(f))
     expect(orphans).toEqual([])
   })
 
@@ -141,7 +141,7 @@ describe('图标辅助函数', () => {
   })
 
   it('未知 key 一律回落到通用图标，不抛错', () => {
-    expect(getIconPath('不存在')).toBe('/icons/items/other.svg')
+    expect(getIconPath('不存在')).toBe('/icons/items/other.webp')
     expect(getIconLabel('不存在')).toBe('通用物品')
     expect(getIconCategory('不存在')).toBe('other')
   })

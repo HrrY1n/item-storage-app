@@ -256,7 +256,7 @@ export default function HomePage() {
                     key={item.id}
                     to={`/items/${item.id}`}
                     name={item.name}
-                    iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
+                    iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'}
                     categoryName={categoryNameOf(categories, item.categoryId)}
                     tagNames={tagNamesOf(item.id, links, tags)}
                     item={item}

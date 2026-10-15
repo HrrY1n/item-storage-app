@@ -212,7 +212,7 @@ export default function ItemFormPage() {
   const currentIcon = presetIconOfAssetId(iconAssetId)
   // 优先用资产表解析（兼容未来的 AI / 拍照资产），缺失时回落到包内 preset 路径
   const iconUrl =
-    assetMap?.get(iconAssetId) ?? currentIcon?.path ?? '/icons/items/other.svg'
+    assetMap?.get(iconAssetId) ?? currentIcon?.path ?? '/icons/items/other.webp'
 
   // 实时预览：总投入只要填了价格或附加花费任一即可显示
   // 日均使用成本额外需要购买日期（缺日期时只显示总投入，不显示日均）

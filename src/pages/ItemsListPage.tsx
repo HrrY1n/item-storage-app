@@ -461,7 +461,7 @@ export default function ItemsListPage() {
                 key={item.id}
                 item={item}
                 to={`/items/${item.id}`}
-                iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
+                iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'}
                 categoryName={categoryNameOf(categories, item.categoryId)}
                 tagNames={tagNamesOf(item.id, links, tags)}
                 today={today}
@@ -475,7 +475,7 @@ export default function ItemsListPage() {
                 key={item.id}
                 item={item}
                 to={`/items/${item.id}`}
-                iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
+                iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'}
                 categoryName={categoryNameOf(categories, item.categoryId)}
                 today={today}
               />

@@ -145,9 +145,10 @@ describe('syncPresetAssets', () => {
 
     const updated = await db.assets.get('preset-laptop')
     expect(result.updated).toBe(1)
-    expect(updated?.path).toBe('/icons/items/laptop.svg')
-    expect(updated?.width).toBe(96)
-    expect(updated?.height).toBe(96)
+    expect(updated?.path).toBe('/icons/items/laptop.webp')
+    expect(updated?.mime).toBe('image/webp')
+    expect(updated?.width).toBe(768)
+    expect(updated?.height).toBe(768)
     // 历史创建时间不被刷新（避免每次启动都像是"新资源"）
     expect(updated?.createdAt).toBe('2020-01-01T00:00:00.000Z')
     expect(await db.assets.count()).toBe(PRESET_ICONS.length)

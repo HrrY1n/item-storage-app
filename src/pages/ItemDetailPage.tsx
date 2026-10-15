@@ -208,7 +208,7 @@ export default function ItemDetailPage() {
     .filter((l) => l.itemId === item.id)
     .map((l) => tags.find((t) => t.id === l.tagId))
     .filter((t): t is NonNullable<typeof t> => Boolean(t))
-  const iconUrl = assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'
+  const iconUrl = assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'
 
   const days = ownershipDaysOf(item, today)
   const gross = calculateTotalCostCents(item.purchasePriceCents, item.additionalCostCents)

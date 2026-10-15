@@ -83,7 +83,7 @@ export default defineConfig({
        */
       injectRegister: null,
       /**
-       * 物品图标（SVG）显式列入 precache。
+       * 保留旧版 SVG 图标的预缓存声明；新版 WebP 由 globPatterns 收集。
        *
        * 不再在这里重复声明 PWA App Icon 的 PNG：workbox 的 `globPatterns` 已经覆盖构建产物里
        * 全部 png，manifest.icons 里的三条也会被插件自动加进 precache —— 显式再写一遍只会
@@ -131,7 +131,7 @@ export default defineConfig({
       },
       workbox: {
         // App Shell 预缓存：HTML / JS / CSS / preset icons / PWA icons
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,woff2}'],
         /**
          * 单页应用离线导航：任意路径回落到 **`/`**，而不是 `/index.html`。
          * 原因见上面的 `mapAppShellToRoot` —— `/index.html` 在线上会 307 重定向，

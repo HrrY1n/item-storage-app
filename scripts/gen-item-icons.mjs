@@ -1,5 +1,6 @@
 /**
- * 生成「物品图标资产」到 public/icons/items/。
+ * 生成兼容历史路径的旧版 SVG 到 public/icons/items/。
+ * 当前应用使用的 ImageGen WebP 及提示词见 assets/item-icons/README.md。
  *
  * 设计语法（全体图标共用，保证风格统一）：
  *   - viewBox 0 0 96 96，**透明背景**（底衬由 CSS 语义 token 提供，故浅色/深色主题都能用）

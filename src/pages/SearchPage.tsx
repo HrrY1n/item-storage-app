@@ -154,7 +154,7 @@ export default function SearchPage() {
                 item,
                 matchedVia: categoryPath(categories, item.categoryId),
               }))}
-              iconOf={(item) => assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
+              iconOf={(item) => assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'}
             />
           </div>
         )}
@@ -219,7 +219,7 @@ export default function SearchPage() {
             </p>
             <ResultRows
               rows={results}
-              iconOf={(item) => assetMap.get(item.iconAssetId) ?? '/icons/items/other.svg'}
+              iconOf={(item) => assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'}
               onSelect={() => rememberQuery(query)}
             />
           </div>

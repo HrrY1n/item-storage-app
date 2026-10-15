@@ -1,5 +1,6 @@
 import { db } from '../db'
 import type { Asset } from '../../domain/types'
+import { getIconPath, presetIconOfAssetId } from '../../data/icons'
 
 /**
  * Asset repository —— 图标/照片资产。
@@ -16,9 +17,14 @@ export const assetRepository = {
 
   /** 解析资产的展示 URL：preset 用包内路径，其他来源用 Blob objectURL */
   iconUrl(asset: Asset | undefined): string {
-    if (!asset) return '/icons/items/other.svg'
+    if (!asset) return getIconPath('other')
+    // 旧备份可能带旧版资源路径；已知 preset 始终跟随当前图标注册表。
+    if (asset.kind === 'preset') {
+      const preset = presetIconOfAssetId(asset.id)
+      if (preset) return preset.path
+    }
     if (asset.path) return asset.path
     if (asset.blob) return URL.createObjectURL(asset.blob)
-    return '/icons/items/other.svg'
+    return getIconPath('other')
   },
 }
