@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import html from '../../index.html?raw'
+import artworkJson from '../../assets/item-icons/prompts.json?raw'
 import {
   ICON_CATEGORIES,
   PRESET_ICONS,
@@ -24,8 +25,8 @@ const webpBasenames = new Set(
 )
 
 describe('PRESET_ICONS 元数据', () => {
-  it('规模达到 150+，覆盖真实个人物品场景', () => {
-    expect(PRESET_ICONS.length).toBeGreaterThanOrEqual(150)
+  it('图标库 2.0 包含 219 个独立物品', () => {
+    expect(PRESET_ICONS.length).toBe(219)
   })
 
   it('key 唯一，且 path 与 key 一一对应', () => {
@@ -47,6 +48,27 @@ describe('PRESET_ICONS 元数据', () => {
     expect(orphans).toEqual([])
   })
 
+  it('生成记录与注册表逐项对应，新增图标保留来源及输出信息', () => {
+    const artwork = JSON.parse(artworkJson) as { icons: {
+      key: string; label: string; category: string; prompt: string; sourceImage: string
+      generationBatch?: string; output?: string; outputSize?: number[]
+      sourceSha256?: string; outputSha256?: string
+    }[] }
+    expect(artwork.icons.map(({ key, label, category }) => ({ key, label, category }))).toEqual(
+      PRESET_ICONS.map(({ key, label, category }) => ({ key, label, category })),
+    )
+    const added = artwork.icons.filter((i) => i.generationBatch === 'icon-library-v2')
+    expect(added).toHaveLength(63)
+    for (const icon of added) {
+      expect(icon.prompt.length).toBeGreaterThan(100)
+      expect(icon.sourceImage).toMatch(/^exec-.*\.png$/)
+      expect(icon.sourceSha256).toMatch(/^[a-f0-9]{64}$/)
+      expect(icon.outputSha256).toMatch(/^[a-f0-9]{64}$/)
+      expect(icon.output).toBe(`/icons/items/${icon.key}.webp`)
+      expect(icon.outputSize).toEqual([768, 768])
+    }
+  })
+
   it('每个图标都属于一个已声明的分类，且每个分类都非空', () => {
     const declared = new Set(ICON_CATEGORIES.map((c) => c.key))
     for (const icon of PRESET_ICONS) expect(declared.has(icon.category)).toBe(true)
@@ -54,10 +76,15 @@ describe('PRESET_ICONS 元数据', () => {
   })
 
   it('九大分类全部有图标，且没有空分类', () => {
-    expect(ICON_CATEGORIES.length).toBeGreaterThanOrEqual(9)
+    expect(ICON_CATEGORIES.map(({ key, label }) => [key, label])).toEqual([
+      ['digital', '数码'], ['office', '办公'], ['apparel', '服饰'],
+      ['life', '生活'], ['care', '护理'], ['kitchen', '厨房'],
+      ['home', '家居'], ['hobby', '兴趣'], ['other', '其他'],
+    ])
     for (const c of ICON_CATEGORIES) {
       expect(iconsInCategory(c.key).length).toBeGreaterThan(0)
     }
+    expect(ICON_CATEGORIES.reduce((sum, c) => sum + iconsInCategory(c.key).length, 0)).toBe(PRESET_ICONS.length)
   })
 
   it('Phase 2G 新增分类可用：护理 / 厨房', () => {
@@ -126,6 +153,32 @@ describe('图标检索', () => {
 
   it('大小写无关', () => {
     expect(searchIcons('IPAD').map((i) => i.key)).toContain('tablet')
+  })
+
+  it('按名称精确、前缀、包含、别名精确、宽泛关键词排序', () => {
+    expect(searchIcons('笔记本').map((i) => i.key).slice(0, 2)).toEqual(['notebook', 'laptop'])
+    expect(searchIcons('手表').map((i) => i.key).slice(0, 2)).toEqual(['watch', 'smartwatch'])
+    const headphones = searchIcons('耳机').map((i) => i.key)
+    expect(headphones[0]).toBe('earbudcase')
+    expect(headphones.indexOf('earbuds')).toBeGreaterThan(0)
+    const computers = searchIcons('电脑').map((i) => i.key)
+    expect(computers.indexOf('desktop')).toBeGreaterThan(computers.indexOf('laptop'))
+    expect(searchIcons('pad')[0].key).toBe('tablet')
+  })
+
+  it('常见简称、英文及品牌名优先返回相关设备', () => {
+    expect(searchIcons('插排')[0].key).toBe('powerstrip')
+    expect(searchIcons('iPad')[0].key).toBe('tablet')
+    expect(searchIcons('laptop')[0].key).toBe('laptop')
+    expect(searchIcons('  IPAD  ')).toEqual(searchIcons('ipad'))
+  })
+
+  it('新增独立物品的名称优先于旧图标的宽泛别名', () => {
+    expect(searchIcons('卷尺')[0].key).toBe('tapemeasure')
+    expect(searchIcons('置物架')[0].key).toBe('shelf')
+    expect(searchIcons('DDR5')[0].key).toBe('ram')
+    expect(searchIcons('NVIDIA')[0].key).toBe('graphicscard')
+    expect(searchIcons('Facial Cleanser')[0].key).toBe('cleanser')
   })
 
   it('查不到时返回空数组而不是全部', () => {

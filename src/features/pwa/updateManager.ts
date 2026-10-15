@@ -26,7 +26,7 @@ export interface PwaUpdateHost {
   now(): number
   /** 唯一允许的刷新出口 */
   reload(): void
-  /** 探测 sw.js（no-store）+ registration.update()，内部自行兜错 */
+  /** 检查脚本并等待新 SW 安装/激活，失败时抛出 */
   updateSw(): Promise<void>
   /** 读取/写入"最近一次更新触发的 reload 时间"（sessionStorage） */
   readReloadAt(): number | null
@@ -34,8 +34,6 @@ export interface PwaUpdateHost {
   /** 定时器：保护窗口结束后的重试 */
   setTimeout(fn: () => void, ms: number): number
   clearTimeout(id: number): void
-  /** 睡眠：手动检查后给新 SW 安装留的宽限（测试中可为空实现） */
-  wait(ms: number): Promise<void>
 }
 
 export interface PwaUpdateSnapshot {
@@ -50,6 +48,8 @@ export interface PwaUpdateSnapshot {
   offlineReady: boolean
   /** 正在检查中 */
   checking: boolean
+  /** 上次检查失败或 SW 尚未注册；不能据此宣称线上已是最新 */
+  checkFailed: boolean
   lastCheckedAt: number | null
 }
 
@@ -69,9 +69,6 @@ export interface UpdateManager {
   tryApply(): void
 }
 
-/** 手动检查后给新 SW 安装/激活留的宽限，避免误报"已是最新" */
-const CHECK_GRACE_MS = 900
-
 export function createUpdateManager(host: PwaUpdateHost): UpdateManager {
   const listeners = new Set<() => void>()
   const blockedKeys = new Set<string>()
@@ -83,10 +80,11 @@ export function createUpdateManager(host: PwaUpdateHost): UpdateManager {
     blocked: false,
     offlineReady: false,
     checking: false,
+    checkFailed: false,
     lastCheckedAt: null,
   }
 
-  let inFlight = false
+  let inFlight: Promise<boolean> | null = null
   let retryTimer: number | null = null
 
   const emit = () => {
@@ -139,30 +137,32 @@ export function createUpdateManager(host: PwaUpdateHost): UpdateManager {
     host.reload()
   }
 
-  async function requestCheck(reason: UpdateCheckReason): Promise<boolean> {
+  function requestCheck(reason: UpdateCheckReason): Promise<boolean> {
+    // 手动检查加入正在进行的检查，避免尚未安装完成就提前返回「最新」。
+    if (inFlight) return reason === 'manual' ? inFlight : Promise.resolve(false)
     const ok = shouldRequestUpdateCheck({
       reason,
       online: host.isOnline(),
       now: host.now(),
       lastCheckAt: snapshot.lastCheckedAt,
-      inFlight,
+      inFlight: false,
     })
-    if (!ok) return false
+    if (!ok) return Promise.resolve(false)
 
-    inFlight = true
-    patch({ checking: true })
-    try {
-      await host.updateSw()
-      patch({ lastCheckedAt: host.now() })
-      // 新 SW 的安装/激活是异步的，给一个极短宽限，让手动检查的判断更准
-      await host.wait(CHECK_GRACE_MS)
-    } catch {
-      // 离线 / 网络错误 / 不支持 SW：静默降级，绝不影响 App 使用
-    } finally {
-      inFlight = false
-      patch({ checking: false })
-    }
-    return true
+    inFlight = Promise.resolve().then(async () => {
+      try {
+        await host.updateSw()
+        patch({ lastCheckedAt: host.now() })
+      } catch {
+        patch({ checkFailed: true })
+      } finally {
+        inFlight = null
+        patch({ checking: false })
+      }
+      return true
+    })
+    patch({ checking: true, checkFailed: false })
+    return inFlight
   }
 
   return {

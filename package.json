@@ -1,7 +1,7 @@
 {
   "name": "private-item-library",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,8 @@
     "icons": "node scripts/gen-pwa-icons.mjs",
     "browser:start": "node scripts/start-test-edge.mjs",
     "browser:stop": "node scripts/stop-test-edge.mjs",
+    "verify:icons": "node scripts/verify-icon-library.mjs",
+    "verify:pwa-update": "node scripts/verify-pwa-update.mjs",
     "verify:pwa-offline": "node scripts/verify-pwa-offline.mjs"
   },
   "dependencies": {

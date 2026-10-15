@@ -1,6 +1,7 @@
 import { registerSW } from 'virtual:pwa-register'
 import { createUpdateManager, type PwaUpdateHost, type UpdateManager } from '../features/pwa/updateManager'
 import { UPDATE_RELOAD_AT_KEY } from '../features/pwa/updatePolicy'
+import { checkServiceWorkerUpdate } from './checkServiceWorkerUpdate'
 
 /**
  * PWA 更新的**浏览器侧**唯一装配点（Phase 2H.1）。
@@ -17,7 +18,6 @@ import { UPDATE_RELOAD_AT_KEY } from '../features/pwa/updatePolicy'
 
 let manager: UpdateManager | null = null
 let registration: ServiceWorkerRegistration | undefined
-let swUrl: string | null = null
 
 function createHost(): PwaUpdateHost {
   return {
@@ -28,17 +28,7 @@ function createHost(): PwaUpdateHost {
     reload: () => window.location.reload(),
 
     async updateSw() {
-      if (!registration) return
-      // 先用 no-store 主动探一次 sw.js，避免被浏览器对 SW 脚本的缓存上限挡住；
-      // 失败不影响后续（registration.update 自身也会取一次）。
-      if (swUrl) {
-        try {
-          await fetch(swUrl, { cache: 'no-store' })
-        } catch {
-          /* 离线或网络错误：静默，交给后面的 update() 兜底 */
-        }
-      }
-      await registration.update()
+      await checkServiceWorkerUpdate(registration)
     },
 
     readReloadAt() {
@@ -62,7 +52,6 @@ function createHost(): PwaUpdateHost {
 
     setTimeout: (fn, ms) => window.setTimeout(fn, ms) as unknown as number,
     clearTimeout: (id) => window.clearTimeout(id),
-    wait: (ms) => new Promise<void>((resolve) => window.setTimeout(resolve, ms)),
   }
 }
 
@@ -79,8 +68,7 @@ export function startPwaUpdate(): UpdateManager {
     // onNeedReload 一旦提供，插件就不会自己 reload —— 刷新时机完全由管理器决定
     registerSW({
       immediate: true,
-      onRegisteredSW(url, reg) {
-        swUrl = url
+      onRegisteredSW(_url, reg) {
         registration = reg ?? undefined
         // 首屏之后再异步检查一次，不阻塞渲染
         void manager?.requestCheck('boot')

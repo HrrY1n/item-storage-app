@@ -11,6 +11,9 @@
   // Phase 3B：同步 Worker 入口。此前本项目没有 main、没有任何 API。
   "main": "./worker/index.ts",
 
+  // 本地 wrangler deploy 也必须先构建，避免误上传旧 dist。
+  "build": { "command": "npm run build" },
+
   "assets": {
     // 构建产物目录，与 vite build 的 outDir 保持一致
     "directory": "./dist",

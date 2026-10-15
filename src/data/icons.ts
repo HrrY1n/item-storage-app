@@ -35,7 +35,7 @@ export type IconCategory =
   | 'hobby'
   | 'other'
 
-/** 分类的展示顺序与中文名（'recent' 是选择器里的虚拟分类，不属于图标自身） */
+/** 分类的展示顺序与中文名 */
 export const ICON_CATEGORIES: { key: IconCategory; label: string }[] = [
   { key: 'digital', label: '数码' },
   { key: 'office', label: '办公' },
@@ -240,6 +240,71 @@ export const PRESET_ICONS: PresetIcon[] = [
   icon('gift', '礼物', 'other', ['礼物', '礼盒', '礼品', 'Gift']),
   icon('collectionbox', '收藏盒', 'other', ['收纳', '收藏盒', '盒子', '储物', 'Box']),
   icon('other', '通用物品', 'other', ['其他', '通用', '杂物', '未分类', 'Other']),
+
+  // 图标库 2.0：新增独立物品，保留所有既有 key 与顺序。
+  icon('laptopstand', '笔记本支架', 'digital', ['电脑支架', '笔电支架', 'Laptop Stand']),
+  icon('monitorarm', '显示器支架', 'digital', ['显示器臂', '屏幕支架', 'Monitor Arm', 'VESA']),
+  icon('ram', '内存条', 'digital', ['内存', 'RAM', 'Memory Module', 'DIMM', 'DDR4', 'DDR5']),
+  icon('graphicscard', '显卡', 'digital', ['GPU', '独立显卡', 'Graphics Card', 'NVIDIA', 'AMD', 'RTX', 'GeForce', 'Radeon']),
+  icon('opticalmodem', '光猫', 'digital', ['光纤猫', '调制解调器', 'ONT', 'Optical Modem']),
+  icon('smartplug', '智能插座', 'digital', ['智能插头', 'WiFi插座', 'Smart Plug']),
+  icon('stickynotes', '便签纸', 'office', ['便利贴', '便签', 'Sticky Notes', 'Post-it']),
+  icon('tape', '胶带', 'office', ['透明胶', '透明胶带', 'Tape']),
+  icon('binderclip', '长尾夹', 'office', ['燕尾夹', '票夹', 'Binder Clip']),
+  icon('paperclip', '回形针', 'office', ['曲别针', 'Paper Clip']),
+  icon('filebox', '文件盒', 'office', ['档案盒', '资料盒', 'Archive Box', 'File Box']),
+  icon('ringbinder', '活页夹', 'office', ['活页本', '三孔夹', 'Ring Binder']),
+  icon('whiteboard', '白板', 'office', ['写字板', '白板架', 'Whiteboard']),
+  icon('pencilcase', '笔袋', 'office', ['文具袋', '铅笔袋', 'Pencil Case']),
+  icon('socks', '袜子', 'apparel', ['短袜', '长袜', 'Socks']),
+  icon('underwear', '内衣', 'apparel', ['内裤', '贴身衣物', 'Underwear']),
+  icon('pajamas', '睡衣', 'apparel', ['家居服', '睡衣套装', 'Pajamas']),
+  icon('sweater', '毛衣', 'apparel', ['针织衫', '羊毛衫', 'Sweater']),
+  icon('skirt', '裙子', 'apparel', ['半身裙', '长裙', 'Skirt']),
+  icon('boots', '皮靴', 'apparel', ['靴子', '短靴', 'Leather Boots']),
+  icon('sandals', '凉鞋', 'apparel', ['沙滩鞋', 'Sandals']),
+  icon('sportswear', '运动服', 'apparel', ['运动套装', '训练服', 'Tracksuit', 'Sportswear']),
+  icon('hanger', '衣架', 'life', ['晾衣架', '衣服架', 'Clothes Hanger']),
+  icon('trashcan', '垃圾桶', 'life', ['废纸篓', '垃圾箱', 'Trash Can', 'Bin']),
+  icon('tissues', '纸巾', 'life', ['抽纸', '面巾纸', 'Tissues']),
+  icon('wetwipes', '湿巾', 'life', ['湿纸巾', '清洁湿巾', 'Wet Wipes']),
+  icon('detergent', '洗衣液', 'life', ['洗衣剂', '洗涤液', 'Laundry Detergent']),
+  icon('dryingrack', '晾衣架', 'life', ['落地晾衣架', '晒衣架', 'Drying Rack']),
+  icon('hook', '挂钩', 'life', ['粘钩', '衣帽钩', 'Wall Hook']),
+  icon('tapemeasure', '卷尺', 'life', ['钢卷尺', '量尺', 'Tape Measure']),
+  icon('hammer', '锤子', 'life', ['榔头', '羊角锤', 'Hammer']),
+  icon('pliers', '钳子', 'life', ['老虎钳', '钢丝钳', 'Pliers']),
+  icon('sewingkit', '针线盒', 'life', ['针线包', '缝纫盒', 'Sewing Kit']),
+  icon('storagebag', '收纳袋', 'life', ['整理袋', '储物袋', 'Storage Bag']),
+  icon('toothpaste', '牙膏', 'care', ['牙膏管', 'Toothpaste']),
+  icon('shampoo', '洗发水', 'care', ['洗发露', '洗头膏', 'Shampoo']),
+  icon('bodywash', '沐浴露', 'care', ['沐浴液', '沐浴乳', 'Body Wash', 'Shower Gel']),
+  icon('cleanser', '洗面奶', 'care', ['洁面乳', '洁面', 'Facial Cleanser']),
+  icon('sunscreen', '防晒霜', 'care', ['防晒乳', '防晒', 'Sunscreen', 'Sunblock']),
+  icon('plate', '盘子', 'kitchen', ['餐盘', '碟子', 'Plate']),
+  icon('spoon', '勺子', 'kitchen', ['汤匙', '饭勺', 'Spoon']),
+  icon('fork', '叉子', 'kitchen', ['餐叉', 'Fork']),
+  icon('lunchbox', '饭盒', 'kitchen', ['便当盒', '餐盒', 'Bento', 'Lunch Box']),
+  icon('foodcontainer', '保鲜盒', 'kitchen', ['密封盒', '食品盒', 'Food Container']),
+  icon('spicejar', '调味罐', 'kitchen', ['调料罐', '调料瓶', 'Spice Jar']),
+  icon('spatula', '锅铲', 'kitchen', ['铲子', '炒菜铲', 'Spatula']),
+  icon('bottleopener', '开瓶器', 'kitchen', ['瓶起子', '啤酒起子', 'Bottle Opener']),
+  icon('bed', '床', 'home', ['床架', '双人床', 'Bed']),
+  icon('pillow', '枕头', 'home', ['枕芯', '睡枕', 'Pillow']),
+  icon('duvet', '被子', 'home', ['棉被', '被芯', '羽绒被', 'Duvet', 'Comforter']),
+  icon('bedsheet', '床单', 'home', ['床品', '床笠', 'Bed Sheet']),
+  icon('wardrobe', '衣柜', 'home', ['衣橱', '橱柜', 'Wardrobe']),
+  icon('bookshelf', '书架', 'home', ['书柜', '书橱', 'Bookshelf']),
+  icon('shelf', '置物架', 'home', ['落地置物架', '储物架', 'Storage Shelf']),
+  icon('chair', '椅子', 'home', ['座椅', '餐椅', 'Chair']),
+  icon('mirror', '镜子', 'home', ['梳妆镜', '化妆镜', 'Mirror']),
+  icon('curtains', '窗帘', 'home', ['遮光帘', '布帘', 'Curtains']),
+  icon('jumprope', '跳绳', 'hobby', ['绳子', '跳绳器', 'Jump Rope', 'Skipping Rope']),
+  icon('resistanceband', '弹力带', 'hobby', ['阻力带', '拉力带', 'Resistance Band']),
+  icon('foamroller', '泡沫轴', 'hobby', ['瑜伽柱', '筋膜轴', 'Foam Roller']),
+  icon('puzzle', '拼图', 'hobby', ['拼图块', '益智拼图', 'Jigsaw', 'Puzzle']),
+  icon('paintbrushes', '画笔套装', 'hobby', ['画笔', '水彩笔', 'Paintbrush Set']),
+  icon('certificate', '证书', 'other', ['奖状', '毕业证', 'Certificate', 'Diploma']),
 ]
 
 const byKey = new Map(PRESET_ICONS.map((i) => [i.key, i]))
@@ -275,15 +340,22 @@ export function iconsInCategory(category: IconCategory): PresetIcon[] {
 }
 
 /**
- * 图标检索：名称 / 关键词 / key 三路匹配，均为大小写无关的子串匹配。
- * 空查询返回全部（供"完整网格"使用）。
+ * 名称精确 / 前缀 / 包含 → 别名或英文 key 精确 → 关键词包含；同分保持注册表顺序。
  */
 export function searchIcons(query: string): PresetIcon[] {
   const q = query.trim().toLowerCase()
   if (!q) return PRESET_ICONS
-  return PRESET_ICONS.filter((i) => {
-    if (i.key.toLowerCase().includes(q)) return true
-    if (i.label.toLowerCase().includes(q)) return true
-    return i.keywords.some((k) => k.toLowerCase().includes(q))
+  return PRESET_ICONS.map((icon) => {
+    const name = icon.label.toLowerCase()
+    const aliases = [icon.key, ...icon.keywords].map((word) => word.toLowerCase())
+    const rank = name === q ? 0
+      : name.startsWith(q) ? 1
+        : name.includes(q) ? 2
+          : aliases.includes(q) ? 3
+            : aliases.some((word) => word.includes(q)) ? 4 : 5
+    return { icon, rank }
   })
+    .filter(({ rank }) => rank < 5)
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ icon }) => icon)
 }
