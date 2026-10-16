@@ -73,6 +73,7 @@ export const PRESET_ICONS: PresetIcon[] = [
   icon('gameconsole', '游戏机', 'digital', ['主机', 'Switch', 'PS5', '掌机', '游戏机', 'PlayStation']),
   icon('gamepad', '游戏手柄', 'digital', ['手柄', '控制器', 'Gamepad', 'Controller']),
   icon('keyboard', '键盘', 'digital', ['键盘', '机械键盘', 'Keyboard']),
+  icon('tabletkeyboard', '平板磁吸键盘', 'digital', ['磁吸键盘', '平板键盘', '平板电脑键盘', '键盘保护套', '平板键盘保护套', '妙控键盘', 'iPad键盘', 'iPad 键盘', 'Magic Keyboard', 'Tablet Keyboard', 'Magnetic Keyboard', 'Keyboard Folio']),
   icon('mouse', '鼠标', 'digital', ['鼠标', 'Mouse', '光标']),
   icon('trackpad', '触控板', 'digital', ['触控板', '触摸板', '数位板', 'Trackpad']),
   icon('charger', '充电器', 'digital', ['充电头', '电源适配器', '快充', '插头', '充电器', 'Charger']),

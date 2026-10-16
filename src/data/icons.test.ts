@@ -25,8 +25,8 @@ const webpBasenames = new Set(
 )
 
 describe('PRESET_ICONS 元数据', () => {
-  it('图标库 2.0 包含 219 个独立物品', () => {
-    expect(PRESET_ICONS.length).toBe(219)
+  it('图标库包含 220 个独立物品', () => {
+    expect(PRESET_ICONS.length).toBe(220)
   })
 
   it('key 唯一，且 path 与 key 一一对应', () => {
@@ -142,6 +142,18 @@ describe('图标检索', () => {
     expect(searchIcons('帐篷').map((i) => i.key)).toContain('tent')
     expect(searchIcons('插线板').map((i) => i.key)).toContain('powerstrip')
     expect(searchIcons('螺丝刀').map((i) => i.key)).toContain('screwdriver')
+  })
+
+  it('磁吸平板键盘有独立图标，常见叫法都能优先找到', () => {
+    const keyboard = presetIconOfAssetId('preset-tabletkeyboard')
+    expect(keyboard?.label).toBe('平板磁吸键盘')
+    expect(keyboard?.category).toBe('digital')
+    expect(keyboard?.path).not.toBe(getIconPath('keyboard'))
+    expect(keyboard?.path).not.toBe(getIconPath('tabletcase'))
+    for (const query of ['磁吸键盘', '平板键盘', '平板电脑键盘', '妙控键盘', 'iPad 键盘', 'Magic Keyboard', 'Tablet Keyboard', 'Keyboard Folio']) {
+      expect(searchIcons(query)[0]?.key, query).toBe('tabletkeyboard')
+    }
+    expect(searchIcons('键盘')[0]?.key).toBe('keyboard')
   })
 
   it('「电脑」是宽泛词，应同时覆盖多类设备', () => {
