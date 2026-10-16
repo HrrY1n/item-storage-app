@@ -676,18 +676,6 @@ const ICONS = [
 <circle cx="48" cy="48" r="20" fill="none" stroke="${C1}" stroke-width="3"/>
 <circle cx="48" cy="48" r="10" fill="${C1}" stroke-width="2.6"/>
 <path d="M40 46a10 10 0 0 1 16 0" stroke-width="3"/>` },
-  { key: 'usbhub', label: 'USB 集线器', body: `
-<rect x="16" y="38" width="64" height="28" rx="7" fill="${C2}"/>
-<g fill="${W}" stroke-width="2.6">
-<rect x="24" y="46" width="12" height="6" rx="2"/>
-<rect x="42" y="46" width="12" height="6" rx="2"/>
-<rect x="60" y="46" width="12" height="6" rx="2"/>
-</g>` },
-  { key: 'hdmiadapter', label: 'HDMI 转接器', body: `
-<rect x="14" y="34" width="40" height="32" rx="7" fill="${C2}"/>
-<rect x="22" y="44" width="24" height="12" rx="2" fill="${W}" stroke-width="2.6"/>
-<path d="M54 50h14a10 10 0 0 1 10 10v6" fill="none"/>
-<rect x="70" y="60" width="16" height="12" rx="3" fill="${C1}"/>` },
   { key: 'netcable', label: '网线', body: `
 <rect x="10" y="42" width="18" height="14" rx="3" fill="${C2}"/>
 <rect x="68" y="42" width="18" height="14" rx="3" fill="${C2}"/>
@@ -717,12 +705,6 @@ const ICONS = [
 <rect x="18" y="46" width="60" height="34" rx="8" fill="${C2}"/>
 <circle cx="66" cy="63" r="3.4" fill="${C1}" stroke-width="2.6"/>
 <path d="M28 63h24" stroke="${M}" stroke-width="3"/>` },
-  { key: 'cfreader', label: '读卡器', body: `
-<path d="M38 12h14l6 6v20H38z" fill="${C1}"/>
-<rect x="22" y="38" width="52" height="40" rx="9" fill="${W}"/>
-<path d="M32 38h32" stroke-width="3.4"/>
-<path d="M42 58h12" stroke="${M}" stroke-width="3"/>
-<circle cx="64" cy="58" r="2.6" fill="${G}" stroke="none"/>` },
   { key: 'mousepad', label: '鼠标垫', body: `
 <rect x="10" y="28" width="76" height="42" rx="9" fill="${C3}"/>
 <rect x="17" y="35" width="62" height="28" rx="5" fill="none" stroke="${W}" stroke-width="2.6" stroke-dasharray="5 5"/>` },

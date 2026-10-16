@@ -25,8 +25,8 @@ const webpBasenames = new Set(
 )
 
 describe('PRESET_ICONS 元数据', () => {
-  it('图标库包含 220 个独立物品', () => {
-    expect(PRESET_ICONS.length).toBe(220)
+  it('图标库包含 218 个独立物品', () => {
+    expect(PRESET_ICONS.length).toBe(218)
   })
 
   it('key 唯一，且 path 与 key 一一对应', () => {
@@ -154,6 +154,19 @@ describe('图标检索', () => {
       expect(searchIcons(query)[0]?.key, query).toBe('tabletkeyboard')
     }
     expect(searchIcons('键盘')[0]?.key).toBe('keyboard')
+  })
+
+  it('USB 集线器、HDMI 转接器和读卡器统一为一个拓展坞', () => {
+    expect(presetIconOfAssetId('preset-dockingstation')?.label).toBe('拓展坞')
+    for (const key of ['usbhub', 'hdmiadapter', 'cfreader']) {
+      expect(presetIconOfAssetId(`preset-${key}`)).toBeUndefined()
+    }
+    for (const query of ['拓展坞', '扩展坞', 'USB 集线器', 'HDMI 转接器', 'HDMI', '读卡器', 'Docking Station', 'USB-C Hub']) {
+      expect(searchIcons(query)[0]?.key, query).toBe('dockingstation')
+    }
+    for (const key of ['usb', 'dock', 'hdddock']) {
+      expect(presetIconOfAssetId(`preset-${key}`)).toBeDefined()
+    }
   })
 
   it('「电脑」是宽泛词，应同时覆盖多类设备', () => {
