@@ -14,6 +14,12 @@
   // 本地 wrangler deploy 也必须先构建，避免误上传旧 dist。
   "build": { "command": "npm run build" },
 
+  "previews": {
+    // shortcut: 预览仅验收本地功能；需要云同步时，先绑定独立 D1 再移除此开关。
+    "vars": { "SYNC_DISABLED": "true" },
+    "d1_databases": []
+  },
+
   "assets": {
     // 构建产物目录，与 vite build 的 outDir 保持一致
     "directory": "./dist",

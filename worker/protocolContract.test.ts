@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import worker from './index'
 import { createSqliteD1 } from './sqliteD1.testHarness'
 import { SYNC_PROTOCOL_VERSION } from '../src/domain/syncProtocol'
@@ -32,6 +32,35 @@ async function call(
 }
 
 describe('Worker ↔ client v2 protocol contract', () => {
+  const endpoints = [
+    ['/api/sync/bootstrap', 'POST'],
+    ['/api/sync/status', 'GET'],
+    ['/api/sync/push', 'POST'],
+    ['/api/sync/pull', 'GET'],
+  ]
+
+  it.each(endpoints)('%s returns 503 without a database binding', async (path, method) => {
+    const response = (await worker.fetch(request(path, method), {} as never)) as unknown as TestResponse
+    expect(response.status).toBe(503)
+    expect(JSON.parse(await response.text())).toEqual({ error: 'sync-unavailable' })
+  })
+
+  it.each(endpoints)('%s never accesses D1 when preview sync is disabled', async (path, method) => {
+    const prepare = vi.fn(() => { throw new Error('preview must not access D1') })
+    const response = (await worker.fetch(request(path, method, { secret: SECRET }, SECRET), {
+      SYNC_DISABLED: 'true',
+      SYNC_DB: { prepare },
+    } as never)) as unknown as TestResponse
+    expect(response.status).toBe(503)
+    expect(JSON.parse(await response.text())).toEqual({ error: 'sync-unavailable' })
+    expect(prepare).not.toHaveBeenCalled()
+  })
+
+  it('keeps non-API requests outside the sync handler without D1', async () => {
+    const response = await worker.fetch(request('/icons/items/ram.webp', 'GET'), {} as never)
+    expect(response.status).toBe(404)
+  })
+
   it('bootstrap → push → pull passes through real SQLite and preserves queue ids', async () => {
     const d1 = createSqliteD1()
     const bootstrap = await call(d1.db, '/api/sync/bootstrap', 'POST', { secret: SECRET, keyId: 'key-a' })

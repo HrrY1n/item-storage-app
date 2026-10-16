@@ -49,6 +49,7 @@ import { SYNC_PROTOCOL_VERSION } from '../src/domain/syncProtocol'
 interface Env {
   /** D1 绑定名（与 wrangler.jsonc 的 d1_databases[].binding 一致） */
   SYNC_DB: D1Database
+  SYNC_DISABLED?: string
 }
 
 const json = (data: unknown, status = 200): Response =>
@@ -255,6 +256,9 @@ export default {
 
     // 非 /api/* 一律 404 —— 静态资源由 assets 路由处理，不会到这里
     if (!path.startsWith('/api/')) return new Response('Not Found', { status: 404 })
+
+    // 预览即使被 Dashboard 误配了 D1 绑定，也不能访问同步数据。
+    if (env.SYNC_DISABLED === 'true' || !env.SYNC_DB) return fail(503, 'sync-unavailable')
 
     try {
       if (path === '/api/sync/status' && request.method === 'GET') return await handleStatus(request, env)
