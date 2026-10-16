@@ -39,6 +39,21 @@ export function dayNumberToString(dayNumber: number): string {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
 }
 
+/** 切换年月时把日期限制在目标月内，例如 1 月 31 日切到 2 月 → 2 月末。 */
+export function clampCalendarDate(year: number, month: number, day: number): string | null {
+  if (![year, month, day].every(Number.isInteger) || year < 100 || year > 9999 || month < 1 || month > 12 || day < 1) return null
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(Math.min(day, lastDay)).padStart(2, '0')}`
+}
+
+/** 自然月加法，不使用固定 30 天或 365 天。 */
+export function addCalendarMonths(date: string, months: number): string | null {
+  if (parseDateToDayNumber(date) === null || !Number.isSafeInteger(months) || months < 0) return null
+  const [year, month, day] = date.split('-').map(Number)
+  const target = year * 12 + month - 1 + months
+  return clampCalendarDate(Math.floor(target / 12), target % 12 + 1, day)
+}
+
 // ---------------------------------------------------------------- 持有天数 & 日均成本
 
 /**
