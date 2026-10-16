@@ -85,6 +85,16 @@ npm run preview
 
 浏览器验收使用项目隔离的 Edge Profile，图标交互和同源 PWA 更新入口分别为 `npm run verify:icons`、`npm run verify:pwa-update`，完整启动条件见 [BROWSER_TESTING.md](BROWSER_TESTING.md)。
 
+## Cloudflare 构建与预览
+
+构建命令为 `npm run build`，生产发布命令为 `npx wrangler deploy`，非生产分支的预览命令为 `npx wrangler preview`。Wrangler 配置中的构建钩子也会在本地发布前生成 `dist`。
+
+`wrangler preview` 要求独立的 `previews` 配置。仓库默认提供本地功能预览：图标、物品管理、备份和离线功能照常使用，不绑定 D1，并通过 `SYNC_DISABLED=true` 禁用云同步 API（返回 HTTP 503）。生产 D1 绑定仍只在顶层配置中。即使 Dashboard 的预览 Base 配置额外带入 D1，禁用开关也会阻止访问。
+
+需要在预览中验收云同步时，先创建独立的测试 D1 并按顺序应用 `worker/migrations/*.sql`，再把它的 ID 写入 `previews.d1_databases` 并移除预览的 `SYNC_DISABLED`。不要使用生产数据库 ID；[Cloudflare 文档](https://developers.cloudflare.com/workers/previews/resources/)明确说明，相同 D1 ID 会共享数据。
+
+日志中的 `Build command completed` 说明前端构建已通过；若随后报告缺少 `previews`，失败的是预览发布步骤。合入修复后，检查新提交对应的 Workers Builds 结果；重新构建旧提交仍会使用旧配置，历史红色记录也不会自动消失。
+
 ## 安装、离线与更新
 
 - iPhone 在 Safari 打开站点，通过「分享 → 添加到主屏幕」安装；首次联网打开并完成离线缓存后，可离线使用。
