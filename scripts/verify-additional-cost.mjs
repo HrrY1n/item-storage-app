@@ -12,6 +12,7 @@
  * 前提：vite preview 在 4173；无头浏览器 CDP 在 9222（全新 user-data-dir）。
  */
 import { mkdir, writeFile } from 'node:fs/promises'
+import { selectDate } from './date-picker.mjs'
 
 const CDP = 'http://127.0.0.1:9222'
 const BASE = 'http://127.0.0.1:4173'
@@ -116,16 +117,6 @@ class Session {
       setter.call(el, ''); el.dispatchEvent(new Event('input', { bubbles: true })); return el.value;
     })()`)
   }
-  async setValue(selector, value) {
-    return this.ev(`(() => {
-      const el = document.querySelector(${JSON.stringify(selector)});
-      if (!el) return 'not-found';
-      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-      setter.call(el, ${JSON.stringify(value)});
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      return el.value;
-    })()`)
-  }
   async decimals() {
     return this.ev(
       `[...document.querySelectorAll('input[inputmode="decimal"]')].map(i => i.value)`,
@@ -207,7 +198,7 @@ async function run() {
   await sleep(200)
   await s.clickText('button', '电脑设备')
   await sleep(200)
-  const dateSet = await s.setValue('input[type="date"]', '2026-01-01')
+  const dateSet = await selectDate(s, '购买日期', '2026-01-01')
   await s.focusNth('0.00', 0)
   await s.type('1499')
   await s.focusNth('0.00', 1)
@@ -263,7 +254,7 @@ async function run() {
   await sleep(200)
   await s.clickText('button', '音频设备')
   await sleep(200)
-  await s.setValue('input[type="date"]', '2026-01-01')
+  await selectDate(s, '购买日期', '2026-01-01')
   await s.focusNth('0.00', 1)
   await s.type('299')
   await sleep(500)

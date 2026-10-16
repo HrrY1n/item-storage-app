@@ -35,6 +35,21 @@ npm run browser:stop -- --port=9222
 
 `scripts/verify-icon-library.mjs` 检查九类动态数量、移动三列分类/四列图标、全局搜索、滚动恢复、单击后仅更新待保存表单、最近使用/选中状态、键盘焦点、浅深色、桌面布局，以及全部注册 WebP 的离线解码、768×768 尺寸和透明角落。它复用测试 Profile 的数据与缓存，不清空存储；截图和结果写入 `docs/screenshots/icon-library-v2/`。
 
+## 按月保修与日期确认（0.2.1）
+
+先构建并在 :4173 启动生产 preview（同上）。验证可复用隔离 Profile，不清空 IndexedDB；第二个浏览器会话示例：
+
+```powershell
+npm run browser:start -- --port=9224
+$env:EDGE_TEST_PORT = '9224'
+npm run verify:warranty
+npm run browser:stop -- --port=9224
+```
+
+`scripts/verify-warranty.mjs` 覆盖默认 12 个月、3/6/24 个月与自定义整月、闰年/月末、日期草稿取消和确认、禁止早于购买日、历史指定日期/空值兼容、无效月数阻止保存、未保存提示、心愿转持有、嵌套弹层 Escape、浅深色、375×568 短屏、桌面和离线保存刷新。本轮 29 项全部通过；四张 390×844 真实截图和结果在 `docs/screenshots/warranty/`。测试只通过表单创建带验收前缀的物品并保留它们。
+
+iPhone 真机仍需人工确认：部署 0.2.1 并完成更新后，打开购买日期，先改年、再改月和日，弹层应保持打开；取消应保留旧值，只有点「确定」才更新表单。分别验证按月选择、清除/不适用和「转为持有」，最后保存并重新打开物品。桌面 Edge 移动视口无法代替 iOS Safari/PWA 的真机验收。
+
 ## PWA 更新端到端测试（Build A → Build B）
 
 验证"手机端停在旧版本"这类问题，**不能只靠单元测试**：需要在同一个 origin 上先后提供两套生产构建。

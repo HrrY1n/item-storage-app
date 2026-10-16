@@ -3,6 +3,9 @@ import { createPortal } from 'react-dom'
 import type { Item, PurchasePlatform } from '../domain/types'
 import { PURCHASE_PLATFORMS, parsePriceInput, platformLabel, todayString } from '../domain/purchase'
 import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
+import DateField from './DateField'
+import WarrantyInput from './WarrantyInput'
+import { DEFAULT_WARRANTY_MONTHS, validateWarranty, warrantyDate, type WarrantySelection } from '../domain/warranty'
 
 export interface PurchaseInput {
   purchaseDate: string
@@ -33,7 +36,7 @@ export default function ConvertToOwnedSheet({
   const [priceText, setPriceText] = useState('')
   const [extraText, setExtraText] = useState('')
   const [platform, setPlatform] = useState<PurchasePlatform | null>(null)
-  const [warranty, setWarranty] = useState('')
+  const [warranty, setWarranty] = useState<WarrantySelection>({ kind: 'months', months: DEFAULT_WARRANTY_MONTHS })
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -46,7 +49,7 @@ export default function ConvertToOwnedSheet({
     setPriceText('')
     setExtraText('')
     setPlatform(null)
-    setWarranty('')
+    setWarranty({ kind: 'months', months: DEFAULT_WARRANTY_MONTHS })
     setError(null)
     setBusy(false)
   }, [open, item.id])
@@ -67,8 +70,9 @@ export default function ConvertToOwnedSheet({
   }
 
   const handleSubmit = async () => {
-    if (warranty !== '' && warranty < purchaseDate) {
-      setError('保修到期日不能早于购买日期')
+    const validationError = validateWarranty(purchaseDate, warranty)
+    if (validationError) {
+      setError(validationError)
       return
     }
     setBusy(true)
@@ -78,7 +82,7 @@ export default function ConvertToOwnedSheet({
         purchasePriceCents: parsePriceInput(priceText),
         additionalCostCents: parsePriceInput(extraText),
         purchasePlatform: platform,
-        warrantyExpiresAt: warranty === '' ? null : warranty,
+        warrantyExpiresAt: warrantyDate(purchaseDate, warranty),
       })
     } catch (e) {
       setError(e instanceof Error ? e.message : '操作失败')
@@ -95,7 +99,7 @@ export default function ConvertToOwnedSheet({
         className="animate-[pop-in_200ms_cubic-bezier(0.22,1,0.36,1)_both] absolute inset-0 bg-overlay backdrop-blur-[2px]"
         onClick={onClose}
       />
-      <div className="animate-sheet-up relative w-full max-w-[420px] rounded-t-sheet border border-line bg-surface-raised p-5 pb-[calc(24px+env(safe-area-inset-bottom))] shadow-sheet sm:animate-pop-in sm:rounded-sheet sm:pb-5">
+      <div role="dialog" aria-modal="true" aria-label="转为持有" className="animate-sheet-up relative max-h-[90dvh] w-full max-w-[420px] overflow-y-auto rounded-t-sheet border border-line bg-surface-raised p-5 pb-[calc(24px+env(safe-area-inset-bottom))] shadow-sheet sm:animate-pop-in sm:rounded-sheet sm:pb-5">
         <div className="mx-auto mb-4 h-1 w-9 rounded-pill bg-line-strong sm:hidden" />
 
         <h2 className="text-section text-ink-primary">转为持有</h2>
@@ -103,13 +107,7 @@ export default function ConvertToOwnedSheet({
 
         <div className="mt-5">
           <p className="mb-2 text-label text-ink-tertiary">购买日期</p>
-          <input
-            type="date"
-            value={purchaseDate}
-            max={todayString()}
-            onChange={(e) => setPurchaseDate(e.target.value)}
-            className="num h-11 w-full rounded-control border border-line bg-surface px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
-          />
+          <DateField label="购买日期" value={purchaseDate} max={todayString()} onChange={setPurchaseDate} />
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
@@ -163,14 +161,7 @@ export default function ConvertToOwnedSheet({
         </div>
 
         <div className="mt-4">
-          <p className="mb-2 text-label text-ink-tertiary">保修到期日</p>
-          <input
-            type="date"
-            value={warranty}
-            min={purchaseDate || undefined}
-            onChange={(e) => setWarranty(e.target.value)}
-            className="num h-11 w-full rounded-control border border-line bg-surface px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
-          />
+          <WarrantyInput purchaseDate={purchaseDate} value={warranty} onChange={setWarranty} />
         </div>
 
         {error && <p className="mt-3 text-caption text-danger">{error}</p>}

@@ -5,6 +5,7 @@
  * 逐页截图（移动端 390 + 桌面 1280），并对 375/390/430 做横向溢出检查。
  */
 import { mkdir, writeFile } from 'node:fs/promises'
+import { selectDate } from './date-picker.mjs'
 
 const CDP = 'http://127.0.0.1:9222'
 const BASE = 'http://127.0.0.1:5173'
@@ -58,11 +59,6 @@ class Session {
     return this.ev(`(() => { const el=[...document.querySelectorAll('input,textarea')].find(i=>(i.placeholder||'').includes(${JSON.stringify(ph)}));
       if(!el) return 'not-found'; el.focus(); return 'ok' })()`)
   }
-  async setValue(sel, v) {
-    return this.ev(`(() => { const el=document.querySelector(${JSON.stringify(sel)}); if(!el) return 'no';
-      const s=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;
-      s.call(el, ${JSON.stringify(v)}); el.dispatchEvent(new Event('input',{bubbles:true})); return el.value })()`)
-  }
   async type(t) { await this.send('Input.insertText', { text: t }) }
 }
 
@@ -95,7 +91,7 @@ async function run() {
 
   await s.nav(`${BASE}/items/${itemId}/edit`, '编辑物品')
   await sleep(700)
-  await s.setValue('input[type="date"]', '2026-01-01')
+  await selectDate(s, '购买日期', '2026-01-01')
   await s.focusByPlaceholder('0.00')
   await s.type('1499')
   const extra = await s.ev(`(() => { const els=[...document.querySelectorAll('input')].filter(i=>(i.placeholder||'').includes('0.00'));

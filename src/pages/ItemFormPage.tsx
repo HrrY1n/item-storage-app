@@ -30,6 +30,9 @@ import TagChip from '../components/TagChip'
 import ConfirmDialog from '../components/Dialogs'
 import { useToast } from '../components/Toast'
 import IconPickerSheet from '../components/IconPickerSheet'
+import DateField from '../components/DateField'
+import WarrantyInput from '../components/WarrantyInput'
+import { DEFAULT_WARRANTY_MONTHS, validateWarranty, warrantyDate, warrantySelectionFromDates, type WarrantySelection } from '../domain/warranty'
 import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
 
 /**
@@ -125,7 +128,8 @@ export default function ItemFormPage() {
   const [additionalCostText, setAdditionalCostText] = useState('')
   const [purchasePlatform, setPurchasePlatform] = useState<PurchasePlatform | null>(null)
   const [status, setStatus] = useState<ItemStatus>('owned')
-  const [warrantyExpiresAt, setWarrantyExpiresAt] = useState('')
+  const [warranty, setWarranty] = useState<WarrantySelection>({ kind: 'months', months: DEFAULT_WARRANTY_MONTHS })
+  const warrantyExpiresAt = warrantyDate(purchaseDate, warranty)
   const [confirmDiscard, setConfirmDiscard] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -158,7 +162,7 @@ export default function ItemFormPage() {
     )
     setPurchasePlatform(existingItem.purchasePlatform)
     setStatus(statusOf(existingItem))
-    setWarrantyExpiresAt(existingItem.warrantyExpiresAt ?? '')
+    setWarranty(warrantySelectionFromDates(existingItem.purchaseDate, existingItem.warrantyExpiresAt))
   }, [isEdit, existingItem, categories, links])
 
   const loading = !categories || !tags || !links || !assetMap || (isEdit && !initialized.current)
@@ -177,6 +181,7 @@ export default function ItemFormPage() {
       additionalCostCents: parsePriceInput(additionalCostText),
       purchasePlatform,
       warrantyExpiresAt,
+      warranty,
     })
 
   const initialSnapshot = useRef<string>('')
@@ -202,6 +207,7 @@ export default function ItemFormPage() {
     additionalCostText,
     purchasePlatform,
     warrantyExpiresAt,
+    warranty,
   ])
 
   if (loading) return null
@@ -252,6 +258,8 @@ export default function ItemFormPage() {
 
   const handleSave = async () => {
     if (!canSave) return
+    const error = status === 'wishlist' ? null : validateWarranty(purchaseDate, warranty)
+    if (error) { show(error); return }
     setSaving(true)
     // 心愿物品不携带购买/保修信息（可以之后再转为持有时补齐）
     const isWish = status === 'wishlist'
@@ -475,27 +483,11 @@ export default function ItemFormPage() {
           <GroupCard title="购买信息" hint="全部可选">
             <FormRow>
               <RowLabel label="购买日期" />
-              <input
-                type="date"
-                value={purchaseDate}
-                max={today}
-                onChange={(e) => setPurchaseDate(e.target.value)}
-                className={`num h-11 rounded-control bg-surface-sunken px-3 text-body ${bareInputClass}`}
-              />
+              <DateField label="购买日期" value={purchaseDate} max={today} onChange={setPurchaseDate} />
             </FormRow>
 
             <FormRow>
-              <RowLabel label="保修到期日" />
-              <input
-                type="date"
-                value={warrantyExpiresAt}
-                min={purchaseDate || undefined}
-                onChange={(e) => setWarrantyExpiresAt(e.target.value)}
-                className={`num h-11 rounded-control bg-surface-sunken px-3 text-body ${bareInputClass}`}
-              />
-              <p className="mt-1.5 text-caption text-ink-tertiary">
-                填写后会在概览页进入「30 天内过保」提醒。
-              </p>
+              <WarrantyInput purchaseDate={purchaseDate} value={warranty} onChange={setWarranty} />
             </FormRow>
 
             {/* 购买价格 + 附加花费：并排布局，缩短表单高度（快速录入优先） */}

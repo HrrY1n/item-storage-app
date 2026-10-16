@@ -11,6 +11,7 @@
  * 前提：vite dev server 在 5173；无头浏览器 CDP 在 9222（全新 user-data-dir）。
  */
 import { mkdir, writeFile } from 'node:fs/promises'
+import { selectDate } from './date-picker.mjs'
 
 const CDP = 'http://127.0.0.1:9222'
 const BASE = 'http://127.0.0.1:5173'
@@ -105,17 +106,6 @@ class Session {
       return 'ok';
     })()`)
   }
-  /** 对受控 input（如 date）赋值：原生 setter + input 事件 */
-  async setValue(selector, value) {
-    return this.ev(`(() => {
-      const el = document.querySelector(${JSON.stringify(selector)});
-      if (!el) return 'not-found';
-      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-      setter.call(el, ${JSON.stringify(value)});
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      return el.value;
-    })()`)
-  }
   async type(text) {
     await this.send('Input.insertText', { text })
   }
@@ -148,7 +138,7 @@ async function run() {
   await s.clickText('button', '添加')
   await sleep(300)
   // 购买信息
-  const dateSet = await s.setValue('input[type="date"]', '2026-01-01')
+  const dateSet = await selectDate(s, '购买日期', '2026-01-01')
   await s.focusByPlaceholder('0.00')
   await s.type('1499')
   await s.clickText('button', '京东')
