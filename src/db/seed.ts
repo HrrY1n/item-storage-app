@@ -1,27 +1,19 @@
 import { ulid } from 'ulid'
 import { db } from './db'
-import type { Asset, Category, IconKey } from '../domain/types'
+import type { Asset, Category } from '../domain/types'
 import { CURRENT_SCHEMA_VERSION } from '../domain/types'
 import { PRESET_ICONS } from '../data/icons'
+import { DEFAULT_CATEGORIES_VERSION, DEFAULT_CATEGORY_TREE } from '../data/categories'
 
 /**
  * 首次启动 seed：只在真正空的数据库里写入一次默认分类与预置图标资产。
  * 用 appMeta.seeded 标记防重复；整个操作在单个事务内完成。
  */
 
-const DEFAULT_TREE: { name: string; iconKey: IconKey; children?: string[] }[] = [
-  { name: '数码与电子', iconKey: 'laptop', children: ['电脑设备', '手机与平板', '音频设备', '存储设备', '配件与线材'] },
-  { name: '学习与办公', iconKey: 'book', children: ['书籍', '笔记本与纸品', '文具', '文件资料'] },
-  { name: '衣物与穿搭', iconKey: 'tshirt', children: ['上衣', '裤装', '外套', '鞋履', '包袋', '配饰'] },
-  { name: '生活用品', iconKey: 'bottle' },
-  { name: '收藏与纪念', iconKey: 'backpack' },
-  { name: '其他', iconKey: 'other' },
-]
-
 function buildDefaultCategories(now: string): Category[] {
   const list: Category[] = []
-  DEFAULT_TREE.forEach((root, i) => {
-    const rootId = ulid()
+  DEFAULT_CATEGORY_TREE.forEach((root, i) => {
+    const rootId = root.legacyName ? ulid() : `default-category-${root.key}`
     list.push({
       id: rootId,
       parentId: null,
@@ -32,15 +24,16 @@ function buildDefaultCategories(now: string): Category[] {
       deletedAt: null,
       iconKey: root.iconKey,
     })
-    root.children?.forEach((childName, j) => {
+    root.children.forEach((child, j) => {
       list.push({
-        id: ulid(),
+        id: `default-category-${rootId}-${child.iconKeys[0]}`,
         parentId: rootId,
-        name: childName,
+        name: child.name,
         sortOrder: j + 1,
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
+        iconKey: child.iconKeys[0],
       })
     })
   })
@@ -79,6 +72,7 @@ export async function seedIfEmpty(): Promise<void> {
     await db.appMeta.bulkPut([
       { key: 'seeded', value: '1' },
       { key: 'schemaVersion', value: String(CURRENT_SCHEMA_VERSION) },
+      { key: 'defaultCategoriesVersion', value: String(DEFAULT_CATEGORIES_VERSION) },
     ])
   })
 }

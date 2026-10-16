@@ -211,10 +211,11 @@ describe('toBackupPayload', () => {
 
   it('只迁移白名单内的 appMeta，恢复后版本号升级到当前契约', () => {
     const d = validData()
-    d.appMeta = { seeded: '1', schemaVersion: '1', someUiPref: 'keep-out' }
+    d.appMeta = { seeded: '1', schemaVersion: '1', defaultCategoriesVersion: '2', someUiPref: 'keep-out' }
     const payload = toBackupPayload(d)
     expect(payload.appMeta.seeded).toBe('1')
     expect(payload.appMeta.schemaVersion).toBe('3')
+    expect(payload.appMeta.defaultCategoriesVersion).toBe('2')
     expect(payload.appMeta.someUiPref).toBeUndefined()
   })
 

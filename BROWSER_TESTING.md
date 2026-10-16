@@ -20,6 +20,19 @@ npm run browser:stop -- --port=9223
 
 停止时只使用 `stop-test-edge.mjs` 记录的 PID。不要使用 `taskkill /IM msedge.exe`，因为那会杀掉用户正在使用的正常 Edge。
 
+## 物品分类与旧库补齐
+
+先启动 `npm run dev -- --host=127.0.0.1` 和生产 preview。此用例需要未使用过的项目测试 Profile，例如另选一个空闲端口 `9234`；不删除或清空之前的测试 Profile：
+
+```powershell
+npm run browser:start -- --port=9234
+$env:EDGE_TEST_PORT = '9234'
+node scripts/verify-categories.mjs
+npm run browser:stop -- --port=9234
+```
+
+脚本在隔离开发 origin 写入冻结的旧版 6+15 分类和三件验收物品，再由实际 Boot 完成增量升级；逐项检查旧 ID、物品归属、原 outbox、七个一级和 49 个二级、父子件数、直接归入大类的提示、折叠与跳转、表单保存、浅深色、短屏和桌面布局。独立生产 origin 检查全新安装和离线刷新。全程不清空数据库，截图与结果写入 `docs/screenshots/categories/`。
+
 ## 图标库 2.0
 
 先完成生产构建并启动 preview，再连接项目隔离 Profile：

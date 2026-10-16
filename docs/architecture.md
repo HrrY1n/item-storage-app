@@ -62,6 +62,16 @@ Local-first invariant：保存、编辑和删除先提交 IndexedDB；网络失�
 
 ## 4. 会话、恢复和关闭边界
 
+### 默认分类更新
+
+`src/data/categories.ts` 是默认物品分类的唯一来源：7 个一级、49 个二级，220 个图标各有一个类型归属。它与 `src/data/icons.ts` 中用于素材浏览的九类分组独立。分类封面复用已存在的物品图标。
+
+首次安装由 `seedIfEmpty` 写入完整树；旧库在 Boot 中调用 `upgradeDefaultCategories`。升级与分类 outbox 在同一事务提交，提交后才通知同步。既有分类 ID、createdAt、物品归属和自定义排序保留；仅旧默认名称对应改为新名称，为缺少封面的分类补图。新增分类采用稳定 ID，不复活 tombstone，也不重建被用户改名或移除的旧二级分类。只有未经调整的旧默认根顺序会按新版顺序排列。
+
+`appMeta.defaultCategoriesVersion` 记录默认内容版本，不改变 Dexie / Backup / Sync wire 版本。该标记随 ZIP 备份保留，避免恢复后撤销用户的分类调整；旧 ZIP 在恢复事务内完成分类补齐。云端恢复继续使用云端分类快照，不在 pull 后重新套用默认树；旧设备启动后新增的分类通过既有 outbox 同步到其他设备。完整分类和页面规则见 [分类说明](categories.md)。
+
+### 同步会话
+
 - `syncState.sessionEpoch` 是旧请求的事务栅栏；凭据、启用状态和重新配对导致旧响应失效。
 - 以本机数据加入新空间时，游标和上次同步时间从新空间起算；本地业务数据保留，outbox 会重建但物理删除 tombstone 也必须保留。
 - 使用云端恢复或 ZIP 恢复时，业务表替换、outbox 清理/重建和禁用旧同步会话在同一个本地事务边界内完成。

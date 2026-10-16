@@ -18,8 +18,10 @@ describe('seedIfEmpty', () => {
   it('空数据库首次初始化：写入默认分类与预置图标资产', async () => {
     await seedIfEmpty()
     const categories = await db.categories.toArray()
-    expect(categories.length).toBe(21) // 6 个一级 + 15 个二级
-    expect(categories.filter((c) => c.parentId === null)).toHaveLength(6)
+    expect(categories.length).toBe(56) // 7 个一级 + 49 个二级
+    expect(categories.filter((c) => c.parentId === null)).toHaveLength(7)
+    expect(categories.every((c) => c.iconKey)).toBe(true)
+    expect((await db.appMeta.get('defaultCategoriesVersion'))?.value).toBe('2')
     const assets = await db.assets.toArray()
     expect(assets.length).toBe(PRESET_ICONS.length)
     expect(assets.every((a) => a.kind === 'preset')).toBe(true)
@@ -30,7 +32,7 @@ describe('seedIfEmpty', () => {
     await seedIfEmpty()
     await seedIfEmpty()
     await seedIfEmpty()
-    expect(await db.categories.count()).toBe(21)
+    expect(await db.categories.count()).toBe(56)
     expect(await db.assets.count()).toBe(PRESET_ICONS.length)
   })
 

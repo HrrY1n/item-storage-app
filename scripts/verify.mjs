@@ -178,7 +178,10 @@ async function run() {
 
   /* ---- 6. 分类「数码与电子」里能看到 ---- */
   await s.nav(`${BASE}/categories`, '分类')
-  await s.clickText('button', '数码与电子')
+  await s.ev(`(() => {
+    const button = [...document.querySelectorAll('button[aria-expanded]')].find(b => b.textContent.includes('数码与电子'));
+    if (button?.getAttribute('aria-expanded') === 'false') button.click();
+  })()`)
   await sleep(400)
   await s.clickText('a', '全部「数码与电子」')
   await sleep(800)

@@ -7,10 +7,11 @@
 | 入口 | 用途 |
 |---|---|
 | [产品目标](product-goals.md) | 产品范围与长期边界 |
+| [物品分类](categories.md) | 七个一级、49 个二级分类、旧数据更新与当前页面 |
 | [架构与维护入口](architecture.md) | 分层、版本、数据与同步边界 |
 | [工程规则](../AGENTS.md) | 数据保护与测试安全要求 |
 | [浏览器测试](../BROWSER_TESTING.md) | 隔离 Edge、保修与 PWA 验证 |
-| [图标库验收](icon-library-v2-audit.md) | 219 图标、更新与真机验收证据 |
+| [图标库验收](icon-library-v2-audit.md) | 图标库、PWA 更新与真机验收证据 |
 | [图标资源说明](../assets/item-icons/README.md) | 素材规范与来源 |
 | [物品展示与财务约定](architecture.md#9-物品展示与财务约定) | 卡片与列表共用的金额、处置与缺失值规则 |
 | [文件治理记录](REPOSITORY_GOVERNANCE.md) | 文件保留、归档与清理边界 |

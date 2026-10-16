@@ -1,10 +1,12 @@
 import { ulid } from 'ulid'
+import type { Transaction } from 'dexie'
 import { db } from '../db'
 import { markSyncDirty } from '../syncDirty'
 import type { Category } from '../../domain/types'
 import { collectSubtreeIds, wouldCreateCycle } from '../../domain/categoryTree'
 import { itemRepository } from './itemRepository'
 import { syncRepository } from './syncRepository'
+import { DEFAULT_CATEGORIES_VERSION, DEFAULT_CATEGORY_TREE } from '../../data/categories'
 
 /**
  * Category repository —— 分类树 CRUD。
@@ -12,6 +14,88 @@ import { syncRepository } from './syncRepository'
  */
 
 const notDeleted = (c: Category) => c.deletedAt === null
+
+/** 旧默认树的一次性补充；恢复备份时可与替换数据共用同一事务。 */
+export async function upgradeDefaultCategoriesInTransaction(tx: Transaction): Promise<number> {
+  const version = await db.appMeta.get('defaultCategoriesVersion')
+  if (Number(version?.value ?? 0) >= DEFAULT_CATEGORIES_VERSION) return 0
+  const all = await db.categories.toArray()
+  const roots = all.filter((c) => c.parentId === null)
+  const legacy = DEFAULT_CATEGORY_TREE.filter((root) => root.legacyName)
+  const originalOrder = roots.length === legacy.length && legacy.every((definition, index) =>
+    roots.some((root) => root.deletedAt === null && root.name === definition.legacyName && root.sortOrder === index + 1),
+  )
+  // 完全自定义的分类树不套用默认分类；改名的旧根节点用原封面识别。
+  const activeRoots = roots.filter(notDeleted)
+  const recognized = legacy.some((definition) => definition.key !== 'other' && activeRoots.some((root) =>
+    root.name === definition.legacyName || root.name === definition.name,
+  )) || legacy.every((definition) => activeRoots.some((root) => root.iconKey === definition.legacyIconKey))
+  let changed = 0
+  const now = new Date().toISOString()
+  const put = async (category: Category) => {
+    await db.categories.put(category)
+    await syncRepository.enqueueWithTx('category', category.id, tx)
+    const index = all.findIndex((c) => c.id === category.id)
+    if (index < 0) all.push(category)
+    else all[index] = category
+    changed++
+  }
+  if (recognized) for (const [index, definition] of DEFAULT_CATEGORY_TREE.entries()) {
+    const stableId = `default-category-${definition.key}`
+    const byIcon = roots.filter((root) => root.iconKey === definition.legacyIconKey)
+    let root = all.find((c) => c.id === stableId)
+      ?? roots.find((c) => c.name === definition.name || c.name === definition.legacyName)
+      ?? (definition.legacyIconKey && byIcon.length === 1 ? byIcon[0] : undefined)
+    if (!root) {
+      // 不重建用户移除的旧一级分类；只增加本次引入的「家居与厨房」。
+      if (definition.legacyName) continue
+      root = {
+        id: stableId, parentId: null, name: definition.name, iconKey: definition.iconKey,
+        sortOrder: originalOrder ? index + 1 : Math.max(0, ...roots.map((c) => c.sortOrder)) + 1,
+        createdAt: now, updatedAt: now, deletedAt: null,
+      }
+      await put(root)
+    }
+    if (root.deletedAt !== null) continue
+    const nextRoot = {
+      ...root,
+      name: root.name === definition.legacyName ? definition.name : root.name,
+      iconKey: root.iconKey === undefined || root.iconKey === definition.legacyIconKey ? definition.iconKey : root.iconKey,
+      sortOrder: originalOrder ? index + 1 : root.sortOrder,
+    }
+    if (nextRoot.name !== root.name || nextRoot.iconKey !== root.iconKey || nextRoot.sortOrder !== root.sortOrder) {
+      root = { ...nextRoot, updatedAt: now }
+      await put(root)
+    }
+    for (const child of definition.children) {
+      const id = `default-category-${root.id}-${child.iconKeys[0]}`
+      const current = all.find((c) => c.id === id)
+        ?? all.find((c) => c.parentId === root.id && (c.name === child.name || c.name === child.legacyName))
+      if (current) {
+        if (current.deletedAt !== null) continue
+        const name = current.name === child.legacyName ? child.name : current.name
+        if (current.iconKey === undefined || name !== current.name) {
+          await put({ ...current, name, iconKey: current.iconKey ?? child.iconKeys[0], updatedAt: now })
+        }
+      } else if (!child.legacyName) {
+        // 旧二级分类缺失可能是用户主动删除或改名，不能按默认名称重新创建。
+        await put({
+          id, parentId: root.id, name: child.name, iconKey: child.iconKeys[0],
+          sortOrder: Math.max(0, ...all.filter((c) => c.parentId === root.id).map((c) => c.sortOrder)) + 1,
+          createdAt: now, updatedAt: now, deletedAt: null,
+        })
+      }
+    }
+  }
+  await db.appMeta.put({ key: 'defaultCategoriesVersion', value: String(DEFAULT_CATEGORIES_VERSION) })
+  return changed
+}
+
+export async function upgradeDefaultCategories(): Promise<number> {
+  const changed = await db.transaction('rw', [db.categories, db.appMeta, db.syncQueue], upgradeDefaultCategoriesInTransaction)
+  if (changed > 0) markSyncDirty()
+  return changed
+}
 
 async function listActive(): Promise<Category[]> {
   const all = await db.categories.toArray()

@@ -4,6 +4,7 @@ import type { BackupPayload } from '../../domain/backup'
 import { MIGRATABLE_APP_META_KEYS } from '../../domain/backup'
 import { disableInTransaction } from './syncRepository'
 import { syncPresetAssets } from '../seed'
+import { upgradeDefaultCategoriesInTransaction } from './categoryRepository'
 
 /**
  * 备份相关的数据库读写（repositories 是唯一可直接 import db 的一层）。
@@ -89,10 +90,11 @@ export async function replaceAllWithBackupAndDisableSync(payload: BackupPayload)
       db.syncQueue,
       db.syncState,
     ],
-    async () => {
+    async (tx) => {
       await replaceAllWithBackupInTransaction(payload)
       // 旧备份缺少后来新增的 preset；与恢复一起提交，避免本次会话出现缺图。
       await syncPresetAssets()
+      await upgradeDefaultCategoriesInTransaction(tx)
       await db.syncQueue.clear()
       await disableInTransaction(db.syncState)
     },

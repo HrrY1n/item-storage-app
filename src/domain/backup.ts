@@ -48,7 +48,7 @@ const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3]
  * 需要从备份中迁移的 appMeta 键。
  * 其余 appMeta（如 UI 本地偏好）不属于业务数据，不随备份迁移。
  */
-export const MIGRATABLE_APP_META_KEYS = ['seeded', 'schemaVersion'] as const
+export const MIGRATABLE_APP_META_KEYS = ['seeded', 'schemaVersion', 'defaultCategoriesVersion'] as const
 
 export interface BackupManifest {
   schemaVersion: number

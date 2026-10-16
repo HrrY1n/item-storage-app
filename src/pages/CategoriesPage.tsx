@@ -11,14 +11,15 @@ function Chevron({ open }: { open?: boolean }) {
     <svg
       width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-      className={`shrink-0 text-ink-faint transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+      className={'shrink-0 text-ink-faint transition-transform duration-200 ' + (open ? 'rotate-90' : '')}
+      aria-hidden="true"
     >
       <path d="m9 6 6 6-6 6" />
     </svg>
   )
 }
 
-/** 一级分类块：名称 + 数量 + 一行二级分类摘要 + 轻量图标底衬 */
+/** 默认展开真实二级分类；名称、封面与数量都来自当前分类树。 */
 function RootCategoryBlock({
   category,
   categories,
@@ -28,87 +29,82 @@ function RootCategoryBlock({
   categories: Category[]
   counts: Map<string, number>
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   const children = childrenOf(categories, category.id)
   const count = counts.get(category.id) ?? 0
-  const summary = children
-    .slice(0, 3)
-    .map((c) => c.name)
-    .join(' · ')
-
+  const directCount = count - children.reduce((sum, child) => sum + (counts.get(child.id) ?? 0), 0)
+  const panelId = 'category-children-' + category.id
   const rowClass =
-    'flex min-h-[68px] w-full items-center gap-3 px-3.5 py-3 text-left transition-colors active:bg-surface-sunken'
+    'flex min-h-[76px] w-full items-center gap-3 px-3.5 py-3 text-left transition-colors active:bg-surface-sunken'
   const rowInner = (
     <>
       <CategoryIconTile category={category} size={44} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-item text-ink-primary">{category.name}</p>
+        <p className="text-item text-ink-primary">{category.name}</p>
         {children.length > 0 && (
-          <p className="mt-1 truncate text-caption text-ink-tertiary">{summary}</p>
+          <p className="mt-1 text-caption text-ink-tertiary">{children.length} 个子分类</p>
         )}
       </div>
-      <span className="shrink-0 text-caption text-ink-tertiary">{count} 件</span>
+      <span className="num shrink-0 text-caption text-ink-tertiary">{count} 件</span>
       <Chevron open={children.length > 0 ? expanded : undefined} />
     </>
   )
 
   return (
-    <div className="overflow-hidden rounded-surface border border-line bg-surface shadow-card">
+    <section className="overflow-hidden rounded-surface border border-line bg-surface shadow-card">
       {children.length > 0 ? (
         <button
           type="button"
-          onClick={() => setExpanded((v) => !v)}
+          onClick={() => setExpanded((value) => !value)}
           aria-expanded={expanded}
+          aria-controls={expanded ? panelId : undefined}
           className={rowClass}
         >
           {rowInner}
         </button>
       ) : (
-        <Link to={`/categories/${category.id}`} className={rowClass}>
+        <Link to={'/categories/' + category.id} className={rowClass}>
           {rowInner}
         </Link>
       )}
 
-      {/* 展开/折叠（grid-rows 轻动画） */}
-      <div
-        className={`grid transition-[grid-template-rows] duration-200 ease-out ${
-          expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="border-t border-line-inner py-1">
-            <Link
-              to={`/categories/${category.id}`}
-              className="flex min-h-[44px] items-center pl-[70px] pr-3.5 text-secondary text-ink-secondary transition-colors active:bg-surface-sunken"
-            >
-              全部「{category.name}」
-            </Link>
+      {children.length > 0 && expanded && (
+        <div id={panelId} className="border-t border-line-inner px-3.5 pb-2.5 pt-3">
+          <div className="grid grid-cols-2 gap-2">
             {children.map((child) => (
               <Link
                 key={child.id}
-                to={`/categories/${child.id}`}
-                className="flex min-h-[44px] items-center pl-[70px] pr-3.5 transition-colors active:bg-surface-sunken"
+                to={'/categories/' + child.id}
+                className="flex min-h-[68px] min-w-0 items-center gap-2 rounded-card border border-line-inner bg-surface-raised p-2.5 transition-colors active:bg-surface-sunken"
               >
-                <span className="flex-1 truncate text-secondary text-ink-secondary">{child.name}</span>
-                <span className="mr-1.5 text-caption text-ink-tertiary">
-                  {counts.get(child.id) ?? 0}
-                </span>
-                <Chevron />
+                <CategoryIconTile category={child} size={34} />
+                <div className="min-w-0 flex-1">
+                  <p className="break-words text-caption text-ink-secondary">{child.name}</p>
+                  <p className="num mt-1 text-caption text-ink-tertiary">{counts.get(child.id) ?? 0} 件</p>
+                </div>
               </Link>
             ))}
           </div>
+          <Link
+            to={'/categories/' + category.id}
+            className="mt-2 flex min-h-[44px] items-center justify-between gap-2 text-caption text-ink-secondary transition-colors active:text-ink-primary"
+          >
+            <span>全部「{category.name}」</span>
+            <Chevron />
+          </Link>
+          {directCount > 0 && (
+            <p className="pb-1 text-caption text-ink-tertiary">另有 {directCount} 件物品直接归入此大类</p>
+          )}
         </div>
-      </div>
-    </div>
+      )}
+    </section>
   )
 }
 
 export default function CategoriesPage() {
   const categories = useCategories()
   const items = useItems()
-
-  const loading = !categories || !items
-  if (loading) {
+  if (!categories || !items) {
     return <div className="pt-[calc(16px+env(safe-area-inset-top))]" />
   }
 
@@ -117,25 +113,26 @@ export default function CategoriesPage() {
 
   return (
     <div className="pt-[calc(24px+env(safe-area-inset-top))]">
-      <header className="animate-fade-rise flex items-baseline justify-between px-5">
-        <div>
+      <header className="animate-fade-rise flex items-baseline justify-between gap-3 px-5">
+        <div className="min-w-0">
           <h1 className="text-page-title text-ink-primary">分类</h1>
           <p className="mt-2 text-secondary text-ink-tertiary">
-            <span className="num text-item text-ink-primary">{categories.length}</span> 个分类 ·{' '}
-            <span className="num text-item text-ink-primary">{items.length}</span> 件物品
+            <span className="num text-item text-ink-primary">{roots.length}</span> 个一级 ·{' '}
+            <span className="num text-item text-ink-primary">{categories.length - roots.length}</span> 个子分类
           </p>
+          <p className="mt-1 text-caption text-ink-tertiary">共 {items.length} 件物品 · 分类件数含子分类</p>
         </div>
         <Link
           to="/settings/categories"
-          className="min-h-[32px] text-secondary text-ink-tertiary transition-colors active:opacity-60 sm:hover:text-ink-primary"
+          className="shrink-0 text-secondary text-ink-secondary transition-colors active:text-ink-primary"
         >
           管理
         </Link>
       </header>
 
-      <div className="mt-5 flex flex-col gap-2.5 px-5">
-        {roots.map((c) => (
-          <RootCategoryBlock key={c.id} category={c} categories={categories} counts={counts} />
+      <div className="mt-5 flex flex-col gap-3 px-5">
+        {roots.map((category) => (
+          <RootCategoryBlock key={category.id} category={category} categories={categories} counts={counts} />
         ))}
       </div>
     </div>

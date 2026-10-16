@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router'
 import { seedIfEmpty, syncPresetAssets, upgradeSchemaVersionMeta } from './db/seed'
+import { upgradeDefaultCategories } from './db/repositories/categoryRepository'
 import { requestPersistentStorage } from './services/pwa'
 import BottomNav from './components/BottomNav'
 import UpdateBanner from './components/UpdateBanner'
@@ -69,6 +70,7 @@ function Boot() {
     void requestPersistentStorage()
     seedIfEmpty()
       .then(() => upgradeSchemaVersionMeta())
+      .then(() => upgradeDefaultCategories())
       // 老库补齐新图标：幂等 upsert，绝不触碰用户资产（详见 syncPresetAssets 契约）
       .then(() => syncPresetAssets())
       .then(() => setReady(true))

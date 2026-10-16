@@ -135,11 +135,17 @@ async function run() {
     return true;
   })()`)
   await s.ev(`(() => {
-    const el = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === '生活用品');
+    const el = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === '生活与护理');
     if (el) el.click();
     return !!el;
   })()`)
   await sleep(400)
+  await s.ev(`(() => {
+    const child = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === '随身日用');
+    if (child) child.click();
+    return !!child;
+  })()`)
+  await sleep(200)
   await s.ev(`(() => {
     const el = [...document.querySelectorAll('header button')].find(b => b.textContent.trim() === '保存');
     if (el) el.click();
