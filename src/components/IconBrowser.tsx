@@ -33,8 +33,8 @@ export default function IconBrowser({ value, recent = [], onPick }: Props) {
   const recentIcons = recent.map(presetIconOfAssetId).filter((icon): icon is PresetIcon => !!icon)
 
   useLayoutEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = positions.current[view] ?? 0
-  }, [view])
+    if (scrollRef.current) scrollRef.current.scrollTop = view === 'search' ? 0 : positions.current[view] ?? 0
+  }, [view, query])
 
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-icon-browser>
@@ -45,10 +45,7 @@ export default function IconBrowser({ value, recent = [], onPick }: Props) {
           </svg>
           <input
             value={query}
-            onChange={(event) => {
-              setQuery(event.target.value)
-              if (searching && scrollRef.current) scrollRef.current.scrollTop = 0
-            }}
+            onChange={(event) => setQuery(event.target.value)}
             aria-label="搜索全部图标"
             placeholder="搜索图标，如 平板 / iPad / 电脑"
             type="search"
