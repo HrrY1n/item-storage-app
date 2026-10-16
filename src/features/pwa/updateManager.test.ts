@@ -42,8 +42,6 @@ function makeHarness(opts: { online?: boolean; visible?: boolean } = {}) {
     clearTimeout: (id) => {
       state.timers.delete(id)
     },
-    // 测试中立即返回，避免等待真实的宽限时间
-    wait: async () => {},
   }
 
   /** 立即执行所有待触发定时器（用于跳过宽限/重试等待） */
@@ -128,6 +126,26 @@ describe('update manager', () => {
     await expect(h.manager.requestCheck('boot')).resolves.toBe(true)
     expect(h.manager.getSnapshot().checking).toBe(false)
     expect(h.state.reloads).toBe(0)
+    expect(h.manager.getSnapshot().checkFailed).toBe(true)
+    expect(h.manager.getSnapshot().lastCheckedAt).toBeNull()
+    h.state.updateShouldThrow = false
+    await h.manager.requestCheck('manual')
+    expect(h.manager.getSnapshot().checkFailed).toBe(false)
+  })
+
+  it('手动检查等待已有启动检查完成，不重复请求或过早报最新', async () => {
+    let complete!: () => void
+    h.host.updateSw = () => new Promise<void>((resolve) => { complete = resolve })
+    const boot = h.manager.requestCheck('boot')
+    const manual = h.manager.requestCheck('manual')
+    expect(manual).toBe(boot)
+    await Promise.resolve()
+    expect(h.manager.getSnapshot().checking).toBe(true)
+    expect(h.manager.getSnapshot().lastCheckedAt).toBeNull()
+    complete()
+    await manual
+    expect(h.manager.getSnapshot().checking).toBe(false)
+    expect(h.manager.getSnapshot().lastCheckedAt).toBe(h.state.now)
   })
 
   it('离线时不发起检查；恢复联网后自动检查一次', async () => {

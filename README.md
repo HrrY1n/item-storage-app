@@ -1,6 +1,6 @@
 # Private Item Library
 
-当前版本：`0.1.0`。
+当前版本：`0.2.0`。
 
 一个本地优先的个人物品管理 PWA，用来记录、整理和追踪自己的物品。
 它支持分类、标签、搜索、购买与持有成本、保修和物品生命周期管理，并可在手机或桌面浏览器中离线使用。
@@ -9,6 +9,7 @@
 ## 主要功能
 
 - 物品记录：名称、图标、备注、分类、标签与搜索。
+- 图标库：219 个透明立体图标，支持九类浏览、中英文及别名搜索、最近使用和单击选择，浅色与深色主题共用。
 - 分类与标签：管理分类层级、标签和物品归属。
 - 生命周期：支持「心愿 → 持有 → 已处置」，处置方式包括出售、丢弃和其他。
 - 购买与持有成本：记录购买日期、购买价格、附加花费和购买平台，计算总投入、实际持有成本与日均成本。
@@ -16,29 +17,44 @@
 - 备份恢复：导出和恢复经过校验的 ZIP 备份，包含业务数据及用户资产。
 - 可选云同步：通过恢复码连接同步空间，在设备之间同步或恢复数据。
 - PWA：支持安装到主屏幕、响应式界面和离线使用。
+- 更新检查：发现已部署的新版本后安全更新；编辑期间保留输入，完成操作后再刷新。
 
 ## 界面预览
 
-以下截图来自仓库内的真实浏览器验收记录：
+以下为 0.2.0 的真实浏览器截图，使用隔离环境中的示例数据和 390×844 移动视口：
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/phase2h/01-dashboard-light.png" alt="概览页"></td>
-    <td width="50%"><img src="docs/screenshots/phase2h/03-items-grid-light.png" alt="物品列表"></td>
+    <td width="50%"><img src="docs/screenshots/current/01-home-light.png" alt="概览页"></td>
+    <td width="50%"><img src="docs/screenshots/current/02-items-light.png" alt="物品列表"></td>
   </tr>
   <tr>
     <td align="center"><sub>概览：投入、分类、保修提醒与最近添加</sub></td>
     <td align="center"><sub>物品列表：筛选、排序、标签与成本信息</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/phase2h/05-detail-top-light.png" alt="物品详情"></td>
-    <td><img src="docs/screenshots/phase2h/11-settings-light.png" alt="设置页"></td>
+    <td><img src="docs/screenshots/current/03-detail-light.png" alt="物品详情"></td>
+    <td><img src="docs/screenshots/current/04-settings-light.png" alt="设置页"></td>
   </tr>
   <tr>
     <td align="center"><sub>物品详情：购买信息、成本和保修追踪</sub></td>
     <td align="center"><sub>设置：外观、备份、分类、标签与图标库</sub></td>
   </tr>
+  <tr>
+    <td><img src="docs/screenshots/icon-library-v2/01-home-light.png" alt="九类图标选择器，浅色主题"></td>
+    <td><img src="docs/screenshots/icon-library-v2/07-care-dark.png" alt="护理图标分类，深色主题"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>图标选择：最近使用、三列分类卡片与全局搜索</sub></td>
+    <td align="center"><sub>分类详情：四列图标网格，浅深色共用透明资源</sub></td>
+  </tr>
 </table>
+
+### 图标库 2.0
+
+九类为数码、办公、服饰、生活、护理、厨房、家居、兴趣和其他，与用户自行管理的物品分类独立。支持「电脑」「笔记本」「iPad」「插排」等叫法；点击即更新表单预览，仍需正常保存物品。最近使用最多保留 8 个。
+
+[查看 219 个图标总览](assets/item-icons/overview.webp) · [资源规范与生成记录](assets/item-icons/README.md) · [完整截图与更新验收报告](docs/icon-library-v2-audit.md)。图像使用内置生图工具，实际模型 ID 未公开；来源与提示词按实际情况记录。
 
 ## 技术栈
 
@@ -51,7 +67,7 @@
 
 ## 快速开始
 
-需要 Node.js 环境。在项目根目录执行：
+使用 Node.js 22.x（至少 22.12）或 24.x，CI 使用 22.x。在项目根目录执行：
 
 ```bash
 npm ci
@@ -61,9 +77,20 @@ npm run dev
 开发服务器启动后，按终端提示打开本地地址。其他常用命令：
 
 ```bash
+npm run typecheck
 npm test
 npm run build
+npm run preview
 ```
+
+浏览器验收使用项目隔离的 Edge Profile，图标交互和同源 PWA 更新入口分别为 `npm run verify:icons`、`npm run verify:pwa-update`，完整启动条件见 [BROWSER_TESTING.md](BROWSER_TESTING.md)。
+
+## 安装、离线与更新
+
+- iPhone 在 Safari 打开站点，通过「分享 → 添加到主屏幕」安装；首次联网打开并完成离线缓存后，可离线使用。
+- 新版本部署后，可以在设置中点击「检查更新」。正在编辑时会暂缓刷新，先保存或退出当前操作。
+- 检查范围是当前站点已部署的版本。GitHub 提交或 CI 构建成功不代表已经发布到 Cloudflare；维护者仍需完成部署。
+- 更新异常先核对线上版本和网络状态。不要通过删除 PWA 或清空浏览器存储处理，这会影响本机数据。真实 iPhone 的更新验收步骤见[验收报告](docs/icon-library-v2-audit.md#发布与-iphone-人工验收)。
 
 ## 数据存储与安全
 
@@ -78,6 +105,8 @@ npm run build
 - [架构与维护入口](docs/architecture.md)：当前目录边界、数据契约、同步边界和验证入口。
 - [AGENTS.md](AGENTS.md)：仓库工程约束、浏览器测试安全规则和提交前检查。
 - [BROWSER_TESTING.md](BROWSER_TESTING.md)：隔离浏览器验收说明。
+- [图标库资源说明](assets/item-icons/README.md)：WebP 规范、来源与原图保留方式。
+- [图标库 2.0 验收报告](docs/icon-library-v2-audit.md)：数量、截图、PWA 分层审计及发布和真机验收步骤。
 - [仓库治理记录](docs/REPOSITORY_GOVERNANCE.md)：文件保留、忽略规则和仓库维护约定。
 - [同步设计文档](docs/PHASE_3A_SYNC_DESIGN.md)：同步边界与设计背景。
 - [同步实现计划](docs/PHASE_3B_IMPLEMENTATION_PLAN.md)：云同步实现与审查记录。

@@ -1,8 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '../db'
 import { readSnapshot, replaceAllWithBackup } from './backupRepository'
 import { buildBackupArchive, readAndValidateBackup, restoreFromPayload } from '../../services/backupService'
 import type { Snapshot } from './backupRepository'
+import { buildPresetAssets, syncPresetAssets } from '../seed'
+import { PRESET_ICONS } from '../../data/icons'
 
 async function clearAll() {
   await Promise.all([
@@ -153,6 +155,36 @@ describe('replaceAllWithBackup：Replace Restore', () => {
       appMeta: { seeded: '1' },
     })
     expect((await db.appMeta.get('seeded'))?.value).toBe('1')
+  })
+
+  it('旧备份恢复后立即补齐新 preset，保留旧引用、用户资产与历史 preset', async () => {
+    await seedTwoItems()
+    const before = await readSnapshot()
+    const preset = buildPresetAssets('2020-01-01T00:00:00.000Z')[0]
+    const legacy = { ...preset, path: '/icons/items/phone.svg', mime: 'image/svg+xml', width: 48, height: 48 }
+    const retired = { ...legacy, id: 'preset-retired-example', path: '/icons/items/retired.svg' }
+    const photo = { ...preset, id: 'user-photo', kind: 'from_photo' as const, path: '/assets/photo.png' }
+    await restoreFromPayload({ ...before, assets: [legacy, retired, photo] })
+
+    expect(await db.assets.count()).toBe(PRESET_ICONS.length + 2)
+    expect(await db.assets.get(preset.id)).toEqual(preset)
+    expect(await db.assets.get(retired.id)).toEqual(retired)
+    expect(await db.assets.get(photo.id)).toEqual(photo)
+    expect((await readSnapshot()).items).toEqual(before.items)
+    expect((await readSnapshot()).categories).toEqual(before.categories)
+    expect(await syncPresetAssets()).toEqual({ added: 0, updated: 0 })
+  })
+
+  it('恢复时 preset 补齐失败也整体回滚，不误报旧数据未变', async () => {
+    await seedTwoItems()
+    const before = await readSnapshot()
+    const failure = vi.spyOn(db.assets, 'bulkPut').mockRejectedValueOnce(new Error('preset write failed'))
+    try {
+      await expect(restoreFromPayload({ ...before, items: [], itemTags: [], assets: [] })).rejects.toThrow('preset write failed')
+      expect(await readSnapshot()).toEqual(before)
+    } finally {
+      failure.mockRestore()
+    }
   })
 
   it('写入失败时整体回滚，不会出现清空一半的状态', async () => {

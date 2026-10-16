@@ -345,9 +345,10 @@ export default function SettingsPage() {
     setCheckingUpdate(true)
     try {
       const result = await checkForUpdate()
-      if (result === 'up-to-date') show('当前已是最新版本')
+      if (result === 'up-to-date') show('当前已是线上最新版本')
       else if (result === 'updating') show('发现新版本，正在更新')
       else if (result === 'pending-blocked') show('新版本已就绪，将在当前操作完成后更新')
+      else if (result === 'failed') show('未能完成线上版本检查，请稍后重试')
       else show('当前离线，联网后会自动检查更新')
     } catch {
       show('检查更新失败，请稍后重试')
@@ -595,7 +596,7 @@ export default function SettingsPage() {
         />
         <RowButton
           label="检查更新"
-          hint={checkingUpdate ? '正在检查…' : '主动检查是否有新版本'}
+          hint={checkingUpdate ? '正在检查…' : '检查当前站点已部署的版本'}
           disabled={checkingUpdate || busy !== null}
           onClick={() => void handleCheckUpdate()}
         />

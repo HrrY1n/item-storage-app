@@ -12,7 +12,7 @@ import { getUpdateManager } from '../../services/pwaUpdate'
 import type { PwaUpdateSnapshot } from './updateManager'
 
 export type ManualCheckResult =
-  /** 已经是最新版本 */
+  /** 已是当前站点部署的最新版本；不代表 GitHub 上没有新提交 */
   | 'up-to-date'
   /** 发现新版本，正在更新 */
   | 'updating'
@@ -20,6 +20,7 @@ export type ManualCheckResult =
   | 'pending-blocked'
   /** 离线：不报错，联网后会自动检查 */
   | 'offline'
+  | 'failed'
 
 interface PwaUpdateContextValue {
   snapshot: PwaUpdateSnapshot
@@ -43,6 +44,8 @@ export function PwaUpdateProvider({ children }: { children: ReactNode }) {
     await manager.requestCheck('manual')
     const s = manager.getSnapshot()
     if (s.updatePending) return s.blocked ? 'pending-blocked' : 'updating'
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'offline'
+    if (s.checkFailed) return 'failed'
     return 'up-to-date'
   }, [manager])
 

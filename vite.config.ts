@@ -82,14 +82,8 @@ export default defineConfig({
        * （保留 'auto' 会与手动注册并存，出现两个 registration 来源）。
        */
       injectRegister: null,
-      /**
-       * 保留旧版 SVG 图标的预缓存声明；新版 WebP 由 globPatterns 收集。
-       *
-       * 不再在这里重复声明 PWA App Icon 的 PNG：workbox 的 `globPatterns` 已经覆盖构建产物里
-       * 全部 png，manifest.icons 里的三条也会被插件自动加进 precache —— 显式再写一遍只会
-       * 产生同名条目（revision 相同，workbox 的 cache key 一致，不冲突；但没必要）。
-       */
-      includeAssets: ['icons/items/*.svg'],
+      // SVG / WebP / PWA PNG 均由 globPatterns 按内容哈希收集，避免重复预缓存条目。
+      includeManifestIcons: false,
       manifest: {
         id: '/',
         name: '私人数字物品库',

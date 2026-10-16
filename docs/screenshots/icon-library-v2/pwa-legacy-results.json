@@ -1,0 +1,172 @@
+[
+  {
+    "name": "Build A：SW 已注册并接管",
+    "ok": true,
+    "detail": "{\"installing\":false,\"waiting\":false,\"active\":true,\"controller\":true,\"script\":\"http://127.0.0.1:4191/sw.js\"}"
+  },
+  {
+    "name": "Build A：Service Worker 只注册一次",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Build A：相同 URL 的旧 WebP 内容",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Build A：浏览器解码旧 WebP 为实际 40px 像素",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Build A：取到当前 bundle 指纹",
+    "ok": true,
+    "detail": "index-CzHxvlbI.js"
+  },
+  {
+    "name": "Build A：显示版本 v0.1.0",
+    "ok": true,
+    "detail": "v0.1.0"
+  },
+  {
+    "name": "Build A：回到概览后仍是同一套 bundle",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "更新前：测试数据写入 IndexedDB",
+    "ok": true,
+    "detail": "ok"
+  },
+  {
+    "name": "真实旧构建仅有 156 个 preset",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "更新前：Item 已落库",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "更新前：用户自建分类已落库",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "更新前：Tag 已落库",
+    "ok": true,
+    "detail": "更新测试标签-1792096699222"
+  },
+  {
+    "name": "节流：刚检查过就恢复前台 → 不重复检查（bundle 未变）",
+    "ok": true,
+    "detail": "index-CzHxvlbI.js"
+  },
+  {
+    "name": "前台恢复：主动发现新版本并切换到 Build B",
+    "ok": true,
+    "detail": "index-CzHxvlbI.js → index-BEFSfJdP.js"
+  },
+  {
+    "name": "Build B：既有 WebP 字节保持原样",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Build B：既有 WebP 解码像素保持原样",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "SW 状态：更新后 active 存在且 controller 接管",
+    "ok": true,
+    "detail": "{\"installing\":false,\"waiting\":false,\"active\":true,\"controller\":true,\"script\":\"http://127.0.0.1:4191/sw.js\"}"
+  },
+  {
+    "name": "升级后：设置页显示 v0.2.0",
+    "ok": true,
+    "detail": "v0.2.0"
+  },
+  {
+    "name": "从旧构建升级后自动补齐至 219 个 preset",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "旧 SVG 元数据原位升级且保留创建时间",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "preset 资产没有重复",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "同步 outbox 原有条目未丢失",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "已有 Item.iconAssetId 保持原值",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "更新后：Item 仍然存在",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "更新后：用户自建分类仍然存在、名称未被覆盖",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "更新后：Tag 仍然存在",
+    "ok": true,
+    "detail": "更新测试标签-1792096699222"
+  },
+  {
+    "name": "更新后：应用仍能读到该物品（UI 渲染）",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "更新后：旧物品卡片使用 WebP 路径",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "手动检查：无新版本时提示「当前已是线上最新版本」",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "手动检查：在线请求失败时明确提示未能完成检查",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "手动检查：离线不报错并提示离线",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "升级后离线仍能读取既有 WebP",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "升级后离线浏览器解码既有 WebP 正确",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "升级后新增内存条离线可解码",
+    "ok": true,
+    "detail": ""
+  }
+]
