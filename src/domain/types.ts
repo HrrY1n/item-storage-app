@@ -132,12 +132,12 @@ export interface AppMeta {
  *
  * 三张新表，其中 syncState / syncQueue / syncConflicts 都属于**纯本地状态**：
  *  - syncState 含 Bearer secret 明文，因此**绝不进入 ZIP 备份**
- *  - syncQueue 是 outbox，备份恢复后语义失效（恢复后改为全量重推）
+ *  - syncQueue 是 outbox，ZIP 恢复在同一事务内清理旧队列并禁用旧同步会话
  *  - syncConflicts 是本设备的覆盖记录，与数据本身无关
- * 详见 docs/PHASE_3B_IMPLEMENTATION_PLAN.md §6
+ * 当前恢复边界见 docs/architecture.md 第 4 节
  * ==================================================================== */
 
-/** 参与同步的实体种类。刻意不含 assets / appMeta（见 3A 设计 §5）。 */
+/** 参与同步的实体种类；assets / appMeta 留在本机与 ZIP 备份中。 */
 export type SyncEntity = 'item' | 'category' | 'tag'
 
 export interface SyncState {

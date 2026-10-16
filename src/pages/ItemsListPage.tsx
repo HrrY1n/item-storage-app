@@ -52,7 +52,7 @@ const STATUS_TABS: { key: ItemStatus; label: string }[] = [
 ]
 
 /**
- * Large Title 与副标题的词表（设计 §5.1）。
+ * Large Title 与副标题的词表。
  *
  * ⚠️ 刻意**不做** `${title}物品` 这种拼接 —— 那会产出「已处置物品物品」。
  * 每种lifecycle 的两个词都显式给出，副标题只拼数量。
@@ -63,7 +63,7 @@ const PAGE_WORDS: Record<ItemStatus, { title: string; unit: string }> = {
   disposed: { title: '已处置物品', unit: '已处置物品' },
 }
 
-/** 处置二级筛选项（设计 §6）—— 文案取自 domain 的三个真实枚举值 */
+/** 处置二级筛选项，文案取自 domain 的三个真实枚举值。 */
 const DISPOSITION_FILTERS: { key: DispositionKind | 'all'; label: string }[] = [
   { key: 'all', label: '全部' },
   { key: 'sold', label: DISPOSITION_BADGE_LABELS.sold },
@@ -74,7 +74,7 @@ const DISPOSITION_FILTERS: { key: DispositionKind | 'all'; label: string }[] = [
 /**
  * ⚠️ `MiniMetric` 已删除。
  *
- * 它带 `truncate`，会把金额截成 `¥1,47…`（设计 §14 F1），
+ * 它带 `truncate`，会把金额截成 `¥1,47…`，
  * 且它自己的标签是硬编码的 —— 正是 §1.4 语义分叉的来源之一。
  * 现在统一改用 `ItemCard` 导出的 `MetricRow` / `FinanceLine`，
  * 与 `components/ItemCard` 逐像素同源。
@@ -141,7 +141,7 @@ function GridCard({
         {p.finance !== null && <FinanceLine grossText={p.grossText} finance={p.finance} />}
       </div>
       {/* 保修进度条：只有真正有保修数据的**持有**物品才出现，无保修卡片零空白。
-          已处置物品不显示 —— 保修是持有期语义（设计 §15）。*/}
+          已处置物品不显示，保修是持有期语义。*/}
       {statusOf(item) === 'owned' && item.warrantyExpiresAt !== null && (
         <WarrantyStrip item={item} today={today} />
       )}
@@ -267,7 +267,7 @@ export default function ItemsListPage() {
   const [view, setView] = useState<ViewMode>('grid')
   /**
    * 处置二级筛选 —— **纯 React UI 状态**。
-   * 不写 URL、不写 IndexedDB、不进 sync/D1（它不是业务数据，设计 §6.1）。
+   * 不写 URL、不写 IndexedDB、不进 sync/D1，因为它不是业务数据。
    */
   const [disposition, setDisposition] = useState<DispositionKind | 'all'>('all')
 
@@ -324,7 +324,7 @@ export default function ItemsListPage() {
   return (
     <div className="animate-fade-rise pt-[calc(24px+env(safe-area-inset-top))]">
       <header className="px-5">
-        {/* Large Title 随 lifecycle 动态（设计 §5.1）：「物品管理」是 section 总称，
+        {/* Large Title 随 lifecycle 动态：「物品管理」是 section 总称，
             这里的三个 tab 是生命周期状态，用状态名更贴合 Large Title 的语义。 */}
         <h1 className="text-page-title text-ink-primary">{words.title}</h1>
         <p className="mt-1.5 text-secondary text-ink-tertiary">
@@ -347,7 +347,7 @@ export default function ItemsListPage() {
         />
       </div>
 
-      {/* 处置二级筛选：**仅处置 tab 出现**（设计 §6）。
+      {/* 处置二级筛选：**仅处置 tab 出现**。
           视觉上与生命周期控件成组（间距 mt-2，比下方工具栏的 mt-4 更紧），
           读起来是"生命周期轴的下钻"而不是另一个平级筛选器。
           0 数量显示但禁用 —— 隐藏会让控件宽度在切换时跳动。*/}
@@ -412,7 +412,7 @@ export default function ItemsListPage() {
             {SORTS.map((s) => (
               <FilterChip key={s.key} active={sort === s.key} onClick={() => setSort(s.key)}>
                 {/* ⚠️ cost 实际按 `effectiveCostCents` 排 —— 对已出售物品那是**净成本**，
-                   标成「总投入」是错的（设计 §13.3 / §12）。比较函数不动，只改标签。*/}
+                   标成「总投入」是错的；该排序使用实际持有成本。*/}
                 {s.key === 'cost' && status === 'disposed' ? '实际持有成本' : s.label}
               </FilterChip>
             ))}

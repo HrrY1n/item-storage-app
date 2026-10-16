@@ -8,23 +8,8 @@ import {
 import type { Item } from '../../domain/types'
 
 /**
- * 物品卡片的**唯一展示模型**（Phase 2H.2 处置体验重设计）。
- *
- * ## 为什么需要这个模块
- *
- * 此前存在**两套卡片实现**，各自硬编码指标标签：
- * - `components/ItemCard.tsx`（HomePage / CategoryDetailPage 用）→ 恒为「总投入」
- * - `pages/ItemsListPage.tsx` 的本地 `GridCard`（处置列表用）→「实际成本」
- *
- * 结果：同一件已售出物品，在概览页显示「总投入 ¥1,474」、
- * 在处置页显示「实际成本 ¥568」—— 同一笔账两种说法。
- *
- * 本模块把"某个 Item 该显示什么"变成**纯函数**，
- * Grid / List / 概览 / 分类页全部消费同一个结果，
- * 从此不可能再分叉。**任何组件都不得再写 `sold ? 'xxx' : 'xxx'`。**
- *
- * 设计依据：`docs/DISPOSED_ITEM_UX_REDESIGN.md` §23 FINAL DESIGN CONTRACT。
- * 纯逻辑、无平台 API、全部可测。
+ * 物品卡片与列表的共享展示模型，纯逻辑、无平台 API。
+ * 当前展示与财务约定见 docs/architecture.md 第 9 节，组件不另算指标。
  */
 
 /**
@@ -37,7 +22,7 @@ import type { Item } from '../../domain/types'
  * - 同步载荷解码（`domain/syncPayload.ts:184`）同样接受 null
  *
  * 因此 `status='disposed'` 且 `disposalMethod === null` 会真实落进数据库。
- * 按设计 §2：它显示中性的「已处置」，**不伪装成 other**，
+ * 它显示中性的「已处置」，**不伪装成 other**，
  * 也不计入已售出 / 已丢弃 / 其他处置任何一类的数量。
  */
 export type DispositionKind = 'sold' | 'discarded' | 'other' | 'unspecified'
@@ -50,7 +35,7 @@ export const DISPOSITION_BADGE_LABELS: Record<DispositionKind, string> = {
   unspecified: '已处置',
 }
 
-/** 图片区结果overlay 的文案 —— **只有出售有**（设计 §7.1） */
+/** 图片区结果 overlay 的文案，只有出售有。 */
 export const DISPOSITION_OVERLAY_LABELS = {
   sold: '售出',
 } as const
@@ -209,7 +194,7 @@ export function itemPresentation(item: Item, ctx: PresentationContext): ItemPres
 }
 
 /**
- * 处置筛选用的分桶计数（设计 §6）。
+ * 处置筛选用的分桶计数。
  *
  * `unspecified` **不计入**任何处置方式，只落在「全部」里——
  * 避免把"没记录方式"的物品错误归类为"其他处置"。
@@ -241,7 +226,7 @@ export function matchesDispositionFilter(
 }
 
 /**
- * 金额/数字的字号档位（设计 §14F7：溢出先降一档字号，仍溢出则降成 2 栏）。
+ * 金额/数字的字号档位，配合卡片布局避免截断金额。
  *
  * ## 为什么用"字符长度"而不是运行时测量
  *

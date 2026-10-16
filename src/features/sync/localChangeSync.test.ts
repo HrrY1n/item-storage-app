@@ -16,9 +16,9 @@ import type { SyncEntity } from '../../domain/syncPayload'
 import { SYNC_PROTOCOL_VERSION } from '../../domain/syncProtocol'
 
 /**
- * Phase 3B.1 —— 主力手机场景的云端同步细化。
+ * 主力手机场景的本地改动同步。
  *
- * 覆盖点（对应需求 §11）：
+ * 覆盖同步边界，见 docs/architecture.md 第 3、4 节：
  *   1. 本地改动完成后触发 debounce 同步
  *   2. 连续 5 次修改只触发一次后台同步
  *   3. 同步关闭 → 零网络

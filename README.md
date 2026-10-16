@@ -120,14 +120,13 @@ npm run preview
 
 ## 开发文档
 
+- [文档目录与工作区说明](docs/README.md)：当前文档、历史归档、本地备份与临时产物的位置。
 - [架构与维护入口](docs/architecture.md)：当前目录边界、数据契约、同步边界和验证入口。
 - [AGENTS.md](AGENTS.md)：仓库工程约束、浏览器测试安全规则和提交前检查。
 - [BROWSER_TESTING.md](BROWSER_TESTING.md)：隔离浏览器验收说明。
 - [图标库资源说明](assets/item-icons/README.md)：WebP 规范、来源与原图保留方式。
 - [图标库 2.0 验收报告](docs/icon-library-v2-audit.md)：数量、截图、PWA 分层审计及发布和真机验收步骤。
 - [仓库治理记录](docs/REPOSITORY_GOVERNANCE.md)：文件保留、忽略规则和仓库维护约定。
-- [同步设计文档](docs/PHASE_3A_SYNC_DESIGN.md)：同步边界与设计背景。
-- [同步实现计划](docs/PHASE_3B_IMPLEMENTATION_PLAN.md)：云同步实现与审查记录。
 
 ## License
 

@@ -103,9 +103,8 @@ describe('导出的 ZIP 不含任何 secret', () => {
 
 describe('恢复备份后需要重置游标（由上层编排）', () => {
   it('lastPulledRevision 不会被 replaceAllWithBackup 自动改动', async () => {
-    // 这是刻意的：restoreFromPayload / replaceAllWithBackup 不知道同步的存在，
-    // 因此上层（backupService.restoreFromPayload）负责在恢复后把游标归零、
-    // 并提示用户二选一。见 PHASE_3B_IMPLEMENTATION_PLAN.md §6。
+    // 仅替换快照的接口保留同步状态；正式 ZIP 恢复通过专用事务禁用旧会话，
+    // 见 docs/architecture.md 第 4 节。
     await syncRepository.setState({ enabled: true, secret: 's', keyId: 'k', deviceId: 'd' })
     await syncRepository.markSynced(42)
     const exported = await exportBackup()

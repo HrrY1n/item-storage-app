@@ -71,7 +71,7 @@ export function ObjectPlate({
  * 指标格：数字在上、标签在下。数字是结论，标签只是单位说明。
  *
  * ⚠️ 数字**绝不加 truncate** —— 截断会把 `¥1,474` 变成 `¥1,47…`，
- * "数值不可读"比"轻微溢出"严重得多（设计 §14 F1）。
+ * "数值不可读"比"轻微溢出"严重得多。
  * 溢出改由 `metricValueClass` 按字符长度降一档字号处理（F7）。
  */
 function MetricCell({
@@ -131,7 +131,7 @@ export function MetricRow({ cells }: { cells: PresentationMetric[] }) {
  *
  * ⚠️ 刻意**不显示「实际持有成本」**—— 它与盈亏互为相反数
  * （`netHoldingCost = grossTotal − salePrice`，`profitLoss = salePrice − grossTotal`），
- * 同时展示是同一笔账的两种符号（设计 §9.1 / 勘误 FIX-A、FIX-B）。
+ * 同时展示是同一笔账的两种符号。
  * 完整账目留给详情页。
  */
 export function FinanceLine({
