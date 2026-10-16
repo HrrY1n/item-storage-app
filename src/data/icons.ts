@@ -69,6 +69,8 @@ export const PRESET_ICONS: PresetIcon[] = [
   icon('speaker', '音箱', 'digital', ['音响', '蓝牙音箱', '喇叭', '低音炮', 'Speaker']),
   icon('microphone', '麦克风', 'digital', ['话筒', '麦', '录音', '麦克风', 'Mic']),
   icon('camera', '相机', 'digital', ['照相机', '单反', '微单', '相机', 'Camera']),
+  icon('djipocket', 'DJI Pocket 云台相机', 'digital', ['Pocket', 'DJI Pocket', 'Osmo Pocket', 'DJI Osmo Pocket', '大疆', '大疆 Pocket', '大疆Pocket', '口袋相机', '云台相机', '手持云台相机', '手持相机', 'Vlog 相机', 'Gimbal Camera', 'Pocket Camera']),
+  icon('djiaction', 'DJI Action 运动相机', 'digital', ['Action', 'DJI Action', 'Osmo Action', 'DJI Osmo Action', '大疆', '大疆 Action', '大疆Action', '运动相机', '运动摄像机', '户外相机', '防水相机', 'Action Camera']),
   icon('lens', '镜头', 'digital', ['镜头', '定焦', '变焦', 'Lens']),
   icon('gameconsole', '游戏机', 'digital', ['主机', 'Switch', 'PS5', '掌机', '游戏机', 'PlayStation']),
   icon('gamepad', '游戏手柄', 'digital', ['手柄', '控制器', 'Gamepad', 'Controller']),

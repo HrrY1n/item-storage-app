@@ -25,8 +25,8 @@ const webpBasenames = new Set(
 )
 
 describe('PRESET_ICONS 元数据', () => {
-  it('图标库包含 218 个独立物品', () => {
-    expect(PRESET_ICONS.length).toBe(218)
+  it('图标库包含 220 个独立物品', () => {
+    expect(PRESET_ICONS.length).toBe(220)
   })
 
   it('key 唯一，且 path 与 key 一一对应', () => {
@@ -167,6 +167,20 @@ describe('图标检索', () => {
     for (const key of ['usb', 'dock', 'hdddock']) {
       expect(presetIconOfAssetId(`preset-${key}`)).toBeDefined()
     }
+  })
+
+  it('Pocket 云台相机与 Action 运动相机可分别检索，大疆可找到两者', () => {
+    for (const [key, queries] of [
+      ['djipocket', ['Pocket', 'DJI Pocket', 'Osmo Pocket', '大疆Pocket', '云台相机', '口袋相机']],
+      ['djiaction', ['Action', 'DJI Action', 'Osmo Action', '大疆Action', '运动相机', '运动摄像机']],
+    ] as const) {
+      expect(presetIconOfAssetId(`preset-${key}`)?.category).toBe('digital')
+      for (const query of queries) expect(searchIcons(query)[0]?.key, query).toBe(key)
+    }
+    expect(searchIcons('大疆').map((i) => i.key)).toEqual(['djipocket', 'djiaction'])
+    expect(searchIcons('DJI').map((i) => i.key)).toEqual(['djipocket', 'djiaction'])
+    expect(getIconPath('djipocket')).not.toBe(getIconPath('djiaction'))
+    expect(searchIcons('相机')[0]?.key).toBe('camera')
   })
 
   it('「电脑」是宽泛词，应同时覆盖多类设备', () => {
