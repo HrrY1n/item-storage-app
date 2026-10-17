@@ -1,6 +1,6 @@
 # Private Item Library
 
-当前版本：`0.2.1`。
+当前版本：`0.1.0`。
 
 一个本地优先的个人物品管理 PWA，用来记录、整理和追踪自己的物品。
 它支持分类、标签、搜索、购买与持有成本、保修和物品生命周期管理，并可在手机或桌面浏览器中离线使用。
@@ -21,7 +21,7 @@
 
 ## 界面预览
 
-以下为 0.2.0 的真实浏览器截图，使用隔离环境中的示例数据和 390×844 移动视口：
+以下为真实浏览器示例截图，使用隔离环境中的示例数据和 390×844 移动视口。部分截图来自历史构建；当前图标总览与分类说明见下文。
 
 <table>
   <tr>
@@ -53,6 +53,8 @@
 ### 图标库 2.0
 
 九类为数码、办公、服饰、生活、护理、厨房、家居、兴趣和其他，与用户自行管理的物品分类独立。支持「电脑」「笔记本」「iPad」「Mic Mini」等叫法；点击即更新表单预览，仍需正常保存物品。最近使用最多保留 8 个。
+
+提供无人机、手持稳定器、平板磁吸键盘、DJI Pocket、DJI Action 和 DJI Mic Mini 造型麦克风等独立图标。手机散热器采用白色机身、RGB 灯环的磁吸圆形款，支持「磁吸散热器」「RGB散热器」和「散热背夹」等搜索词。
 
 [查看 217 个图标总览](assets/item-icons/overview.webp) · [资源规范与生成记录](assets/item-icons/README.md) · [完整截图与更新验收报告](docs/icon-library-v2-audit.md)。图像使用内置生图工具，实际模型 ID 未公开；来源与提示词按实际情况记录。
 
@@ -97,7 +99,7 @@ npm run preview
 
 购买日期和指定到期日共用年月日弹层：调整只改草稿，点「确定」后才更新表单，取消会保留原值；物品仍需正常保存。编辑旧物品时保留原到期日，未填写的记录也不会自动补成一年。
 
-查看 0.2.1 的真实截图：[按月选择（浅色）](docs/screenshots/warranty/01-months-light.png)、[日期确认](docs/screenshots/warranty/02-date-confirm-light.png)、[深色主题](docs/screenshots/warranty/03-months-dark.png)、[转为持有](docs/screenshots/warranty/04-convert-light.png)。
+查看保修录入的浏览器截图：[按月选择（浅色）](docs/screenshots/warranty/01-months-light.png)、[日期确认](docs/screenshots/warranty/02-date-confirm-light.png)、[深色主题](docs/screenshots/warranty/03-months-dark.png)、[转为持有](docs/screenshots/warranty/04-convert-light.png)。
 
 ## Cloudflare 构建与预览
 
@@ -123,6 +125,17 @@ npm run preview
 - 云端同步默认关闭。开启后，应用通过自行配置的 Cloudflare Worker 与 D1 同步；D1 保存的是同步数据镜像，不是本地 IndexedDB 的替代品。
 - 恢复码包含连接同步空间所需的凭据，应像密码一样离线保管，不要提交到 Git、截图或公开聊天中。恢复码丢失且本机数据已清除时，无法重新认证原同步空间。
 - 关闭云同步不会删除本地业务数据；恢复码也不会写入 ZIP 备份。
+
+## 产品版本与历史标签
+
+当前产品版本为 `0.1.0`，在设置页显示，也写入新导出 ZIP 的 `exportVersion`。`src/appInfo.ts`、`package.json` 和 `package-lock.json` 的产品版本保持一致；IndexedDB、备份格式和同步协议使用各自独立的版本，见[架构说明](docs/architecture.md#1-运行边界与版本契约)。
+
+Git tag 固定指向打标签时的提交。后续更新 `main` 或调整产品版本号，都不会移动旧标签。以下两个 `1.x` 标签保留为历史快照；当前开发版本以 `main` 和本文件顶部说明为准。
+
+| 历史标签 | 创建日期 | 对应内容 |
+|---|---|---|
+| [v1.0.0](https://github.com/HrrY1n/item-storage-app/tree/v1.0.0) | 2026-10-07 | 当时标记的首个稳定版 |
+| [v1.0.1](https://github.com/HrrY1n/item-storage-app/tree/v1.0.1) | 2026-10-09 | PWA 离线冷启动与 App Shell 预缓存修复 |
 
 ## 开发文档
 
