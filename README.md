@@ -126,16 +126,11 @@ npm run preview
 - 恢复码包含连接同步空间所需的凭据，应像密码一样离线保管，不要提交到 Git、截图或公开聊天中。恢复码丢失且本机数据已清除时，无法重新认证原同步空间。
 - 关闭云同步不会删除本地业务数据；恢复码也不会写入 ZIP 备份。
 
-## 产品版本与历史标签
+## 产品版本与标签
 
 当前产品版本为 `0.1.0`，在设置页显示，也写入新导出 ZIP 的 `exportVersion`。`src/appInfo.ts`、`package.json` 和 `package-lock.json` 的产品版本保持一致；IndexedDB、备份格式和同步协议使用各自独立的版本，见[架构说明](docs/architecture.md#1-运行边界与版本契约)。
 
-Git tag 固定指向打标签时的提交。后续更新 `main` 或调整产品版本号，都不会移动旧标签。以下两个 `1.x` 标签保留为历史快照；当前开发版本以 `main` 和本文件顶部说明为准。
-
-| 历史标签 | 创建日期 | 对应内容 |
-|---|---|---|
-| [v1.0.0](https://github.com/HrrY1n/item-storage-app/tree/v1.0.0) | 2026-10-07 | 当时标记的首个稳定版 |
-| [v1.0.1](https://github.com/HrrY1n/item-storage-app/tree/v1.0.1) | 2026-10-09 | PWA 离线冷启动与 App Shell 预缓存修复 |
+当前版本标签为 [v0.1.0](https://github.com/HrrY1n/item-storage-app/tree/v0.1.0)，用于定位 `0.1.0` 版本的代码快照。开发更新位于 `main` 分支。
 
 ## 开发文档
 
