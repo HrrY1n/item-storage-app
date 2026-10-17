@@ -158,6 +158,23 @@ try {
   await query('领夹麦')
   check('新麦克风按别名搜索仍显示选中状态', await ev(`!!document.querySelector('button[aria-pressed="true"] img[alt="麦克风"]')`))
   await shot('10-new-icon-selected-light')
+  for (const [key, label, alias] of [
+    ['drone', '无人机', '航拍机'],
+    ['gimbal', '手持稳定器', '三轴云台'],
+    ['phonecooler', '手机散热器', '磁吸散热器'],
+  ]) {
+    await query(alias)
+    check(`${label}按别名找到独立图标`, await ev(`!!document.querySelector('img[alt="${label}"][src="/icons/items/${key}.webp"]')`))
+    const assetHash = await ev(`(async()=>{const bytes=await(await fetch('/icons/items/${key}.webp')).arrayBuffer();return [...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(byte=>byte.toString(16).padStart(2,'0')).join('')})()`)
+    check(`${label}实际图像与选定作品一致`, assetHash === icons.find(icon=>icon.key === key).outputSha256)
+    await ev(`document.querySelector('img[alt="${label}"]').closest('button').click()`)
+    await poll(`!document.querySelector('[role="dialog"]')`)
+    check(`${label}选择后更新预览且不直接保存物品`, await itemCount() === beforeCount && await ev(`!!document.querySelector('button img[src="/icons/items/${key}.webp"]')`))
+    await openPicker()
+    await query(alias)
+    check(`${label}重新打开后保持选中`, await ev(`!!document.querySelector('button[aria-pressed="true"] img[alt="${label}"]')`))
+  }
+  await shot('11-phonecooler-selected-light')
   await query('zzzz-not-an-icon')
   check('无匹配有简洁空状态和零匹配数', await ev(`document.querySelector('[data-icon-browser]').textContent.includes('没有找到') && document.querySelector('[role="status"]').textContent.includes('0')`))
   await shot('05-empty-light')
@@ -177,6 +194,9 @@ try {
   await shot('08-library-dark')
   await query('DJI Mic Mini')
   check('设置页复用关键词搜索', await ev(`!!document.querySelector('img[alt="麦克风"]')`))
+  await query('RGB散热器')
+  check('RGB散热器在设置图标库中可搜索', await ev(`!!document.querySelector('img[alt="手机散热器"]')`))
+  await shot('12-phonecooler-dark')
   await poll(`!!navigator.serviceWorker.controller`)
   await send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 })
   const assetErrors = await ev(`(async()=>{const errors=[];for(const key of ${JSON.stringify(icons.map((icon) => icon.key))}){try{const i=new Image();i.src='/icons/items/'+key+'.webp';await i.decode();if(i.naturalWidth!==768||i.naturalHeight!==768)errors.push(key+':size');const c=document.createElement('canvas');c.width=c.height=1;const x=c.getContext('2d');x.drawImage(i,0,0,1,1,0,0,1,1);if(x.getImageData(0,0,1,1).data[3]!==0)errors.push(key+':alpha')}catch{errors.push(key+':decode')}}return errors})()`)

@@ -21,6 +21,9 @@ describe('默认物品分类', () => {
     const groups = DEFAULT_CATEGORY_TREE.flatMap((root) => root.children)
     expect(groups.find((child) => child.iconKeys.includes('djipocket'))?.name).toBe('摄影摄像')
     expect(groups.find((child) => child.iconKeys.includes('djiaction'))?.name).toBe('摄影摄像')
+    expect(groups.find((child) => child.iconKeys.includes('drone'))?.name).toBe('摄影摄像')
+    expect(groups.find((child) => child.iconKeys.includes('gimbal'))?.name).toBe('摄影摄像')
+    expect(groups.find((child) => child.iconKeys.includes('phonecooler'))?.name).toBe('手机与平板')
     expect(groups.find((child) => child.iconKeys.includes('dockingstation'))?.name).toBe('配件与线材')
     expect(groups.find((child) => child.iconKeys.includes('tabletkeyboard'))?.name).toBe('键鼠与输入设备')
     for (const key of ['airfryer', 'cleanser', 'dumbbell', 'bed', 'puzzle']) {

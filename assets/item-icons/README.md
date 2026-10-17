@@ -1,12 +1,12 @@
 # Item icon artwork
 
-The library contains 214 keys in `src/data/icons.ts`. All nine category IDs are unchanged. The unused USB hub, HDMI adapter and card reader options have been consolidated into one docking station; retained `preset-<key>` IDs are preserved. Six unused digital accessories have also been retired at the user's request. The suggested miscellaneous icon duplicates the existing generic icon and was omitted.
+The library contains 217 keys in `src/data/icons.ts`. All nine category IDs are unchanged. The unused USB hub, HDMI adapter and card reader options have been consolidated into one docking station; retained `preset-<key>` IDs are preserved. Six unused digital accessories have also been retired at the user's request. The suggested miscellaneous icon duplicates the existing generic icon and was omitted.
 
 The artwork uses the Codex built-in ImageGen tool. The original request named `gpt-image-2.5-sunburst`; the user then clarified that they wanted the built-in image generation tool, not a separate API call. That tool exposes neither a model selector nor an actual model ID. The new records therefore use `actualModelId: null`; these assets must not be described as verified GPT Image 2.5 output. No separately billed API calls were made. This batch used 63 generation calls and one edit to remove printed text from the cleanser tube.
 
 `prompts.json` records the shared art direction, exact per-item generation/edit prompts, and final source-image filenames. The style is a refined miniature product illustration with realistic materials, soft studio lighting, a transparent background, and no brand marks or captions.
 
-The app-ready files are transparent 768 × 768 WebP images in `public/icons/items/`, encoded at quality 90 with full alpha quality. New images are trimmed and fitted to a 600px maximum dimension (78.125% of the canvas), with transparent margins. All new outputs passed real-alpha checks and visual review on light/dark backgrounds, including 40px thumbnails. [View all 214 icons](overview.webp) or [compare the first 12 additions with existing icons](comparison-first-12.webp).
+The app-ready files are transparent 768 × 768 WebP images in `public/icons/items/`, encoded at quality 90 with full alpha quality. New images are trimmed and fitted to a 600px maximum dimension (78.125% of the canvas), with transparent margins. All new outputs passed real-alpha checks and visual review on light/dark backgrounds, including 40px thumbnails. [View all 217 icons](overview.webp) or [compare the first 12 additions with existing icons](comparison-first-12.webp).
 
 The `tabletkeyboard` addition uses one built-in ImageGen generation with the same visual style. Its original and generation record are retained under `.tmp/tablet-keyboard/`. The icon shows an empty magnetic mounting panel with a camera opening, a keyboard and a trackpad; search aliases include 磁吸键盘, 平板键盘, 妙控键盘 and Magic Keyboard.
 
@@ -19,5 +19,7 @@ The `djipocket` and `djiaction` additions show a handheld gimbal camera and a co
 The `microphone` artwork now depicts a compact black DJI Mic Mini transmitter, keeping its existing key and label. It used one built-in ImageGen edit, with exact prompt, official shape reference and checksums in `prompts.json`; originals and the previous artwork are retained under `.tmp/mic-mini-cleanup/`. Search includes DJI Mic Mini, Mic Mini, 领夹麦 and 无线麦克风.
 
 The unused `screenprotector`, `battery`, `hdddock`, `cableorganizer`, `powerstrip` and `wristrest` entries were removed from active artwork, taxonomy membership, WebP/SVG files and legacy generator definitions. Their source filenames and output checksums remain in the retirement batch, with the previous commit as the historical reference. Existing business rows and sync queues are not changed by this artwork cleanup.
+
+The `drone`, `gimbal` and `phonecooler` additions show an unfolded aerial photography drone, a handheld three-axis camera stabilizer with an empty mount, and a white magnetic smartphone cooler with a confined RGB light ring. The cooler has no clamp arms; search also accepts 手机散热背夹, 磁吸散热器 and RGB散热器. They belong to existing 摄影摄像 and 手机与平板 business categories. Exact generation/edit prompts, selected source filenames, checksums and rejected drone cleanup attempt are retained in `prompts.json`; local originals are under `.tmp/camera-cooling/`.
 
 The remaining SVG artwork stays available for historical stored paths. Retained `preset-<key>` IDs remain stable; artwork changes must never require clearing user data.

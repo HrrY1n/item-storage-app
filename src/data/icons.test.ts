@@ -25,8 +25,8 @@ const webpBasenames = new Set(
 )
 
 describe('PRESET_ICONS 元数据', () => {
-  it('图标库包含 214 个独立物品', () => {
-    expect(PRESET_ICONS.length).toBe(214)
+  it('图标库包含 217 个独立物品', () => {
+    expect(PRESET_ICONS.length).toBe(217)
   })
 
   it('key 唯一，且 path 与 key 一一对应', () => {
@@ -187,6 +187,25 @@ describe('图标检索', () => {
     for (const query of ['DJI Mic Mini', 'Mic Mini', '大疆 Mic Mini', '领夹麦', '无线麦克风', '话筒']) {
       expect(searchIcons(query)[0]?.key, query).toBe('microphone')
     }
+  })
+
+  it('无人机、稳定器和磁吸手机散热器可分别搜索并选择', () => {
+    const added = [
+      ['drone', '无人机', ['无人机', '航拍机', '四旋翼', 'Drone', 'UAV']],
+      ['gimbal', '手持稳定器', ['手持稳定器', '相机稳定器', '三轴云台', 'Gimbal', 'Stabilizer']],
+      ['phonecooler', '手机散热器', ['手机散热器', '手机散热背夹', '散热背夹', '磁吸散热器', 'RGB散热器', 'Magnetic Phone Cooler']],
+    ] as const
+    const paths = []
+    for (const [key, label, queries] of added) {
+      const preset = presetIconOfAssetId(`preset-${key}`)
+      expect(preset?.label).toBe(label)
+      expect(preset?.category).toBe('digital')
+      paths.push(preset?.path)
+      for (const query of queries) expect(searchIcons(query)[0]?.key, query).toBe(key)
+    }
+    expect(new Set(paths).size).toBe(3)
+    expect(paths).not.toContain(getIconPath('djipocket'))
+    expect(paths).not.toContain(getIconPath('phone'))
   })
 
   it('六种不记录的数码附件不再出现在图标库或搜索中', () => {

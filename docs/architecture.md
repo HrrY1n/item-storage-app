@@ -64,7 +64,7 @@ Local-first invariant：保存、编辑和删除先提交 IndexedDB；网络失�
 
 ### 默认分类更新
 
-`src/data/categories.ts` 是默认物品分类的唯一来源：7 个一级、49 个二级，214 个图标各有一个类型归属。它与 `src/data/icons.ts` 中用于素材浏览的九类分组独立。分类封面复用已存在的物品图标。
+`src/data/categories.ts` 是默认物品分类的唯一来源：7 个一级、49 个二级，217 个图标各有一个类型归属。它与 `src/data/icons.ts` 中用于素材浏览的九类分组独立。分类封面复用已存在的物品图标。
 
 首次安装由 `seedIfEmpty` 写入完整树；旧库在 Boot 中调用 `upgradeDefaultCategories`。升级与分类 outbox 在同一事务提交，提交后才通知同步。既有分类 ID、createdAt、物品归属和自定义排序保留；仅旧默认名称对应改为新名称，为缺少封面的分类补图。新增分类采用稳定 ID，不复活 tombstone，也不重建被用户改名或移除的旧二级分类。只有未经调整的旧默认根顺序会按新版顺序排列。
 

@@ -23,12 +23,12 @@ export interface DefaultCategoryRoot {
 export const DEFAULT_CATEGORY_TREE: DefaultCategoryRoot[] = [
   { key: "digital", name: "数码与电子", iconKey: "laptop", legacyName: "数码与电子", legacyIconKey: "laptop", children: [
     { name: "电脑设备", iconKeys: ["laptop","desktop","monitor","ram","graphicscard","laptopstand","monitorarm"], legacyName: "电脑设备" },
-    { name: "手机与平板", iconKeys: ["phone","tablet","stylus","phonecase","tabletcase"], legacyName: "手机与平板" },
+    { name: "手机与平板", iconKeys: ["phone","tablet","stylus","phonecase","phonecooler","tabletcase"], legacyName: "手机与平板" },
     { name: "音频设备", iconKeys: ["earbuds","headphones","speaker","microphone","earbudcase","recorder"], legacyName: "音频设备" },
     { name: "存储设备", iconKeys: ["hdd","usb","sdcard","nas"], legacyName: "存储设备" },
     { name: "配件与线材", iconKeys: ["charger","powerbank","cable","dock","wirelesscharger","dockingstation"], legacyName: "配件与线材" },
     { name: "键鼠与输入设备", iconKeys: ["keyboard","tabletkeyboard","mouse","trackpad","mousepad"] },
-    { name: "摄影摄像", iconKeys: ["camera","djipocket","djiaction","lens","webcam","lightring","tripod"] },
+    { name: "摄影摄像", iconKeys: ["camera","djipocket","djiaction","drone","gimbal","lens","webcam","lightring","tripod"] },
     { name: "游戏设备", iconKeys: ["gameconsole","gamepad","handheld","vrmask"] },
     { name: "网络与智能设备", iconKeys: ["router","netcable","netswitch","opticalmodem","smartplug"] },
     { name: "智能穿戴", iconKeys: ["smartwatch","band"] },

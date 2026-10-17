@@ -71,6 +71,8 @@ export const PRESET_ICONS: PresetIcon[] = [
   icon('camera', '相机', 'digital', ['照相机', '单反', '微单', '相机', 'Camera']),
   icon('djipocket', 'DJI Pocket 云台相机', 'digital', ['Pocket', 'DJI Pocket', 'Osmo Pocket', 'DJI Osmo Pocket', '大疆', '大疆 Pocket', '大疆Pocket', '口袋相机', '云台相机', '手持云台相机', '手持相机', 'Vlog 相机', 'Gimbal Camera', 'Pocket Camera']),
   icon('djiaction', 'DJI Action 运动相机', 'digital', ['Action', 'DJI Action', 'Osmo Action', 'DJI Osmo Action', '大疆', '大疆 Action', '大疆Action', '运动相机', '运动摄像机', '户外相机', '防水相机', 'Action Camera']),
+  icon('drone', '无人机', 'digital', ['航拍机', '四旋翼', '四轴飞行器', 'Drone', 'UAV', 'Quadcopter']),
+  icon('gimbal', '手持稳定器', 'digital', ['稳定器', '相机稳定器', '手持云台', '三轴稳定器', '三轴云台', '摄影云台', 'Gimbal', 'Camera Gimbal', 'Stabilizer']),
   icon('lens', '镜头', 'digital', ['镜头', '定焦', '变焦', 'Lens']),
   icon('gameconsole', '游戏机', 'digital', ['主机', 'Switch', 'PS5', '掌机', '游戏机', 'PlayStation']),
   icon('gamepad', '游戏手柄', 'digital', ['手柄', '控制器', 'Gamepad', 'Controller']),
@@ -146,6 +148,7 @@ export const PRESET_ICONS: PresetIcon[] = [
   // ---------------------------------------------------- Phase 2G 新增：数码及配件
   icon('stylus', '触控笔', 'digital', ['触控笔', '手写笔', '电容笔', 'Apple Pencil', '数位笔', 'Stylus']),
   icon('phonecase', '手机壳', 'digital', ['手机壳', '保护壳', '手机套', '壳', 'Case']),
+  icon('phonecooler', '手机散热器', 'digital', ['手机散热背夹', '散热器', '手机散热器', '散热背夹', '磁吸散热器', '磁吸散热背夹', '磁吸散热', '白色散热器', 'RGB散热器', '半导体散热器', '手机降温', 'Phone Cooler', 'Magnetic Phone Cooler', 'RGB Cooler', 'Cooling Fan']),
   icon('tabletcase', '平板保护壳', 'digital', ['平板壳', '保护套', '平板保护壳', 'iPad 壳', '平板外套']),
   icon('earbudcase', '耳机盒', 'digital', ['耳机盒', '充电盒', 'AirPods 盒', '收纳盒']),
   icon('dock', '充电底座', 'digital', ['底座', '充电座', '支架底座', 'Dock', '充电支架']),
