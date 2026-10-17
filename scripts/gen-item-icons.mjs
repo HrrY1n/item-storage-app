@@ -699,18 +699,9 @@ const ICONS = [
 <path d="M42 22h26M42 56h26" stroke="${M}" stroke-width="3"/>
 <circle cx="68" cy="25" r="2.4" fill="${G}" stroke="none"/>
 <circle cx="68" cy="59" r="2.4" fill="${M}" stroke="none"/>` },
-  { key: 'hdddock', label: '硬盘盒', body: `
-<rect x="30" y="14" width="36" height="34" rx="5" fill="${W}"/>
-<path d="M36 22h24M36 30h24" stroke="${M}" stroke-width="3"/>
-<rect x="18" y="46" width="60" height="34" rx="8" fill="${C2}"/>
-<circle cx="66" cy="63" r="3.4" fill="${C1}" stroke-width="2.6"/>
-<path d="M28 63h24" stroke="${M}" stroke-width="3"/>` },
   { key: 'mousepad', label: '鼠标垫', body: `
 <rect x="10" y="28" width="76" height="42" rx="9" fill="${C3}"/>
 <rect x="17" y="35" width="62" height="28" rx="5" fill="none" stroke="${W}" stroke-width="2.6" stroke-dasharray="5 5"/>` },
-  { key: 'wristrest', label: '键盘腕托', body: `
-<path d="M18 40h60a8 8 0 0 1 8 8v8a12 12 0 0 1-12 12H22a12 12 0 0 1-12-12v-8a8 8 0 0 1 8-8z" fill="${C3}"/>
-<path d="M22 50h52" stroke="${W}" stroke-width="3"/>` },
   { key: 'webcam', label: '摄像头', body: `
 <rect x="16" y="26" width="64" height="28" rx="14" fill="${C2}"/>
 <circle cx="48" cy="40" r="10" fill="${C1}"/>
@@ -757,34 +748,6 @@ const ICONS = [
 <ellipse cx="64" cy="48" rx="13" ry="12" fill="${C1}"/>
 <path d="M45 48h6" stroke-width="3"/>
 <path d="M24 30l-6-8M72 30l6-8" stroke-width="3"/>` },
-  { key: 'battery', label: '充电电池', body: `
-<rect x="22" y="26" width="20" height="54" rx="7" fill="${C2}"/>
-<rect x="28" y="17" width="8" height="9" rx="2.5" fill="${C2}"/>
-<rect x="54" y="26" width="20" height="54" rx="7" fill="${C1}"/>
-<rect x="60" y="17" width="8" height="9" rx="2.5" fill="${C1}"/>
-<path d="M28 45h8M60 45h8" stroke-width="2.8"/>
-<path d="M47 39l-5 14h7l-3 12 10-16h-7l4-10z" fill="${R}" stroke-width="2.2"/>` },
-  { key: 'powerstrip', label: '插线板', body: `
-<rect x="8" y="30" width="80" height="36" rx="8" fill="${C2}"/>
-<g fill="${W}" stroke-width="2.4">
-<rect x="15" y="38" width="17" height="18" rx="5"/>
-<rect x="39" y="38" width="17" height="18" rx="5"/>
-<rect x="63" y="38" width="17" height="18" rx="5"/>
-</g>
-<g stroke="${M}" stroke-width="2.4">
-<path d="M20 44v6M27 44v6M44 44v6M51 44v6M68 44v6M75 44v6"/>
-</g>
-<circle cx="48" cy="73" r="3" fill="${C3}" stroke="none"/>` },
-  { key: 'cableorganizer', label: '理线器', body: `
-<path d="M14 39h68v26a8 8 0 0 1-8 8H22a8 8 0 0 1-8-8z" fill="${C3}"/>
-<path d="M25 64V48a6 6 0 0 1 12 0v16" fill="none" stroke="${W}" stroke-width="6"/>
-<path d="M53 64V48a6 6 0 0 1 12 0v16" fill="none" stroke="${W}" stroke-width="6"/>
-<path d="M31 48V29M59 48V25" stroke="${C1}" stroke-width="4.5"/>
-<path d="M31 29h7M59 25h7" stroke="${C4}" stroke-width="4.5"/>` },
-  { key: 'screenprotector', label: '屏幕保护膜', body: `
-<path d="M28 10h40a4 4 0 0 1 4 4v68a4 4 0 0 1-4 4H28a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" fill="${C1}"/>
-<path d="M72 74 56 86h16z" fill="${W}" stroke-width="2.6"/>
-<path d="M36 32l12-12M40 44l18-18" stroke="${W}" stroke-width="3"/>` },
   { key: 'labelprinter', label: '标签打印机', body: `
 <rect x="12" y="24" width="72" height="44" rx="10" fill="${W}"/>
 <rect x="22" y="34" width="52" height="18" rx="4" fill="${C2}" stroke-width="2.6"/>

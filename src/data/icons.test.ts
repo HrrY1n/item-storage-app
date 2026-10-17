@@ -25,8 +25,8 @@ const webpBasenames = new Set(
 )
 
 describe('PRESET_ICONS 元数据', () => {
-  it('图标库包含 220 个独立物品', () => {
-    expect(PRESET_ICONS.length).toBe(220)
+  it('图标库包含 214 个独立物品', () => {
+    expect(PRESET_ICONS.length).toBe(214)
   })
 
   it('key 唯一，且 path 与 key 一一对应', () => {
@@ -140,7 +140,6 @@ describe('图标检索', () => {
     expect(searchIcons('空气炸锅').map((i) => i.key)).toContain('airfryer')
     expect(searchIcons('哑铃').map((i) => i.key)).toContain('dumbbell')
     expect(searchIcons('帐篷').map((i) => i.key)).toContain('tent')
-    expect(searchIcons('插线板').map((i) => i.key)).toContain('powerstrip')
     expect(searchIcons('螺丝刀').map((i) => i.key)).toContain('screwdriver')
   })
 
@@ -164,12 +163,12 @@ describe('图标检索', () => {
     for (const query of ['拓展坞', '扩展坞', 'USB 集线器', 'HDMI 转接器', 'HDMI', '读卡器', 'Docking Station', 'USB-C Hub']) {
       expect(searchIcons(query)[0]?.key, query).toBe('dockingstation')
     }
-    for (const key of ['usb', 'dock', 'hdddock']) {
+    for (const key of ['usb', 'dock']) {
       expect(presetIconOfAssetId(`preset-${key}`)).toBeDefined()
     }
   })
 
-  it('Pocket 云台相机与 Action 运动相机可分别检索，大疆可找到两者', () => {
+  it('Pocket 云台相机与 Action 运动相机可分别检索，大疆可找到相关设备', () => {
     for (const [key, queries] of [
       ['djipocket', ['Pocket', 'DJI Pocket', 'Osmo Pocket', '大疆Pocket', '云台相机', '口袋相机']],
       ['djiaction', ['Action', 'DJI Action', 'Osmo Action', '大疆Action', '运动相机', '运动摄像机']],
@@ -177,10 +176,27 @@ describe('图标检索', () => {
       expect(presetIconOfAssetId(`preset-${key}`)?.category).toBe('digital')
       for (const query of queries) expect(searchIcons(query)[0]?.key, query).toBe(key)
     }
-    expect(searchIcons('大疆').map((i) => i.key)).toEqual(['djipocket', 'djiaction'])
-    expect(searchIcons('DJI').map((i) => i.key)).toEqual(['djipocket', 'djiaction'])
+    expect(searchIcons('大疆').map((i) => i.key)).toEqual(['djipocket', 'djiaction', 'microphone'])
+    expect(searchIcons('DJI').map((i) => i.key)).toEqual(['djipocket', 'djiaction', 'microphone'])
     expect(getIconPath('djipocket')).not.toBe(getIconPath('djiaction'))
     expect(searchIcons('相机')[0]?.key).toBe('camera')
+  })
+
+  it('DJI Mic Mini 和领夹/无线麦别名复用稳定的麦克风图标', () => {
+    expect(presetIconOfAssetId('preset-microphone')?.path).toBe('/icons/items/microphone.webp')
+    for (const query of ['DJI Mic Mini', 'Mic Mini', '大疆 Mic Mini', '领夹麦', '无线麦克风', '话筒']) {
+      expect(searchIcons(query)[0]?.key, query).toBe('microphone')
+    }
+  })
+
+  it('六种不记录的数码附件不再出现在图标库或搜索中', () => {
+    for (const [key, label] of [
+      ['screenprotector', '屏幕保护膜'], ['battery', '充电电池'], ['hdddock', '硬盘盒'],
+      ['cableorganizer', '理线器'], ['powerstrip', '插线板'], ['wristrest', '键盘腕托'],
+    ]) {
+      expect(presetIconOfAssetId(`preset-${key}`), label).toBeUndefined()
+      expect(searchIcons(label), label).toEqual([])
+    }
   })
 
   it('「电脑」是宽泛词，应同时覆盖多类设备', () => {
@@ -206,7 +222,7 @@ describe('图标检索', () => {
   })
 
   it('常见简称、英文及品牌名优先返回相关设备', () => {
-    expect(searchIcons('插排')[0].key).toBe('powerstrip')
+    expect(searchIcons('Mic Mini')[0].key).toBe('microphone')
     expect(searchIcons('iPad')[0].key).toBe('tablet')
     expect(searchIcons('laptop')[0].key).toBe('laptop')
     expect(searchIcons('  IPAD  ')).toEqual(searchIcons('ipad'))
