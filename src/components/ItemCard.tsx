@@ -1,3 +1,4 @@
+import { useId, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import TagChip from './TagChip'
 import { DisposalChip, DisposalOverlay, FINANCE_TONES, StatusChip } from './StatusChip'
@@ -167,9 +168,8 @@ export function DisposalBadge({
 /**
  * ItemCard：档案册中的一条物品条目。
  *
- * 结构固定为「图版 → 名称 → 副标题 → ≤2 个标签 → 指标（+ 财务行）」，
- * 不出现 ID / 时间 / 备注 / 按钮。
- * 整卡 flex-col + 指标行 mt-auto：同一行内多张卡片等高，指标始终贴底对齐。
+ * 结构为「图版 → 名称 → 副标题 → ≤2 个标签 → 可收起的指标（+ 财务行）」。
+ * 明细默认收起，保修点阵始终可见；展开按钮独立于导航链接，避免嵌套交互元素。
  *
  * 处置态的全部差异都来自 `itemPresentation(item)`（唯一展示模型）：
  * - 图区左上方法徽标（已售出 / 已丢弃 / 其他处置 / 已处置兜底）
@@ -190,57 +190,87 @@ export default function ItemCard({
   summary = false,
 }: Props) {
   const navigate = useNavigate()
+  const [expanded, setExpanded] = useState(false)
+  const detailsId = useId()
   const p = itemPresentation(item, { today, categoryName })
   const cells: PresentationMetric[] = p.metrics
+  const hasDetails = !summary && (cells.length > 0 || p.finance !== null)
 
   return (
-    <Link
-      to={to}
-      onClick={(event) => {
-        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !supportsViewTransition()) return
-        event.preventDefault()
-        const plate = event.currentTarget.querySelector<HTMLElement>('[data-object-plate]')
-        navigateWithViewTransition(
-          () => navigate(to),
-          () => { if (plate) plate.style.viewTransitionName = SHARED_OBJECT_NAME },
-          () => { if (plate) plate.style.viewTransitionName = '' },
-        )
-      }}
-      className={`item-card group flex h-full flex-col overflow-hidden rounded-surface border border-line bg-surface active:bg-surface-sunken ${className}`}
-    >
-      <div className="relative">
-        <ObjectPlate
-          src={iconUrl}
-          alt={name}
-          className="item-art aspect-[4/3] w-full shrink-0"
-        />
-        {/* 处置方法徽标：图区左上。pointer-events-none，不影响整卡点击。 */}
-        {p.badge !== null && (
-          <span className="absolute left-2 top-2">
-            <DisposalChip method={p.badge} size="sm" />
+    <article className={`relative min-w-0 ${summary ? 'h-full' : 'self-start'}`} data-item-card="" data-expanded={expanded}>
+      <Link
+        to={to}
+        aria-label={`查看${name}详情`}
+        onClick={(event) => {
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !supportsViewTransition()) return
+          event.preventDefault()
+          const plate = event.currentTarget.querySelector<HTMLElement>('[data-object-plate]')
+          navigateWithViewTransition(
+            () => navigate(to),
+            () => { if (plate) plate.style.viewTransitionName = SHARED_OBJECT_NAME },
+            () => { if (plate) plate.style.viewTransitionName = '' },
+          )
+        }}
+        className={`item-card group flex h-full flex-col overflow-hidden rounded-surface border border-line bg-surface active:bg-surface-sunken ${className}`}
+      >
+        <div className="relative">
+          <ObjectPlate
+            src={iconUrl}
+            alt={name}
+            className="item-art aspect-[4/3] w-full shrink-0"
+          />
+          {/* 处置方法徽标：图区左上。pointer-events-none，不影响整卡点击。 */}
+          {p.badge !== null && (
+            <span className="absolute left-2 top-2">
+              <DisposalChip method={p.badge} size="sm" />
+            </span>
+          )}
+          {statusOf(item) === 'wishlist' && (
+            <span className="absolute left-2.5 top-2.5"><StatusChip status="wishlist" size="sm" /></span>
+          )}
+          {/* 图片结果 overlay：仅出售。物品图标保持 opacity 1，不灰化 / 不加叉。 */}
+          {p.overlay !== null && <DisposalOverlay text={p.overlay} />}
+        </div>
+        <div className="flex flex-1 flex-col p-3 sm:p-3.5">
+          {/* 名称允许两行：档案册里"物品叫什么"比整齐的单行截断更重要 */}
+          <p className="line-clamp-2 min-h-[42px] text-item text-ink-primary">{name}</p>
+          <p className="mt-0.5 truncate text-caption text-ink-tertiary">{p.subtitle}</p>
+          {tagNames.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {tagNames.slice(0, 2).map((t) => (
+                <TagChip key={t} name={t} size="sm" />
+              ))}
+            </div>
+          )}
+          {hasDetails && (
+            <div id={detailsId} className="item-card-details" data-expanded={expanded} aria-hidden={!expanded}>
+              <div className="min-h-0 overflow-hidden">
+                <div className="pt-3">
+                  {cells.length > 0 && <MetricRow cells={cells} />}
+                  {p.finance !== null && <FinanceLine grossText={p.grossText} finance={p.finance} />}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        {!summary && statusOf(item) === 'owned' && item.warrantyExpiresAt !== null && <WarrantyStrip item={item} today={today} />}
+      </Link>
+      {hasDetails && (
+        <button
+          type="button"
+          className="item-card-toggle absolute right-1 top-1 flex h-11 w-11 items-center justify-center rounded-pill text-ink-secondary transition-colors hover:text-accent active:text-accent"
+          aria-expanded={expanded}
+          aria-controls={detailsId}
+          aria-label={`${expanded ? '收起' : '展开'}${name}的详细信息`}
+          onClick={() => setExpanded(value => !value)}
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-pill border border-line bg-chrome backdrop-blur-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </span>
-        )}
-        {statusOf(item) === 'wishlist' && (
-          <span className="absolute left-2.5 top-2.5"><StatusChip status="wishlist" size="sm" /></span>
-        )}
-        {/* 图片结果 overlay：仅出售。物品图标保持 opacity 1，不灰化 / 不加叉。 */}
-        {p.overlay !== null && <DisposalOverlay text={p.overlay} />}
-      </div>
-      <div className="flex flex-1 flex-col p-3 sm:p-3.5">
-        {/* 名称允许两行：档案册里"物品叫什么"比整齐的单行截断更重要 */}
-        <p className="line-clamp-2 min-h-[42px] text-item text-ink-primary">{name}</p>
-        <p className="mt-0.5 truncate text-caption text-ink-tertiary">{p.subtitle}</p>
-        {tagNames.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            {tagNames.slice(0, 2).map((t) => (
-              <TagChip key={t} name={t} size="sm" />
-            ))}
-          </div>
-        )}
-        {!summary && cells.length > 0 && <div className="mt-auto pt-3"><MetricRow cells={cells} /></div>}
-        {!summary && p.finance !== null && <FinanceLine grossText={p.grossText} finance={p.finance} />}
-      </div>
-      {!summary && statusOf(item) === 'owned' && item.warrantyExpiresAt !== null && <WarrantyStrip item={item} today={today} />}
-    </Link>
+        </button>
+      )}
+    </article>
   )
 }

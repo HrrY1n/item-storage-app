@@ -81,8 +81,37 @@
         "height": 844,
         "deviceScaleFactor": 2
       },
-      "bytes": 487623,
-      "sha256": "59f76ac602bba3b7c72267b1d029ae7400f023723bf42bea2b9b4a4556951e15"
+      "bytes": 516061,
+      "sha256": "adf2927fd5a887e2f5ed7f668cf73d4205b83e55230f17f8cdd4fad1c3eb825d",
+      "capturedAt": "2026-10-19T11:44:02.160Z",
+      "sourceCommit": "d2d5c349e007e0e54881cff5e6e50c55d7d46717",
+      "sourceWorkingTree": "Includes uncommitted UI changes; exact source file SHA-256 values are recorded below.",
+      "sourceFilesSha256": {
+        "src/components/ItemCard.tsx": "0d407091ac81c283d733caecd5d7a99139b0d36c1952cd4bfc0695c43e1295e5",
+        "src/components/WarrantyStrip.tsx": "cf0efb557d8f8392ada592bebf4a365888a937c73c482d451e2959ebc243635a",
+        "src/index.css": "7d3a7286e065369b4994e3ca1c25a17312e4dd1343061025f598d001f3d9f93c"
+      },
+      "checks": [
+        "Fresh disposable context starts empty",
+        "Existing demo data seeded",
+        "Current taxonomy and artwork counts",
+        "Only isolated sample records are used",
+        "Only the first sample card is expanded",
+        "Warranty stays visible in both disclosure states",
+        "02-items-light.png: correct theme",
+        "02-items-light.png: no horizontal overflow",
+        "02-items-light.png: visible images decoded",
+        "mobile-items-dark.png: correct theme",
+        "mobile-items-dark.png: no horizontal overflow",
+        "mobile-items-dark.png: visible images decoded",
+        "desktop-items-dark.png: correct theme",
+        "desktop-items-dark.png: no horizontal overflow",
+        "desktop-items-dark.png: visible images decoded",
+        "desktop-items-dark.png: wide desktop layout",
+        "Captures preserve all sample records and pending local writes",
+        "No uncaught runtime errors"
+      ],
+      "errors": []
     },
     {
       "file": "03-detail-light.png",
@@ -576,5 +605,7 @@
     "Captures preserve all sample records and pending local writes",
     "No uncaught runtime errors"
   ],
-  "errors": []
+  "errors": [],
+  "updatedAt": "2026-10-19T11:44:02.160Z",
+  "updateNote": "Only 02-items-light.png was refreshed for the dotted warranty strip and independent card disclosure. Other captures retain their original capturedAt/sourceCommit provenance."
 }

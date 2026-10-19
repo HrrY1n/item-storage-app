@@ -88,9 +88,10 @@ try {
     })()`))
     await pause(350)
   }
-  const key = async (name, code) => {
-    await page.send('Input.dispatchKeyEvent', { type: 'keyDown', key: name, code: name, windowsVirtualKeyCode: code })
-    await page.send('Input.dispatchKeyEvent', { type: 'keyUp', key: name, code: name, windowsVirtualKeyCode: code })
+  const key = async (name, code, physicalCode = name) => {
+    const text = name === 'Enter' ? '\r' : name === ' ' ? ' ' : undefined
+    await page.send('Input.dispatchKeyEvent', { type: 'keyDown', key: name, code: physicalCode, windowsVirtualKeyCode: code, text, unmodifiedText: text })
+    await page.send('Input.dispatchKeyEvent', { type: 'keyUp', key: name, code: physicalCode, windowsVirtualKeyCode: code })
     await pause(100)
   }
   const shot = async name => {
@@ -111,13 +112,47 @@ try {
 
   await nav('/items')
   check('All fourteen owned items are visible', await evaluate(`document.querySelectorAll('main .item-card').length === 14`))
-  check('Financial labels remain fully readable in narrow cards', await evaluate(`
-    [...document.querySelectorAll('.item-card p')].filter(p => ['持有天数','总投入','日均成本'].includes(p.textContent)).every(p => p.scrollWidth <= p.clientWidth + 1)
+  check('Each detailed card starts collapsed with its own accessible control', await evaluate(`
+    [...document.querySelectorAll('[data-item-card]')].every(card => {
+      const button = card.querySelector('.item-card-toggle');
+      const panel = document.getElementById(button.getAttribute('aria-controls'));
+      return button.getAttribute('aria-expanded') === 'false' && !button.closest('a') && panel.getAttribute('aria-hidden') === 'true' && panel.getBoundingClientRect().height === 0;
+    })
   `))
+  check('Every visible warranty keeps twelve dots and a real remaining percentage', await evaluate(`
+    [...document.querySelectorAll('[data-warranty-strip]')].length > 0 && [...document.querySelectorAll('[data-warranty-strip]')].every(strip =>
+      strip.querySelectorAll('[data-warranty-dot]').length === 12 && strip.getBoundingClientRect().height > 30 && Number.isFinite(Number(strip.querySelector('[role="progressbar"]').getAttribute('aria-valuenow'))))
+  `))
+  await shot('mobile-cards-collapsed')
+  const collapsedHeights = await evaluate(`[...document.querySelectorAll('[data-item-card]')].map(card => card.getBoundingClientRect().height)`)
+  const disclosure = await evaluate(`(() => { const r = document.querySelector('.item-card-toggle').getBoundingClientRect(); return {x: r.x + r.width / 2, y: r.y + r.height / 2, width: r.width, height: r.height}; })()`)
+  check('Disclosure meets a 44px touch target', disclosure.width >= 44 && disclosure.height >= 44)
+  await page.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, x: disclosure.x, y: disclosure.y })
+  await page.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, x: disclosure.x, y: disclosure.y })
+  await pause(300)
+  check('Touching disclosure opens only that card without navigating', await evaluate(`location.pathname === '/items' && document.querySelectorAll('[data-item-card][data-expanded="true"]').length === 1 && document.querySelector('.item-card-toggle').getAttribute('aria-expanded') === 'true'`))
+  check('Opening one card leaves neighbouring card heights unchanged', await evaluate(`JSON.stringify([...document.querySelectorAll('[data-item-card]')].slice(1).map(card => card.getBoundingClientRect().height)) === ${JSON.stringify(JSON.stringify(collapsedHeights.slice(1)))}`))
+  check('Expanded financial labels and values remain readable in narrow cards', await evaluate(`(() => {
+    const card = document.querySelector('[data-item-card][data-expanded="true"]');
+    const labels = [...card.querySelectorAll('p')].filter(p => ['持有天数','总投入','日均成本'].includes(p.textContent));
+    return labels.length === 3 && labels.every(label => label.getBoundingClientRect().height > 0 && label.scrollWidth <= label.clientWidth + 1 && label.nextElementSibling.scrollWidth <= label.nextElementSibling.clientWidth + 1);
+  })()`))
+  check('Warranty remains visible below the expanded metrics', await evaluate(`(() => { const card = document.querySelector('[data-item-card]'); return card.querySelector('[data-warranty-strip]').getBoundingClientRect().top >= card.querySelector('.item-card-details').getBoundingClientRect().bottom; })()`))
+  await shot('mobile-cards-expanded')
+  await evaluate(`document.querySelector('.item-card-toggle').focus()`)
+  await key('Enter', 13)
+  await pause(250)
+  check('Enter collapses the card and preserves focus', await evaluate(`document.activeElement === document.querySelector('.item-card-toggle') && document.activeElement.getAttribute('aria-expanded') === 'false' && document.querySelector('.item-card-details').getBoundingClientRect().height === 0`))
+  await key(' ', 32, 'Space')
+  await pause(250)
+  check('Space expands the same card and exposes its panel to assistive technology', await evaluate(`document.activeElement.getAttribute('aria-expanded') === 'true' && document.getElementById(document.activeElement.getAttribute('aria-controls')).getAttribute('aria-hidden') === 'false'`))
+  await nav('/items')
   await evaluate(`document.querySelector('[aria-label="物品状态"] [role="radio"]').focus()`)
   await key('End', 35)
   check('Keyboard End selects disposed items', await evaluate(`document.querySelector('main h1').textContent === '已处置物品'`))
-  check('Sold results keep loss direction and readable amounts', await evaluate(`[...document.querySelectorAll('.item-card')].some(card => card.textContent.includes('AirPods Max') && card.textContent.includes('亏损 ¥1,649'))`))
+  await evaluate(`[...document.querySelectorAll('[data-item-card]')].find(card => card.textContent.includes('AirPods Max')).querySelector('.item-card-toggle').click()`)
+  await pause(300)
+  check('Expanded sold results keep loss direction and readable amounts without a warranty strip', await evaluate(`[...document.querySelectorAll('[data-item-card]')].some(card => card.innerText.includes('AirPods Max') && card.innerText.includes('亏损 ¥1,649') && !card.querySelector('[data-warranty-strip]'))`))
   await evaluate(`document.querySelector('[aria-label="处置方式"] [role="radio"]').focus()`)
   await key('End', 35)
   check('Keyboard skips empty disabled disposal options', await evaluate(`document.activeElement.textContent.includes('已丢弃') && document.activeElement.getAttribute('aria-checked') === 'true'`))
@@ -172,6 +207,10 @@ try {
       await viewport(width, height)
       for (const [route, label] of [['/', 'home'], ['/items', 'items'], [detail, 'detail'], ['/categories', 'categories'], ['/items/new', 'form']]) {
         await nav(route)
+        if (route === '/items') {
+          await evaluate(`document.querySelector('.item-card-toggle').click()`)
+          await pause(250)
+        }
         await shot(`${device}-${label}-${theme}`)
         captures.push({ width, theme, route })
         check(`${width}px ${theme} ${label} has no horizontal overflow`, await evaluate('document.documentElement.scrollWidth <= innerWidth'))
@@ -194,12 +233,27 @@ try {
     await viewport(width)
     for (const route of ['/', '/items', '/categories', detail, '/items/new', '/settings', '/search', '/settings/icons']) {
       await nav(route)
+      if (route === '/items') {
+        await evaluate(`document.querySelector('.item-card-toggle').click()`)
+        await pause(250)
+        check(`${width}px expanded metrics remain readable`, await evaluate(`
+          [...document.querySelector('.item-card-details').querySelectorAll('p')].every(p => p.getBoundingClientRect().height > 0 && p.scrollWidth <= p.clientWidth + 1)
+        `))
+      }
       check(`${width}px ${route} has no horizontal overflow`, await evaluate('document.documentElement.scrollWidth <= innerWidth'))
     }
   }
   await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
   await nav('/items')
   check('Reduced-motion keeps cards visible without animations', await evaluate(`document.getAnimations().length === 0 && document.querySelectorAll('.item-card').length === 14`))
+  await evaluate(`document.querySelector('.item-card-toggle').click()`)
+  await pause(100)
+  check('Reduced-motion disclosure still works without running animations', await evaluate(`document.querySelector('.item-card-toggle').getAttribute('aria-expanded') === 'true' && document.querySelector('.item-card-details').getBoundingClientRect().height > 0 && document.getAnimations().length === 0`))
+  const categoryId = await evaluate(`import('/src/db/db.ts').then(async ({db}) => (await db.items.toArray()).find(item => item.status === 'owned').categoryId)`)
+  await nav('/categories/' + categoryId)
+  await evaluate(`document.querySelector('.item-card-toggle').click()`)
+  await pause(100)
+  check('Category detail shares the same independent disclosure', await evaluate(`document.querySelectorAll('[data-item-card][data-expanded="true"]').length === 1 && document.querySelector('.item-card-details').getBoundingClientRect().height > 0`))
   const remaining = await evaluate(`import('/src/db/db.ts').then(({ db }) => db.items.count())`)
   check('Verification leaves all eighteen demo records intact', remaining === seeded)
   check('No uncaught browser runtime errors', errors.length === 0)
