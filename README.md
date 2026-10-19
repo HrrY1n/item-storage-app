@@ -8,7 +8,7 @@
 
 ## 主要功能
 
-- 物品记录：名称、图标、备注、分类、标签与搜索。
+- 物品记录：名称、图标、备注、分类与标签；支持搜索、组合筛选、排序，以及网格和列表视图切换。
 - 图标库：217 个透明立体图标，支持九类浏览、中英文及别名搜索、最近使用和单击选择，浅色与深色主题共用。
 - 分类与标签：默认 7 个一级、49 个二级分类，分类页显示真实子分类、图标与物品数量；支持自定义分类和标签。
 - 生命周期：支持「心愿 → 持有 → 已处置」，处置方式包括出售、丢弃和其他。
@@ -16,12 +16,14 @@
 - 保修追踪：默认 12 个月，可选 3 / 6 / 12 / 24 个月、自定义整月或不适用；按购买日期计算到期日，在列表和详情页显示保修状态。
 - 备份恢复：导出和恢复经过校验的 ZIP 备份，包含业务数据及用户资产。
 - 可选云同步：通过恢复码连接同步空间，在设备之间同步或恢复数据。
-- PWA：支持安装到主屏幕、响应式界面和离线使用。
+- PWA 与响应式界面：支持安装到主屏幕和离线使用；手机采用底部导航，桌面采用侧栏、宽屏概览和详情分栏，支持浅色、深色及跟随系统。
 - 更新检查：发现已部署的新版本后安全更新；编辑期间保留输入，完成操作后再刷新。
 
 ## 界面预览
 
-以下为真实浏览器示例截图，使用隔离环境中的示例数据和 390×844 移动视口。部分截图来自历史构建；当前图标总览与分类说明见下文。
+以下截图于 **2026-10-19** 从当前 `0.1.0` 界面重新采集，全部使用隔离浏览器中的示例数据。移动端视口为 390×844，以 2 倍像素密度截图；桌面视口为 1440×1000。截图展示当前的 217 个内置图标与 7 个一级、49 个二级分类。
+
+### 手机界面
 
 <table>
   <tr>
@@ -29,26 +31,46 @@
     <td width="50%"><img src="docs/screenshots/current/02-items-light.png" alt="物品列表"></td>
   </tr>
   <tr>
-    <td align="center"><sub>概览：投入、分类、保修提醒与最近添加</sub></td>
-    <td align="center"><sub>物品列表：筛选、排序、标签与成本信息</sub></td>
+    <td align="center"><sub>概览：总投入、实物图标、保修提醒与最近添加</sub></td>
+    <td align="center"><sub>物品：组合筛选、排序与完整的成本指标</sub></td>
   </tr>
   <tr>
     <td><img src="docs/screenshots/current/03-detail-light.png" alt="物品详情"></td>
-    <td><img src="docs/screenshots/current/04-settings-light.png" alt="设置页"></td>
+    <td><img src="docs/screenshots/current/07-categories-light.png" alt="分类页：7 个一级分类、49 个二级分类与物品件数"></td>
   </tr>
   <tr>
     <td align="center"><sub>物品详情：购买信息、成本和保修追踪</sub></td>
-    <td align="center"><sub>设置：外观、备份、分类、标签与图标库</sub></td>
+    <td align="center"><sub>分类：展开二级分类，查看图标和实际件数</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/icon-library-v2/01-home-light.png" alt="九类图标选择器，浅色主题"></td>
-    <td><img src="docs/screenshots/icon-library-v2/07-care-dark.png" alt="护理图标分类，深色主题"></td>
+    <td><img src="docs/screenshots/current/05-icon-picker-light.png" alt="当前图标选择器：九类浏览和全局搜索，浅色主题"></td>
+    <td><img src="docs/screenshots/current/06-icons-dark.png" alt="当前护理图标分类，深色主题"></td>
   </tr>
   <tr>
-    <td align="center"><sub>图标选择：最近使用、三列分类卡片与全局搜索</sub></td>
+    <td align="center"><sub>图标选择：九类素材、三列分类卡片与全局搜索</sub></td>
     <td align="center"><sub>分类详情：四列图标网格，浅深色共用透明资源</sub></td>
   </tr>
+  <tr>
+    <td><img src="docs/screenshots/current/08-home-dark.png" alt="当前概览页，深色主题"></td>
+    <td><img src="docs/screenshots/current/04-settings-light.png" alt="当前设置页：外观、备份、内容管理与可选同步"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>深色概览：同一套透明素材与清晰的阅读层级</sub></td>
+    <td align="center"><sub>设置：外观、备份、分类、标签与图标库</sub></td>
+  </tr>
 </table>
+
+### 桌面界面
+
+宽屏概览使用常驻侧栏，将最近添加与分类分布、回收金额等物品洞察并排展示。
+
+![桌面概览：侧栏导航、最近添加和物品洞察](docs/screenshots/current/09-desktop-home-light.png)
+
+物品详情将实物图标和持有指标置于左侧，购买信息、保修、标签与备注置于右侧；下图为深色主题。
+
+![桌面物品详情：物品信息与购买、保修记录分栏，深色主题](docs/screenshots/current/10-desktop-detail-dark.png)
+
+[截图采集记录](docs/screenshots/current/capture-results.json)包含来源提交、浏览器、视口、示例数据说明与图片校验值。
 
 ### 图标库 2.0
 
@@ -56,7 +78,7 @@
 
 提供无人机、手持稳定器、平板磁吸键盘、DJI Pocket、DJI Action 和 DJI Mic Mini 造型麦克风等独立图标。手机散热器采用白色机身、RGB 灯环的磁吸圆形款，支持「磁吸散热器」「RGB散热器」和「散热背夹」等搜索词。
 
-[查看 217 个图标总览](assets/item-icons/overview.webp) · [资源规范与生成记录](assets/item-icons/README.md) · [完整截图与更新验收报告](docs/icon-library-v2-audit.md)。图像使用内置生图工具，实际模型 ID 未公开；来源与提示词按实际情况记录。
+[查看 217 个图标总览](assets/item-icons/overview.webp) · [资源规范与生成记录](assets/item-icons/README.md) · [历史验收与 PWA 更新记录](docs/icon-library-v2-audit.md)。图像使用内置生图工具，实际模型 ID 未公开；来源与提示词按实际情况记录。
 
 ## 技术栈
 
@@ -85,7 +107,7 @@ npm run build
 npm run preview
 ```
 
-浏览器验收使用项目隔离的 Edge Profile，图标交互和同源 PWA 更新入口分别为 `npm run verify:icons`、`npm run verify:pwa-update`，完整启动条件见 [BROWSER_TESTING.md](BROWSER_TESTING.md)。
+浏览器验收使用项目隔离的 Edge Profile，布局与交互回归入口为 `node scripts/verify-design.mjs`，图标交互和同源 PWA 更新入口分别为 `npm run verify:icons`、`npm run verify:pwa-update`，完整启动条件见 [BROWSER_TESTING.md](BROWSER_TESTING.md)。
 
 ## 物品分类
 
@@ -99,7 +121,7 @@ npm run preview
 
 购买日期和指定到期日共用年月日弹层：调整只改草稿，点「确定」后才更新表单，取消会保留原值；物品仍需正常保存。编辑旧物品时保留原到期日，未填写的记录也不会自动补成一年。
 
-查看保修录入的浏览器截图：[按月选择（浅色）](docs/screenshots/warranty/01-months-light.png)、[日期确认](docs/screenshots/warranty/02-date-confirm-light.png)、[深色主题](docs/screenshots/warranty/03-months-dark.png)、[转为持有](docs/screenshots/warranty/04-convert-light.png)。
+查看本轮重新采集的保修录入截图：[按月选择（浅色）](docs/screenshots/current/11-warranty-months-light.png)、[日期确认](docs/screenshots/current/12-warranty-date-light.png)、[深色主题](docs/screenshots/current/13-warranty-months-dark.png)、[转为持有](docs/screenshots/current/14-convert-light.png)。
 
 ## Cloudflare 构建与预览
 
