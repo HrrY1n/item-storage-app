@@ -5,7 +5,7 @@ import { selectDate, setDateDraft } from './date-picker.mjs'
 
 const BASE = 'http://127.0.0.1:4173'
 const CDP = `http://127.0.0.1:${process.env.EDGE_TEST_PORT ?? '9222'}`
-const OUT = 'docs/screenshots/warranty'
+const OUT = '.tmp/browser-verification/warranty'
 const expectedBundle = (await readFile('dist/index.html', 'utf8')).match(/src="([^" ]+\/index-[^" ]+\.js)"/)[1]
 const results = []
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
