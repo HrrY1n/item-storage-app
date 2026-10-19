@@ -27,11 +27,9 @@ import {
   matchesDispositionFilter,
   type DispositionKind,
 } from '../features/data/itemPresentation'
-import { FinanceLine, MetricRow, ObjectPlate } from '../components/ItemCard'
-import { DisposalChip, DisposalOverlay, FINANCE_TONES, StatusChip } from '../components/StatusChip'
-import WarrantyStrip from '../components/WarrantyStrip'
+import ItemCard, { ObjectPlate } from '../components/ItemCard'
+import { DisposalChip, FINANCE_TONES, StatusChip } from '../components/StatusChip'
 import SegmentedControl from '../components/SegmentedControl'
-import TagChip from '../components/TagChip'
 import EmptyState from '../components/EmptyState'
 
 type ViewMode = 'grid' | 'list'
@@ -39,8 +37,7 @@ type ViewMode = 'grid' | 'list'
 const SORTS: { key: ItemSortKey; label: string }[] = [
   { key: 'recent', label: '最近添加' },
   { key: 'name', label: '名称' },
-  // ⚠️ 这���的标签**随 lifecycle 变**（见 §12）：cost 实际按 `effectiveCostCents` 排，
-  //   对已出售物品而言那是**净成本**，标成「总投入」是错的。
+  // 已售出物品按净成本排序，标签随状态切换。
   { key: 'cost', label: '总投入' },
   { key: 'daily', label: '日均成本' },
 ]
@@ -70,84 +67,6 @@ const DISPOSITION_FILTERS: { key: DispositionKind | 'all'; label: string }[] = [
   { key: 'discarded', label: DISPOSITION_BADGE_LABELS.discarded },
   { key: 'other', label: DISPOSITION_BADGE_LABELS.other },
 ]
-
-/**
- * ⚠️ `MiniMetric` 已删除。
- *
- * 它带 `truncate`，会把金额截成 `¥1,47…`，
- * 且它自己的标签是硬编码的 —— 正是 §1.4 语义分叉的来源之一。
- * 现在统一改用 `ItemCard` 导出的 `MetricRow` / `FinanceLine`，
- * 与 `components/ItemCard` 逐像素同源。
- */
-
-/**
- * 三种状态共用的卡片：图版是视觉中心，状态与关键指标按状态切换。
- *
- * Phase 2H.2：全部展示逻辑来自 `itemPresentation(item)` ——
- * **本地不再有任何 `sold ? 'xxx' : 'xxx'` 的硬编码**（§1.4 的语义分叉根因）。
- * 与 `components/ItemCard` 共用 `MetricRow` / `FinanceLine`，逐像素同源。
- */
-function GridCard({
-  item,
-  to,
-  iconUrl,
-  categoryName,
-  tagNames,
-  today,
-}: {
-  item: Item
-  to: string
-  iconUrl: string
-  categoryName: string
-  tagNames: string[]
-  today: string
-}) {
-  const p = itemPresentation(item, { today, categoryName })
-
-  return (
-    <Link
-      to={to}
-      className="group flex flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-colors duration-150 ease-out-quint active:bg-surface-sunken"
-    >
-      <div className="relative">
-        <ObjectPlate src={iconUrl} alt={item.name} className="aspect-[4/3] w-full" />
-        {/* 处置方法徽标（左上）。心愿仍用 StatusChip —— 它是生命周期状态而非处置方式。*/}
-        {p.badge !== null ? (
-          <span className="absolute left-2 top-2">
-            <DisposalChip method={p.badge} size="sm" />
-          </span>
-        ) : (
-          statusOf(item) !== 'owned' && (
-            <span className="absolute left-2 top-2">
-              <StatusChip status={statusOf(item)} size="sm" />
-            </span>
-          )
-        )}
-        {/* 图片结果 overlay：仅出售。物品图标保持清晰，不灰化 / 不加叉。 */}
-        {p.overlay !== null && <DisposalOverlay text={p.overlay} />}
-        {/* 持有物品的保修信息由底部 WarrantyStrip 承担，图区不再叠加 chip */}
-      </div>
-      <div className="flex flex-1 flex-col p-3">
-        <p className="line-clamp-2 min-h-[40px] text-item text-ink-primary">{item.name}</p>
-        <p className="mt-0.5 truncate text-caption text-ink-tertiary">{p.subtitle}</p>
-        {tagNames.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            {tagNames.slice(0, 2).map((t) => (
-              <TagChip key={t} name={t} size="sm" />
-            ))}
-          </div>
-        )}
-        <MetricRow cells={p.metrics} />
-        {p.finance !== null && <FinanceLine grossText={p.grossText} finance={p.finance} />}
-      </div>
-      {/* 保修进度条：只有真正有保修数据的**持有**物品才出现，无保修卡片零空白。
-          已处置物品不显示，保修是持有期语义。*/}
-      {statusOf(item) === 'owned' && item.warrantyExpiresAt !== null && (
-        <WarrantyStrip item={item} today={today} />
-      )}
-    </Link>
-  )
-}
 
 /**
  * 列表视图：一行一件，横向信息密度更高。
@@ -320,39 +239,37 @@ export default function ItemsListPage() {
 
   const words = PAGE_WORDS[status]
   const allCategories = categories.filter((c) => c.parentId === null)
+  const filtered = query.trim() !== '' || categoryId !== null || (status === 'disposed' && disposition !== 'all')
 
   return (
-    <div className="animate-fade-rise pt-[calc(24px+env(safe-area-inset-top))]">
-      <header className="px-5">
-        {/* Large Title 随 lifecycle 动态：「物品管理」是 section 总称，
-            这里的三个 tab 是生命周期状态，用状态名更贴合 Large Title 的语义。 */}
-        <h1 className="text-page-title text-ink-primary">{words.title}</h1>
-        <p className="mt-1.5 text-secondary text-ink-tertiary">
-          <span className="num text-ink-primary">{counts[status]}</span> 件{words.unit}
-        </p>
+    <div className="animate-fade-rise px-5 pt-[calc(28px+env(safe-area-inset-top))] sm:px-7 lg:pt-7">
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-page-title text-ink-primary">{words.title}</h1>
+          <p className="mt-1.5 text-secondary text-ink-tertiary">
+            <span className="num text-ink-primary">{counts[status]}</span> 件{words.unit}
+          </p>
+        </div>
+        <div className="w-full sm:max-w-[300px]">
+          <SegmentedControl
+            ariaLabel="物品状态"
+            value={status}
+            onChange={handleStatusChange}
+            options={STATUS_TABS.map((t) => ({
+              value: t.key,
+              label: t.label,
+              hint: String(counts[t.key]),
+            }))}
+          />
+        </div>
       </header>
-
-      {/* 生命周期切换：持有 / 心愿 / 处置 —— 对应真实数据字段。
-          复用全站唯一的 SegmentedControl，与设置页的外观模式保持同一套控件语言。 */}
-      <div className="mt-5 px-5">
-        <SegmentedControl
-          ariaLabel="物品状态"
-          value={status}
-          onChange={handleStatusChange}
-          options={STATUS_TABS.map((t) => ({
-            value: t.key,
-            label: t.label,
-            hint: String(counts[t.key]),
-          }))}
-        />
-      </div>
 
       {/* 处置二级筛选：**仅处置 tab 出现**。
           视觉上与生命周期控件成组（间距 mt-2，比下方工具栏的 mt-4 更紧），
           读起来是"生命周期轴的下钻"而不是另一个平级筛选器。
           0 数量显示但禁用 —— 隐藏会让控件宽度在切换时跳动。*/}
       {status === 'disposed' && dispCounts !== null && (
-        <div className="mt-2 overflow-x-auto px-5">
+        <div className="mt-3 sm:ml-auto sm:max-w-[360px]">
           <SegmentedControl
             ariaLabel="处置方式"
             value={disposition}
@@ -369,7 +286,7 @@ export default function ItemsListPage() {
       )}
 
       {/* 工具栏：搜索 / 分类 / 排序 / 视图 */}
-      <div className="mt-4 px-5">
+      <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center lg:gap-3">
         <div className="field-shell flex h-11 items-center gap-2.5 rounded-control border border-line bg-surface px-3.5 transition-colors focus-within:border-line-strong">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-tertiary">
             <circle cx="11" cy="11" r="7" />
@@ -380,6 +297,7 @@ export default function ItemsListPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜索名称、分类或标签"
             type="search"
+            aria-label="搜索物品"
             className="min-w-0 flex-1 bg-transparent text-[16px] text-ink-primary outline-none placeholder:text-ink-faint"
           />
           {query !== '' && (
@@ -396,32 +314,19 @@ export default function ItemsListPage() {
           )}
         </div>
 
-        <div className="no-scrollbar -mx-5 mt-3 flex items-center gap-1.5 overflow-x-auto px-5">
-          <FilterChip active={categoryId === null} onClick={() => setCategoryId(null)}>
-            全部分类
-          </FilterChip>
-          {allCategories.map((c) => (
-            <FilterChip key={c.id} active={categoryId === c.id} onClick={() => setCategoryId(c.id)}>
-              {c.name}
-            </FilterChip>
-          ))}
-        </div>
-
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <div className="no-scrollbar flex min-w-0 flex-1 gap-1.5 overflow-x-auto">
-            {SORTS.map((s) => (
-              <FilterChip key={s.key} active={sort === s.key} onClick={() => setSort(s.key)}>
-                {/* ⚠️ cost 实际按 `effectiveCostCents` 排 —— 对已出售物品那是**净成本**，
-                   标成「总投入」是错的；该排序使用实际持有成本。*/}
-                {s.key === 'cost' && status === 'disposed' ? '实际持有成本' : s.label}
-              </FilterChip>
-            ))}
-          </div>
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_42px] gap-2 lg:mt-0">
+          <select aria-label="分类筛选" value={categoryId ?? ''} onChange={(event) => setCategoryId(event.target.value || null)} className="collection-select">
+            <option value="">全部分类</option>
+            {allCategories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+          </select>
+          <select aria-label="物品排序" value={sort} onChange={(event) => setSort(event.target.value as ItemSortKey)} className="collection-select">
+            {SORTS.map(option => <option key={option.key} value={option.key}>{option.key === 'cost' && status === 'disposed' ? '实际持有成本' : option.label}</option>)}
+          </select>
           <button
             type="button"
             onClick={() => setView(view === 'grid' ? 'list' : 'grid')}
             aria-label={view === 'grid' ? '切换为列表视图' : '切换为网格视图'}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-ink-secondary transition-colors active:bg-surface-sunken"
+            className="flex h-[42px] w-[42px] items-center justify-center rounded-control border border-line bg-surface text-ink-secondary transition-colors active:bg-surface-sunken hover:text-accent"
           >
             {view === 'grid' ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
@@ -440,26 +345,35 @@ export default function ItemsListPage() {
       </div>
 
       {/* 结果 */}
-      <div className="mt-4 px-5">
+      <div className="mt-5">
+        {filtered && (
+          <div className="mb-4 flex min-h-8 items-center justify-between gap-3 text-caption">
+            <p role="status" className="text-ink-tertiary">找到 <span className="num text-ink-secondary">{visible.length}</span> 件物品</p>
+            <button type="button" onClick={() => { setQuery(''); setCategoryId(null); setDisposition('all') }} className="min-h-8 text-accent hover:underline">重置筛选</button>
+          </div>
+        )}
         {visible.length === 0 ? (
           <EmptyState
-            title={items.length === 0 ? '还没有物品' : `没有${ITEM_STATUS_LABELS[status]}物品`}
+            title={filtered ? '没有匹配的物品' : items.length === 0 ? '还没有物品' : `没有${ITEM_STATUS_LABELS[status]}物品`}
             subtitle={
               query !== ''
                 ? `没有匹配「${query.trim()}」的物品`
-                : status === 'wishlist'
+                : filtered
+                  ? '试试其他分类，或重置筛选查看全部物品'
+                  : status === 'wishlist'
                   ? '把将来想买的东西记下来，购入后再转为持有'
                   : status === 'disposed'
                     ? '处置掉的物品会留在这里，持有天数已冻结'
-                    : '点右下角的 + 添加第一件物品'
+                    : '通过「新增物品」记录第一件物品'
             }
           />
         ) : view === 'grid' ? (
-          <div className="grid grid-cols-2 gap-3 pb-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 pb-2 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
             {visible.map((item) => (
-              <GridCard
+              <ItemCard
                 key={item.id}
                 item={item}
+                name={item.name}
                 to={`/items/${item.id}`}
                 iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'}
                 categoryName={categoryNameOf(categories, item.categoryId)}
@@ -484,28 +398,5 @@ export default function ItemsListPage() {
         )}
       </div>
     </div>
-  )
-}
-
-function FilterChip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`flex h-8 shrink-0 items-center whitespace-nowrap rounded-pill px-3 text-caption transition-colors duration-150 ease-out-quint ${
-        active ? 'bg-accent font-medium text-ink-inverse' : 'bg-surface-sunken text-ink-secondary'
-      }`}
-    >
-      {children}
-    </button>
   )
 }

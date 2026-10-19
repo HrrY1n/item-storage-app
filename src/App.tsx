@@ -37,17 +37,21 @@ function Layout() {
   const { pathname } = useLocation()
   const showBottomNav = !isFormRoute(pathname)
 
-  // 桌面端取景：外壳固定为「视口高度 − 上下留白」并在内部滚动，
-  // 这样底部导航（内含新增按钮）始终贴合取景框边缘，而不是浮在长页面上。
+  const widePage = ['/', '/items', '/categories'].includes(pathname)
+    || pathname.startsWith('/categories/')
+    || /^\/items\/[^/]+$/.test(pathname)
+
   return (
-    <div className="shell-scroll relative mx-auto flex min-h-dvh w-full max-w-[var(--shell-max)] flex-col bg-canvas sm:my-6 sm:h-[calc(100dvh-48px)] sm:min-h-0 sm:overflow-y-auto sm:rounded-app sm:border sm:border-line sm:shadow-lift">
+    <div className={`app-shell ${showBottomNav ? '' : 'app-shell-focus'}`}>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-5 focus:top-5 focus:z-[70] focus:rounded-control focus:bg-surface focus:px-4 focus:py-3 focus:text-secondary">跳转到内容</a>
       {/* 极细颗粒层：为平面底色增加物质感（不拦截交互）。
           混合模式与透明度由主题变量决定：浅色 multiply，深色 screen。 */}
       <div className="grain pointer-events-none absolute inset-0 z-0" aria-hidden />
       <ScrollToTop />
       <main
-        className={`relative z-10 flex-1 ${
-          // 底栏 64px + 32px 呼吸，保证最后一项内容永不被遮挡
+        id="main-content"
+        tabIndex={-1}
+        className={`app-main relative ${widePage ? '' : 'app-main-reading'} ${
           showBottomNav ? 'pb-[calc(96px+env(safe-area-inset-bottom))]' : 'pb-6'
         }`}
       >

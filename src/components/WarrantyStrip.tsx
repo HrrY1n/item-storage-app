@@ -1,8 +1,6 @@
 import { warrantyInfo, warrantyProgressOf } from '../domain/lifecycle'
 import type { Item } from '../domain/types'
 
-const SEGMENTS = 12
-
 /**
  * WarrantyStrip：保修期进度条（Phase 2H）。
  *
@@ -11,7 +9,7 @@ const SEGMENTS = 12
  * - 剩余部分 → success
  * - 已过保 → 全部中性灰（没有可行动性，不该继续报警）
  *
- * 纯 CSS 分段，不引入图表库；只有真正有 warrantyExpiresAt 的物品才渲染。
+ * 只显示剩余进度；完整百分比保留在无障碍描述与详情页。
  * 进度无法计算（缺购买日期）时优雅降级为纯文字，绝不显示假数据。
  */
 export default function WarrantyStrip({
@@ -28,27 +26,15 @@ export default function WarrantyStrip({
   const expired = info.state === 'expired'
   const expiring = info.state === 'expiring'
 
-  // 每段的颜色：先算已流逝段数
-  const elapsedSegments =
-    progress.ratio !== null ? Math.round(SEGMENTS * (1 - progress.ratio)) : 0
-
-  const elapsedClass = expired
-    ? 'bg-line-strong'
-    : expiring
-      ? 'bg-danger'
-      : 'bg-money'
-  const remainClass = expired ? 'bg-line-strong' : 'bg-success'
-
-  // 卡片宽度有限：标签压到最短（MarkItem 式"7月"），完整描述由 chip / 详情页承担
   const label = expired
     ? '已过保'
     : expiring
-      ? `${info.daysLeft}天`
-      : `${Math.max(1, Math.round(info.daysLeft / 30.44))}月`
+      ? `剩余 ${info.daysLeft} 天`
+      : `剩余 ${Math.max(1, Math.round(info.daysLeft / 30.44))} 个月`
 
   return (
     <div
-      className="flex items-center gap-2.5 border-t border-line-inner bg-surface-sunken px-3 py-2"
+      className="flex min-h-9 items-center gap-2 border-t border-line-inner bg-surface px-3 py-2"
       data-warranty-strip={info.state}
     >
       <svg
@@ -66,7 +52,7 @@ export default function WarrantyStrip({
         <path d="M12 3 5 6v5c0 4.6 3 8.4 7 10 4-1.6 7-5.4 7-10V6z" />
       </svg>
       <span
-        className={`num shrink-0 text-[10px] leading-none ${
+        className={`num shrink-0 text-[11px] leading-none ${
           expired ? 'text-ink-faint' : expiring ? 'text-danger' : 'text-success'
         }`}
       >
@@ -74,23 +60,11 @@ export default function WarrantyStrip({
       </span>
       {progress.ratio !== null && !expired && (
         <span
-          className="flex min-w-0 flex-1 gap-[2px]"
+          className="h-[3px] min-w-0 flex-1 overflow-hidden rounded-pill bg-surface-sunken"
           role="img"
           aria-label={`保修剩余 ${Math.round(progress.ratio * 100)}%`}
         >
-          {Array.from({ length: SEGMENTS }, (_, i) => (
-            <span
-              key={i}
-              className={`h-[5px] flex-1 rounded-pill ${
-                i < elapsedSegments ? elapsedClass : remainClass
-              }`}
-            />
-          ))}
-        </span>
-      )}
-      {progress.ratio !== null && !expired && (
-        <span className="num shrink-0 text-[10px] leading-none text-ink-tertiary">
-          {Math.round(progress.ratio * 100)}%
+          <span className={`block h-full rounded-pill ${expiring ? 'bg-danger' : 'bg-success'}`} style={{ width: `${progress.ratio * 100}%` }} />
         </span>
       )}
     </div>

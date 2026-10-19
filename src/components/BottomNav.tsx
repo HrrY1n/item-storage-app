@@ -47,39 +47,37 @@ const tabs = [
   { to: '/search', label: '搜索', Icon: SearchIcon, end: false },
 ]
 
-/**
- * 底部主导航：**概览 / 列表 / 分类 / 搜索** + 独立的「+」。
- *
- * 「设置」刻意**不在**主导航里 —— 它是低频入口，放在概览页右上角的齿轮更合适，
- * 于是底栏四个位置全部对应"每天真的会用的动作"。
- *
- * 「+」是导航条自己的一部分（与条同高的实心圆钮），而不是浮在条上方的孤立方块：
- * 这样它永远贴条、永远不会被内容遮住，也不会与底栏产生两层阴影打架。
- *
- * 材质层：一层克制的半透明 chrome（blur 只用在导航/顶栏，内容层一律实色）。
- * prefers-reduced-transparency 时自动降级为实色。
- */
+/** 手机底栏、桌面侧栏共用同一组入口。 */
 export default function BottomNav() {
   return (
-    <nav className="chrome chrome-edge-top fixed bottom-0 left-1/2 z-20 w-full max-w-[var(--shell-max)] -translate-x-1/2 border-t border-line sm:bottom-6 sm:rounded-b-app">
-      <div className="flex items-center gap-1.5 px-2 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex flex-1">
+    <nav aria-label="主导航" className="app-nav chrome chrome-edge-top z-20">
+      <Link to="/" className="nav-brand" aria-label="物品库 · 概览">
+        <span className="flex h-11 w-11 items-center justify-center rounded-card bg-accent-soft text-accent">
+          <svg width="25" height="25" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden>
+            <path d="m14 3 10 5.5v11L14 25 4 19.5v-11L14 3Z" />
+            <path d="m4 8.5 10 5.7 10-5.7M14 14.2V25M9 5.8l10 5.6" />
+          </svg>
+        </span>
+        <span><span className="block text-section text-ink-primary">物品库</span><span className="mt-1 block text-caption text-ink-tertiary">记录拥有，珍惜日常</span></span>
+      </Link>
+      <div className="nav-body">
+        <div className="nav-links">
           {tabs.map(({ to, label, Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
-              className="group flex min-h-[64px] flex-1 items-center justify-center"
+              className="nav-link group"
             >
               {({ isActive }) => (
                 <span
-                  className={`flex flex-col items-center gap-1 rounded-pill px-3 py-1.5 transition-colors duration-200 ease-out-quint ${
+                  className={`nav-link-inner transition-colors duration-200 ease-out-quint ${
                     isActive ? 'bg-accent-soft text-accent' : 'text-ink-tertiary'
                   }`}
                 >
                   <Icon active={isActive} />
                   <span
-                    className={`text-[10px] leading-none tracking-[0.04em] transition-colors duration-200 ${
+                    className={`nav-label transition-colors duration-200 ${
                       isActive ? 'font-medium text-accent' : 'text-ink-tertiary'
                     }`}
                   >
@@ -91,12 +89,10 @@ export default function BottomNav() {
           ))}
         </div>
 
-        {/* 新增：与导航条同高的实心圆钮。用 ink-solid 而非强调色 ——
-            它是最高频入口，中性但强对比的实心块比彩色按钮更耐看。 */}
         <Link
           to="/items/new"
           aria-label="新增物品"
-          className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-pill bg-ink-solid text-ink-inverse shadow-fab transition-transform duration-150 ease-out-quint active:scale-[0.94] sm:hover:-translate-y-0.5"
+          className="nav-add flex shrink-0 items-center justify-center gap-2 bg-ink-solid text-ink-inverse transition-transform duration-150 ease-out-quint active:scale-[0.96]"
         >
           <svg
             width="22"
@@ -109,7 +105,15 @@ export default function BottomNav() {
           >
             <path d="M12 5v14M5 12h14" />
           </svg>
+          <span className="hidden text-secondary lg:inline">新增物品</span>
         </Link>
+      </div>
+      <div className="nav-footer">
+        <NavLink to="/settings" className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-control px-3 text-secondary transition-colors ${isActive ? 'bg-accent-soft text-accent' : 'text-ink-secondary hover:bg-surface'}`}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden><path d="M4 7h16M4 17h16" /><circle cx="9" cy="7" r="3" className="fill-canvas" /><circle cx="15" cy="17" r="3" className="fill-canvas" /></svg>
+          设置
+        </NavLink>
+        <p className="mt-6 px-3 text-caption leading-relaxed text-ink-tertiary">为值得记录的物品<br />留一个位置。</p>
       </div>
     </nav>
   )

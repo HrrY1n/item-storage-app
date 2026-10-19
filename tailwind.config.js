@@ -13,7 +13,7 @@ export default {
        * - 指标数字（metric / metric-lg）是纯阿拉伯数字 + 等宽数位，负字距才是正解。
        */
       fontSize: {
-        'page-title': ['28px', { lineHeight: '34px', letterSpacing: '0.01em', fontWeight: '600' }],
+        'page-title': ['clamp(28px, 2.6vw, 36px)', { lineHeight: '1.25', letterSpacing: '0.01em', fontWeight: '600' }],
         'title-card': ['22px', { lineHeight: '28px', letterSpacing: '0.01em', fontWeight: '600' }],
         section: ['17px', { lineHeight: '24px', letterSpacing: '0.02em', fontWeight: '600' }],
         item: ['15px', { lineHeight: '21px', fontWeight: '500' }],
@@ -22,7 +22,7 @@ export default {
         caption: ['12px', { lineHeight: '17px' }],
         /* 展示级：指标数字（等宽数位 + 负字距，避免刷新时宽度跳动） */
         metric: ['30px', { lineHeight: '36px', letterSpacing: '-0.02em', fontWeight: '600' }],
-        'metric-lg': ['38px', { lineHeight: '44px', letterSpacing: '-0.025em', fontWeight: '600' }],
+        'metric-lg': ['clamp(36px, 3.8vw, 52px)', { lineHeight: '1.15', letterSpacing: '-0.035em', fontWeight: '600' }],
         /* 眉标：中文短标签，字距微开（中文不宜大间距） */
         label: ['11px', { lineHeight: '14px', letterSpacing: '0.06em', fontWeight: '500' }],
       },

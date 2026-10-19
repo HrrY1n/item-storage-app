@@ -44,7 +44,7 @@ import { useHeaderCollapse } from '../features/ui/useHeaderCollapse'
 function GroupCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mt-3 overflow-hidden rounded-surface border border-line bg-surface shadow-card">
-      <p className="px-4 pt-3.5 text-label text-ink-tertiary">{title}</p>
+      <h2 className="px-4 pt-4 text-secondary text-ink-secondary">{title}</h2>
       <div className="px-4 pb-4 pt-2">{children}</div>
     </section>
   )
@@ -104,7 +104,7 @@ function formatTimestamp(iso: string): string {
 function HeroMetric({ label, value, money }: { label: string; value: string; money?: boolean }) {
   return (
     <div className="min-w-0 px-3">
-      <p className={`num truncate text-section ${money ? 'text-money' : 'text-ink-primary'}`}>{value}</p>
+      <p className={`num break-words text-section ${money ? 'text-money' : 'text-ink-primary'}`}>{value}</p>
       <p className="mt-1 truncate text-caption text-ink-tertiary">{label}</p>
     </div>
   )
@@ -307,19 +307,18 @@ export default function ItemDetailPage() {
         }
       />
 
-      <div className="animate-fade-rise px-5 pt-3">
+      <div className="animate-fade-rise px-5 pt-3 sm:px-7">
         {/* Large Title：滚动离场后由 sticky header 的居中小标题接管 */}
         <div ref={sentinelRef}>
           <h1 className="text-page-title text-ink-primary">物品详情</h1>
         </div>
 
-        {/* Hero：物品身份卡。横向布局 —— 名称/状态/分类在左、物品图在右，
-            三栏指标收在同一块染色区内（不另起白色底），整卡自成一块材质。
-            hero-surface 铺满整卡，因此渐变连续、无接缝。 */}
-        <section className="hero-surface mt-3 overflow-hidden rounded-surface border border-hero-line shadow-card">
-          <div className="flex items-center gap-4 px-5 pb-3.5 pt-5">
+        <div className="detail-layout">
+        <div className="detail-identity">
+        <section className="hero-surface overflow-hidden rounded-sheet border border-hero-line">
+          <div className="flex items-center gap-4 px-5 pb-5 pt-5 lg:flex-col-reverse lg:items-start lg:px-6 lg:pt-6">
             <div className="min-w-0 flex-1">
-              <h2 className="text-title-card text-ink-primary">{item.name}</h2>
+              <h2 className="break-words text-title-card text-ink-primary lg:text-[28px] lg:leading-tight">{item.name}</h2>
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                 <StatusChip status={status} />
                 {category && (
@@ -336,11 +335,11 @@ export default function ItemDetailPage() {
                 {isOwned(item) && <WarrantyChip item={item} today={today} />}
               </div>
             </div>
-            <div className="w-[38%] max-w-[128px] shrink-0">
+            <div className="w-[38%] max-w-[128px] shrink-0 lg:w-full lg:max-w-none">
               <ObjectPlate
                 src={iconUrl}
                 alt={item.name}
-                className="aspect-square animate-pop-in"
+                className="aspect-square animate-pop-in lg:mx-auto lg:max-w-[248px]"
                 bare
                 plateStyle={{ viewTransitionName: 'item-hero' }}
               />
@@ -369,7 +368,9 @@ export default function ItemDetailPage() {
             </p>
           </section>
         )}
+        </div>
 
+        <div className="detail-record">
         {/* 购买与投入：section + inner cell，构成"价格怎么来的" */}
         {gross !== null && (
           <GroupCard title="购买与投入">
@@ -523,6 +524,8 @@ export default function ItemDetailPage() {
             onClick={() => setConfirmingDelete(true)}
           />
         </section>
+        </div>
+        </div>
       </div>
 
       <DisposalSheet

@@ -20,6 +20,12 @@ npm run browser:stop -- --port=9223
 
 停止时只使用 `stop-test-edge.mjs` 记录的 PID。不要使用 `taskkill /IM msedge.exe`，因为那会杀掉用户正在使用的正常 Edge。
 
+## 布局与交互回归
+
+启动 `npm run dev -- --host=127.0.0.1`，再按上述方式启动测试 Edge，运行 `node scripts/verify-design.mjs`。脚本覆盖手机底栏、桌面侧栏与分栏、卡片跳转、组合筛选、重置、网格/列表、键盘分段控件、弹窗、深浅主题、减少动效和 375–1440px 的横向溢出检查。截图与断言结果写入 `.tmp/design-optimization/verified/`。
+
+`verify.mjs` 和 `verify-design.mjs` 每次创建临时浏览器上下文，分别验证完整 CRUD 和演示数据界面；关闭连接后自动丢弃该上下文，不清空既有 Profile 的 IndexedDB、同步队列或缓存。
+
 ## 物品分类与旧库补齐
 
 先启动 `npm run dev -- --host=127.0.0.1` 和生产 preview。此用例需要未使用过的项目测试 Profile，例如另选一个空闲端口 `9234`；不删除或清空之前的测试 Profile：

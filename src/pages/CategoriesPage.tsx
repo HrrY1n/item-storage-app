@@ -113,7 +113,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="pt-[calc(24px+env(safe-area-inset-top))]">
-      <header className="animate-fade-rise flex items-baseline justify-between gap-3 px-5">
+      <header className="animate-fade-rise flex items-baseline justify-between gap-3 px-5 sm:px-7">
         <div className="min-w-0">
           <h1 className="text-page-title text-ink-primary">分类</h1>
           <p className="mt-2 text-secondary text-ink-tertiary">
@@ -130,7 +130,7 @@ export default function CategoriesPage() {
         </Link>
       </header>
 
-      <div className="mt-5 flex flex-col gap-3 px-5">
+      <div className="mt-6 grid items-start gap-3 px-5 sm:px-7 lg:grid-cols-2 lg:gap-4">
         {roots.map((category) => (
           <RootCategoryBlock key={category.id} category={category} categories={categories} counts={counts} />
         ))}

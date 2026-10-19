@@ -33,6 +33,8 @@ export default function SegmentedControl<T extends string>({
   onChange: (value: T) => void
   ariaLabel: string
 }) {
+  const focusValue = options.find(option => option.value === value && !option.disabled)?.value
+    ?? options.find(option => !option.disabled)?.value
   return (
     <div
       role="radiogroup"
@@ -48,7 +50,24 @@ export default function SegmentedControl<T extends string>({
             type="button"
             role="radio"
             aria-checked={active}
+            tabIndex={o.value === focusValue ? 0 : -1}
             disabled={disabled}
+            onKeyDown={(event) => {
+              const forward = event.key === 'ArrowRight' || event.key === 'ArrowDown'
+              const backward = event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+              if (!forward && !backward && event.key !== 'Home' && event.key !== 'End') return
+              event.preventDefault()
+              const enabled = options.filter(option => !option.disabled)
+              const index = enabled.findIndex(option => option.value === o.value)
+              const next = event.key === 'Home'
+                ? enabled[0]
+                : event.key === 'End'
+                  ? enabled[enabled.length - 1]
+                  : enabled[(index + (forward ? 1 : -1) + enabled.length) % enabled.length]
+              if (!next) return
+              onChange(next.value)
+              event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[options.indexOf(next)]?.focus()
+            }}
             onClick={() => {
               if (disabled) return
               onChange(o.value)

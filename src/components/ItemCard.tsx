@@ -1,6 +1,9 @@
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import TagChip from './TagChip'
-import { DisposalChip, DisposalOverlay, FINANCE_TONES } from './StatusChip'
+import { DisposalChip, DisposalOverlay, FINANCE_TONES, StatusChip } from './StatusChip'
+import WarrantyStrip from './WarrantyStrip'
+import { statusOf } from '../domain/lifecycle'
+import { SHARED_OBJECT_NAME, navigateWithViewTransition, supportsViewTransition } from '../features/ui/viewTransition'
 import type { Item } from '../domain/types'
 import {
   itemPresentation,
@@ -28,8 +31,8 @@ interface Props {
   /** 决定持有天数 / 日均成本是否冻结在处置日 */
   today: string
   className?: string
-  /** 传入时启用「卡片 → 详情」的物体连续性过渡（View Transitions 渐进增强） */
-  onNavigate?: (e: React.MouseEvent<HTMLAnchorElement>) => void
+  /** 概览预览保留物品身份，完整指标由列表和详情承担。 */
+  summary?: boolean
 }
 
 /**
@@ -68,7 +71,7 @@ export function ObjectPlate({
 }
 
 /**
- * 指标格：数字在上、标签在下。数字是结论，标签只是单位说明。
+ * 指标格：标签和数字逐行对齐，金额保持完整可读。
  *
  * ⚠️ 数字**绝不加 truncate** —— 截断会把 `¥1,474` 变成 `¥1,47…`，
  * "数值不可读"比"轻微溢出"严重得多。
@@ -78,40 +81,33 @@ function MetricCell({
   value,
   label,
   money,
-  cellCount,
 }: {
   value: string
   label: string
   money?: boolean
-  cellCount: number
 }) {
   return (
-    <div className="min-w-0 px-1 first:pl-0 last:pr-0">
+    <div className="flex min-w-0 items-baseline justify-between gap-2">
+      <p className="text-[11px] leading-tight text-ink-tertiary">{label}</p>
       <p
-        className={`num tabular-nums ${metricValueClass(value, cellCount)} ${
+        className={`num min-w-0 break-words text-right tabular-nums ${metricValueClass(value, 1)} ${
           money ? 'text-money' : 'text-ink-primary'
         }`}
       >
         {value}
       </p>
-      <p className="mt-0.5 truncate text-[10px] leading-tight text-ink-tertiary">{label}</p>
     </div>
   )
 }
 
 /**
- * 指标行：三栏（或两栏）栅格。
- *
- * 导出给 `ItemsListPage` 的网格卡与列表行复用 —— **同一份渲染逻辑**，
- * 保证 Grid 与 List 的指标口径与视觉完全一致（勘误 FIX-B）。
+ * 窄卡片逐行排指标，保留完整标签和金额。
  */
 export function MetricRow({ cells }: { cells: PresentationMetric[] }) {
   if (cells.length === 0) return null
   return (
     <div
-      className={`mt-auto grid border-t border-line-inner pt-2 ${
-        cells.length === 3 ? 'grid-cols-3 divide-x divide-line-inner' : 'grid-cols-2 gap-2'
-      }`}
+      className="space-y-1.5 border-t border-line-inner pt-2.5"
     >
       {cells.map((c) => (
         <MetricCell
@@ -119,7 +115,6 @@ export function MetricRow({ cells }: { cells: PresentationMetric[] }) {
           value={c.value}
           label={c.label}
           money={c.money}
-          cellCount={cells.length}
         />
       ))}
     </div>
@@ -172,7 +167,7 @@ export function DisposalBadge({
 /**
  * ItemCard：档案册中的一条物品条目。
  *
- * 结构固定为「图版 → 名称 → 副标题 → ≤2 个标签 → 三栏指标（+ 财务行）」，
+ * 结构固定为「图版 → 名称 → 副标题 → ≤2 个标签 → 指标（+ 财务行）」，
  * 不出现 ID / 时间 / 备注 / 按钮。
  * 整卡 flex-col + 指标行 mt-auto：同一行内多张卡片等高，指标始终贴底对齐。
  *
@@ -182,9 +177,6 @@ export function DisposalBadge({
  * - 副标题换成「处置于 X」
  * - 指标与财务行按处置方式切换
  *
- * 关于瀑布流：参考图用的是左右不等高的 masonry。这里刻意保留等高 grid ——
- * 卡片结构统一、等高才能让三栏数字横向对齐比较，
- * 而瀑布流会破坏这种比较性，也破坏"最近添加"按时间从上到下阅读的可预期性。
  */
 export default function ItemCard({
   to,
@@ -195,22 +187,32 @@ export default function ItemCard({
   item,
   today,
   className = '',
-  onNavigate,
+  summary = false,
 }: Props) {
+  const navigate = useNavigate()
   const p = itemPresentation(item, { today, categoryName })
   const cells: PresentationMetric[] = p.metrics
 
   return (
     <Link
       to={to}
-      onClick={onNavigate}
-      className={`group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-colors duration-150 ease-out-quint active:bg-surface-sunken ${className}`}
+      onClick={(event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !supportsViewTransition()) return
+        event.preventDefault()
+        const plate = event.currentTarget.querySelector<HTMLElement>('[data-object-plate]')
+        navigateWithViewTransition(
+          () => navigate(to),
+          () => { if (plate) plate.style.viewTransitionName = SHARED_OBJECT_NAME },
+          () => { if (plate) plate.style.viewTransitionName = '' },
+        )
+      }}
+      className={`item-card group flex h-full flex-col overflow-hidden rounded-surface border border-line bg-surface active:bg-surface-sunken ${className}`}
     >
       <div className="relative">
         <ObjectPlate
           src={iconUrl}
           alt={name}
-          className="aspect-[4/3] w-full shrink-0 border-b border-line-inner"
+          className="item-art aspect-[4/3] w-full shrink-0"
         />
         {/* 处置方法徽标：图区左上。pointer-events-none，不影响整卡点击。 */}
         {p.badge !== null && (
@@ -218,12 +220,15 @@ export default function ItemCard({
             <DisposalChip method={p.badge} size="sm" />
           </span>
         )}
+        {statusOf(item) === 'wishlist' && (
+          <span className="absolute left-2.5 top-2.5"><StatusChip status="wishlist" size="sm" /></span>
+        )}
         {/* 图片结果 overlay：仅出售。物品图标保持 opacity 1，不灰化 / 不加叉。 */}
         {p.overlay !== null && <DisposalOverlay text={p.overlay} />}
       </div>
-      <div className="flex flex-1 flex-col p-3">
+      <div className="flex flex-1 flex-col p-3 sm:p-3.5">
         {/* 名称允许两行：档案册里"物品叫什么"比整齐的单行截断更重要 */}
-        <p className="line-clamp-2 min-h-[40px] text-item text-ink-primary">{name}</p>
+        <p className="line-clamp-2 min-h-[42px] text-item text-ink-primary">{name}</p>
         <p className="mt-0.5 truncate text-caption text-ink-tertiary">{p.subtitle}</p>
         {tagNames.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1">
@@ -232,11 +237,10 @@ export default function ItemCard({
             ))}
           </div>
         )}
-        {cells.length > 0 && (
-          <MetricRow cells={cells} />
-        )}
-        {p.finance !== null && <FinanceLine grossText={p.grossText} finance={p.finance} />}
+        {!summary && cells.length > 0 && <div className="mt-auto pt-3"><MetricRow cells={cells} /></div>}
+        {!summary && p.finance !== null && <FinanceLine grossText={p.grossText} finance={p.finance} />}
       </div>
+      {!summary && statusOf(item) === 'owned' && item.warrantyExpiresAt !== null && <WarrantyStrip item={item} today={today} />}
     </Link>
   )
 }

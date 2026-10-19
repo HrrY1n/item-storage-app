@@ -17,7 +17,8 @@ import { mkdir, writeFile } from 'node:fs/promises'
 
 const CDP = 'http://127.0.0.1:9222'
 const BASE = 'http://127.0.0.1:5173'
-const OUT = 'docs/screenshots/phase2b'
+const OUT = '.tmp/browser-verification'
+let browserWs
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let failures = 0
@@ -102,7 +103,15 @@ class Session {
 
 async function run() {
   await mkdir(OUT, { recursive: true })
-  const target = await (await fetch(`${CDP}/json/new?about:blank`, { method: 'PUT' })).json()
+  const version = await (await fetch(`${CDP}/json/version`)).json()
+  browserWs = new WebSocket(version.webSocketDebuggerUrl)
+  await new Promise((resolve) => browserWs.addEventListener('open', resolve, { once: true }))
+  const browser = new Session(browserWs)
+  // 每次验证使用临时上下文，不清理既有 IndexedDB 或同步队列。
+  const { browserContextId } = await browser.send('Target.createBrowserContext', { disposeOnDetach: true })
+  const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank', browserContextId })
+  const target = (await (await fetch(`${CDP}/json/list`)).json()).find((entry) => entry.id === targetId)
+  if (!target) throw new Error('Isolated verification target was not created.')
   const ws = new WebSocket(target.webSocketDebuggerUrl)
   await new Promise((r) => ws.addEventListener('open', r, { once: true }))
   const s = new Session(ws)
@@ -112,7 +121,7 @@ async function run() {
   await s.send('Emulation.setFocusEmulationEnabled', { enabled: true })
 
   /* ---- 1. 空数据库首次启动 ---- */
-  await s.nav(`${BASE}/`, '我的物品')
+  await s.nav(`${BASE}/`, '概览')
   const emptyState = await s.has('还没有物品')
   const emptyCount = await s.has('0 件物品')
   check('1. 空库首次启动显示 Empty State（还没有物品 / 0 件）', emptyState && emptyCount)
@@ -120,8 +129,9 @@ async function run() {
 
   /* ---- 2. 新增 AirPods Pro 2 ---- */
   await s.nav(`${BASE}/items/new`, '新增物品')
-  // 图标选耳机（preset 第 3 个）
-  await s.ev(`(() => { const b = document.querySelectorAll('button[aria-pressed]')[2]; if (b) b.click(); return !!b })()`)
+  await s.clickText('button', '点击本行更换图标')
+  await sleep(300)
+  await s.clickText('[role="dialog"] button', '无线耳机')
   await s.focusByPlaceholder('比如：AirPods')
   await s.type('AirPods Pro 2')
   await s.clickText('button', '数码与电子')
@@ -197,7 +207,7 @@ async function run() {
   // 点对话框里的确认按钮（对话框在 div.fixed 浮层内，避免误点页面上的「删除此物品」）
   await s.clickText('div.fixed button', '删除')
   await sleep(1000)
-  await s.nav(`${BASE}/`, '我的物品')
+  await s.nav(`${BASE}/`, '概览')
   const goneHome = !(await s.has('AirPods Pro 2'))
   await s.nav(`${BASE}/categories`)
   const goneCategory = !(await s.has('AirPods Pro 2'))
@@ -212,17 +222,19 @@ async function run() {
   await s.shot('08-after-delete-home')
 
   /* ---- 8. 刷新后删除状态保持 ---- */
-  await s.nav(`${BASE}/`, '我的物品')
-  await s.reload('我的物品')
+  await s.nav(`${BASE}/`, '概览')
+  await s.reload('概览')
   check('8. 刷新后删除状态保持（回到 Empty State）', await s.has('还没有物品'))
 
   console.log(results.join('\n'))
   console.log(failures === 0 ? 'ALL CHECKS PASSED' : `${failures} CHECK(S) FAILED`)
   ws.close()
+  browserWs.close()
   process.exit(failures === 0 ? 0 : 1)
 }
 
 run().catch((e) => {
   console.error('VERIFY SCRIPT ERROR:', e.message)
+  browserWs?.close()
   process.exit(2)
 })

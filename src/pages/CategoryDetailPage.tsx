@@ -36,7 +36,7 @@ export default function CategoryDetailPage() {
   return (
     <div>
       <PageHeader title={category.name} />
-      <div className="animate-fade-rise px-5 pt-5">
+      <div className="animate-fade-rise px-5 pt-5 sm:px-7">
         <p className="text-caption text-ink-tertiary">
           {categoryPath(categories, category.id)}
         </p>
@@ -45,9 +45,9 @@ export default function CategoryDetailPage() {
         </p>
 
         {categoryItems.length === 0 ? (
-          <EmptyState title="这个分类还没有物品" subtitle="点击右下角 ＋ 新增一件物品吧" />
+          <EmptyState title="这个分类还没有物品" subtitle="通过「新增物品」为它添加一件记录" />
         ) : (
-          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
             {categoryItems.map((item) => (
               <ItemCard
                 key={item.id}
