@@ -26,6 +26,8 @@ npm run browser:stop -- --port=9223
 
 `verify.mjs` 和 `verify-design.mjs` 每次创建临时浏览器上下文，分别验证完整 CRUD 和演示数据界面；关闭连接后自动丢弃该上下文，不清空既有 Profile 的 IndexedDB、同步队列或缓存。
 
+`verify-2c.mjs`、`verify-purchase.mjs`、`verify-additional-cost.mjs` 和 `verify-deploy.mjs` 的临时截图写入 `.tmp/browser-verification/` 下对应子目录。`docs/screenshots/` 保留 README 与正式验收文档使用的预览和证据。
+
 ## 物品分类与旧库补齐
 
 先启动 `npm run dev -- --host=127.0.0.1` 和生产 preview。此用例需要未使用过的项目测试 Profile，例如另选一个空闲端口 `9234`；不删除或清空之前的测试 Profile：

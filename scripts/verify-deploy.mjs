@@ -16,7 +16,7 @@
  */
 const PREVIEW = process.argv[2] ?? 'http://127.0.0.1:4173'
 const CDP = 'http://127.0.0.1:9222'
-const OUT = 'docs/screenshots/deploy'
+const OUT = '.tmp/browser-verification/deploy'
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let failures = 0

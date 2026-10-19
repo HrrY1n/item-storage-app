@@ -15,7 +15,7 @@ import { selectDate } from './date-picker.mjs'
 
 const CDP = 'http://127.0.0.1:9222'
 const BASE = 'http://127.0.0.1:5173'
-const OUT = 'docs/screenshots/phase2e'
+const OUT = '.tmp/browser-verification/purchase'
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let failures = 0

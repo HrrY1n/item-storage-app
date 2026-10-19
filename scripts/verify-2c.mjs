@@ -18,7 +18,7 @@ const CDP = 'http://127.0.0.1:9222'
 const BASE = 'http://127.0.0.1:4173'
 const TMP = process.env.VERIFY_TMP || path.resolve('.tmp/verify')
 const DOWNLOAD_DIR = path.join(TMP, 'downloads')
-const OUT = 'docs/screenshots/phase2c'
+const OUT = '.tmp/browser-verification/backup-restore'
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let failures = 0
