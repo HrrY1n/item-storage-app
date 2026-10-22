@@ -47,7 +47,10 @@ const button = (text, scope = 'document') => ev(`(() => {
   if (!b) throw Error('Missing button: ' + ${JSON.stringify(text)});
   b.click();
 })()`)
-const pickerButton = text => button(text, `document.querySelector('[data-date-picker]')`)
+const pickerButton = async text => {
+  await button(text, `document.querySelector('[data-date-picker]')`)
+  await poll(`!document.querySelector('[data-date-picker]')`)
+}
 const dateValue = label => ev(`document.querySelector('[data-date-field=${JSON.stringify(label)}]').dataset.dateValue`)
 const selected = months => ev(`!![...document.querySelectorAll('[aria-label="保修月数"] button[aria-pressed="true"]')].find(b=>b.textContent.trim().replaceAll(' ','')===${JSON.stringify(`${months}个月`)})`)
 const setInput = (selector, value) => ev(`(() => {
@@ -171,6 +174,7 @@ try {
   check('心愿转持有也默认 12 个月并显示计算结果', await selected(12) && await dateValue('保修到期日') !== '')
   await ev(`document.querySelector('[data-date-field="购买日期"]').click()`)
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 })
+  await poll(`!document.querySelector('[data-date-picker]')`)
   check('关闭嵌套日期弹层不会同时取消转为持有', await ev(`!document.querySelector('[data-date-picker]') && !!document.querySelector('[aria-label="转为持有"]')`))
   await selectDate(session, '购买日期', '2024-01-31')
   await button('3个月')
@@ -186,7 +190,7 @@ try {
   await shot('03-months-dark')
   await send('Emulation.setDeviceMetricsOverride', { width: 375, height: 568, deviceScaleFactor: 2, mobile: true })
   await ev(`document.querySelector('[data-date-field="购买日期"]').click()`)
-  await ev(`Promise.all(document.querySelector('[data-date-picker] h2').parentElement.getAnimations().map(animation=>animation.finished))`)
+  await ev(`Promise.all(document.querySelector('[data-date-picker]').closest('.modal-sheet-panel').getAnimations().map(animation=>animation.finished))`)
   check('短屏日期弹层的确定按钮可见且无溢出', await ev(`(() => { const b=[...document.querySelectorAll('[data-date-picker] button')].find(b=>b.textContent==='确定');const r=b.getBoundingClientRect();return r.bottom<=innerHeight && r.top>=0 && document.documentElement.scrollWidth<=innerWidth })()`))
   await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false })
   await ev(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`)

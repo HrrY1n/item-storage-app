@@ -15,5 +15,10 @@ export async function selectDate(session, label, date) {
   await session.ev(`document.querySelector('button[data-date-field=${JSON.stringify(label)}]').click()`)
   await setDateDraft(session, date)
   await session.ev(`[...document.querySelectorAll('[data-date-picker] button')].find(b => b.textContent === '确定').click()`)
+  for (let attempt = 0; attempt < 40; attempt++) {
+    if (!await session.ev(`!!document.querySelector('[data-date-picker]')`)) break
+    if (attempt === 39) throw new Error('Date picker did not finish closing')
+    await new Promise(resolve => setTimeout(resolve, 25))
+  }
   return session.ev(`document.querySelector('button[data-date-field=${JSON.stringify(label)}]').dataset.dateValue`)
 }

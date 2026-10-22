@@ -39,8 +39,10 @@ export default function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className="flex gap-0.5 rounded-pill bg-surface-sunken p-[3px]"
+      className="segmented-control relative flex rounded-pill bg-surface-sunken p-[3px]"
     >
+      <span aria-hidden="true" className="segmented-indicator pointer-events-none absolute bottom-[3px] left-[3px] top-[3px] rounded-pill bg-surface-raised shadow-card"
+        style={{ width: `calc((100% - 6px) / ${Math.max(1, options.length)})`, transform: `translateX(${Math.max(0, options.findIndex(option => option.value === value)) * 100}%)` }} />
       {options.map((o) => {
         const active = o.value === value
         const disabled = o.disabled === true
@@ -72,11 +74,11 @@ export default function SegmentedControl<T extends string>({
               if (disabled) return
               onChange(o.value)
             }}
-            className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-pill text-caption transition-colors duration-200 ease-out-quint ${
+            className={`relative flex min-w-0 min-h-9 flex-1 items-center justify-center gap-1.5 rounded-pill px-1 py-2 text-caption transition-colors duration-200 ease-out-quint ${
               disabled
                 ? 'cursor-default text-ink-faint'
                 : active
-                  ? 'bg-surface-raised font-medium text-ink-primary shadow-card'
+                  ? 'font-medium text-ink-primary'
                   : 'text-ink-tertiary active:text-ink-secondary'
             }`}
           >

@@ -71,7 +71,7 @@ export default function AiRecognitionSheet({ open, onClose, categories, current,
   }
   const close = () => { cancel(); onClose() }
 
-  return <ModalSheet open={open} variant="picker" label="AI 辅助录入" onClose={close}
+  return <ModalSheet open={open} variant="picker" size={image ? 'tall' : 'content'} label="AI 辅助录入" onClose={close}
     onExited={() => { setImage(null); setCandidate(null); setError('') }}>
     <header className="flex shrink-0 items-center justify-between px-5 py-3">
       <h2 className="text-section text-ink-primary">AI 辅助录入</h2>

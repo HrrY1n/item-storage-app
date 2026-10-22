@@ -56,7 +56,7 @@ export default function HomePage() {
   const dailyText = stats.dailyTotalCents !== null ? formatCentsCompact(stats.dailyTotalCents) : null
 
   return (
-    <div className="animate-fade-rise px-5 pt-[calc(28px+env(safe-area-inset-top))] sm:px-7 lg:pt-7">
+    <div className="px-5 pt-[calc(28px+env(safe-area-inset-top))] sm:px-7 lg:pt-7">
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-page-title text-ink-primary">概览</h1>

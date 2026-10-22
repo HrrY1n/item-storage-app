@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
-import ModalSheet, { type ItemPanelProps } from '../components/ModalSheet'
+import { useItemPanel } from '../components/ItemPanel'
 import { itemPanelBackground } from '../features/ui/itemPanelRouting'
 import { categoryPath } from '../domain/categoryTree'
 import {
@@ -176,16 +176,13 @@ function ActionGlyph({ d, circle = false }: { d: string; circle?: boolean }) {
  * 分组 = GroupCard（surface）+ InnerCell（sunken）+ hairline，不是一堆等权重卡片。
  * 不伪造数据：保修 / 处置 / 标签 / 备注 / 记录信息都只在有数据时出现。
  */
-export default function ItemDetailPage({ panel }: { panel?: ItemPanelProps }) {
+export default function ItemDetailPage() {
   const navigate = useNavigate()
   const handleBack = () => {
     if (window.history.state?.idx > 0) navigate(-1)
     else navigate('/items', { replace: true })
   }
-  const content = <ItemDetailContent onBack={handleBack} />
-  return panel
-    ? <ModalSheet {...panel} label="物品详情" variant="detail" onClose={handleBack}>{content}</ModalSheet>
-    : content
+  return <ItemDetailContent onBack={handleBack} />
 }
 
 function ItemDetailContent({ onBack }: { onBack: () => void }) {
@@ -207,6 +204,7 @@ function ItemDetailContent({ onBack }: { onBack: () => void }) {
   const assetMap = usePresetAssetMap()
 
   const loading = !categories || !tags || !links || !assetMap || item === undefined
+  const panel = useItemPanel(onBack, !loading)
   if (loading) return <p className="px-5 py-10 text-secondary text-ink-tertiary" role="status">正在载入物品…</p>
 
   if (!item) {
@@ -326,7 +324,7 @@ function ItemDetailContent({ onBack }: { onBack: () => void }) {
         }
       />
 
-      <div className="animate-fade-rise px-5 pt-3 sm:px-7">
+      <div className={`${panel ? '' : 'animate-fade-rise'} px-5 pt-3 sm:px-7`}>
         {/* Large Title：滚动离场后由 sticky header 的居中小标题接管 */}
         <div ref={sentinelRef}>
           <h1 className="text-page-title text-ink-primary">物品详情</h1>

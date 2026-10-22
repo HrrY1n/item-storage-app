@@ -2,17 +2,13 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import ModalLayer from './ModalLayer'
 import { sheetDragDirection, shouldDismissSheet, type SheetPoint } from '../features/ui/sheetGesture'
 
-export interface ItemPanelProps {
-  open: boolean
-  onExited: () => void
-}
-
-export default function ModalSheet({ open, label, onClose, onExited, variant, children }: {
+export default function ModalSheet({ open, label, onClose, onExited, variant, size, children }: {
   open: boolean
   label: string
   onClose: () => void
   onExited?: () => void
   variant: 'detail' | 'picker'
+  size?: 'compact' | 'content' | 'tall'
   children: ReactNode
 }) {
   const [present, setPresent] = useState(open)
@@ -22,6 +18,8 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, ch
   const closeRef = useRef(onClose)
   const sheetRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLElement>(null)
+  const measuredHeight = useRef<number | null>(null)
+  const sizeAnimation = useRef<Animation | null>(null)
   const visible = open || present
   openRef.current = open
   exitedRef.current = onExited
@@ -37,14 +35,39 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, ch
   const requestClose = () => { if (openRef.current) onClose() }
 
   useLayoutEffect(() => {
+    const panel = panelRef.current
+    if (!visible || !panel) return
+    const from = measuredHeight.current
+    sizeAnimation.current?.cancel()
+    const to = panel.getBoundingClientRect().height
+    if (from !== null && Math.abs(from - to) > 1 && openRef.current && panel.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      sizeAnimation.current = panel.animate([{ height: `${from}px` }, { height: `${to}px` }], { duration: 260, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' })
+    }
+    measuredHeight.current = to
+  }, [size, visible])
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    if (!visible || !panel || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => { measuredHeight.current = panel.getBoundingClientRect().height })
+    observer.observe(panel)
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)')
+    const reduce = () => { if (reduced.matches) sizeAnimation.current?.cancel() }
+    reduced.addEventListener('change', reduce)
+    return () => { observer.disconnect(); reduced.removeEventListener('change', reduce); sizeAnimation.current?.cancel(); measuredHeight.current = null }
+  }, [visible])
+
+  useLayoutEffect(() => {
     const sheet = sheetRef.current, panel = panelRef.current
     if (!visible || !sheet || !panel) return
     let gesture: { id: number; kind: 'touch' | 'pointer'; start: SheetPoint; base: number; distance: number; dragging: boolean; samples: SheetPoint[] } | undefined
+    let releaseFrame = 0
     const topmost = () => {
       const dialogs = document.querySelectorAll('dialog[open]')
       return openRef.current && panel.closest('dialog') === dialogs[dialogs.length - 1]
     }
     const reset = () => {
+      cancelAnimationFrame(releaseFrame)
+      releaseFrame = 0
       gesture = undefined
       delete sheet.dataset.dragging
       sheet.style.removeProperty('--sheet-drag-y')
@@ -86,8 +109,13 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, ch
       const sample = current?.samples[0]
       const velocity = point && sample ? (point.y - sample.y) / Math.max(1, point.time - sample.time) : 0
       const dismiss = !!(point && current?.dragging && topmost() && shouldDismissSheet(current.distance, panel.clientHeight, velocity))
-      reset()
-      if (dismiss) closeRef.current()
+      if (dismiss) {
+        gesture = undefined
+        delete sheet.dataset.dragging
+        closeRef.current()
+        // 先让关闭/确认状态提交，再清理拖动终值，避免退出前归零。
+        releaseFrame = requestAnimationFrame(() => { releaseFrame = 0; reset() })
+      } else reset()
     }
     const touchStart = (event: TouchEvent) => {
       if (event.touches.length !== 1) { finish(); return }
@@ -157,7 +185,7 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, ch
   }, [open, present])
 
   return <ModalLayer open={open || present} label={label} onClose={requestClose}>
-    <div ref={sheetRef} className="modal-sheet" data-sheet={variant} data-state={open ? 'open' : 'closing'}>
+    <div ref={sheetRef} className="modal-sheet" data-sheet={variant} data-size={size ?? (variant === 'picker' ? 'tall' : undefined)} data-state={open ? 'open' : 'closing'}>
       <div className="modal-sheet-backdrop bg-overlay backdrop-blur-[2px]" onClick={requestClose} />
       <section ref={panelRef} className="modal-sheet-panel" inert={!open} onTransitionEnd={event => {
         if (event.target === event.currentTarget && event.propertyName === 'transform') finishExit()

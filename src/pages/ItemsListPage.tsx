@@ -1,4 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
+import SearchField from '../components/SearchField'
+import { useLayoutMotion } from '../features/ui/useLayoutMotion'
 import { Link, useLocation } from 'react-router'
 import { todayString } from '../domain/purchase'
 import {
@@ -98,6 +100,7 @@ function ListRow({
     <Link
       to={to}
       state={{ itemBackground: location }}
+      data-layout-id={item.id}
       className="flex min-h-[76px] items-center gap-3.5 px-4 py-2.5 transition-colors duration-150 active:bg-surface-sunken sm:hover:bg-surface-sunken"
     >
       <div className="relative shrink-0">
@@ -191,12 +194,15 @@ export default function ItemsListPage() {
    * 不写 URL、不写 IndexedDB、不进 sync/D1，因为它不是业务数据。
    */
   const [disposition, setDisposition] = useState<DispositionKind | 'all'>('all')
+  const [filterExpanded, setFilterExpanded] = useState(false)
+  const layout = useLayoutMotion(JSON.stringify([status, query, categoryId, sort, view, disposition]))
 
   /** 切换生命周期时重置处置筛选，避免"心愿 tab 下遗留 sold 筛选"这种隐藏态 */
   const handleStatusChange = useCallback((next: ItemStatus) => {
+    layout.capture()
     setStatus(next)
     setDisposition('all')
-  }, [])
+  }, [layout.capture])
 
   // ⚠️ hooks 必须在任何 early return 之前全部调用完，否则顺序随加载状态变化会炸。
   // 筛选/排序逻辑本身在 viewModels.filterAndSortItems（纯函数，有回归测试）。
@@ -244,7 +250,7 @@ export default function ItemsListPage() {
   const filtered = query.trim() !== '' || categoryId !== null || (status === 'disposed' && disposition !== 'all')
 
   return (
-    <div className="animate-fade-rise px-5 pt-[calc(28px+env(safe-area-inset-top))] sm:px-7 lg:pt-7">
+    <div className="px-5 pt-[calc(28px+env(safe-area-inset-top))] sm:px-7 lg:pt-7">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-page-title text-ink-primary">{words.title}</h1>
@@ -275,7 +281,7 @@ export default function ItemsListPage() {
           <SegmentedControl
             ariaLabel="处置方式"
             value={disposition}
-            onChange={setDisposition}
+            onChange={value => { layout.capture(); setDisposition(value) }}
             options={DISPOSITION_FILTERS.map((f) => ({
               value: f.key,
               label: f.label,
@@ -289,44 +295,19 @@ export default function ItemsListPage() {
 
       {/* 工具栏：搜索 / 分类 / 排序 / 视图 */}
       <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center lg:gap-3">
-        <div className="field-shell flex h-11 items-center gap-2.5 rounded-control border border-line bg-surface px-3.5 transition-colors focus-within:border-line-strong">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-tertiary">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.8-3.8" />
-          </svg>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜索名称、分类或标签"
-            type="search"
-            aria-label="搜索物品"
-            className="min-w-0 flex-1 bg-transparent text-[16px] text-ink-primary outline-none placeholder:text-ink-faint"
-          />
-          {query !== '' && (
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              aria-label="清空"
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-pill bg-surface-sunken text-ink-secondary"
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
-                <path d="M18 6 6 18M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
+        <SearchField value={query} onChange={value => { layout.capture(); setQuery(value) }} placeholder="搜索名称、分类或标签" />
 
         <div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_42px] gap-2 lg:mt-0">
-          <select aria-label="分类筛选" value={categoryId ?? ''} onChange={(event) => setCategoryId(event.target.value || null)} className="collection-select">
-            <option value="">全部分类</option>
-            {allCategories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
-          </select>
-          <select aria-label="物品排序" value={sort} onChange={(event) => setSort(event.target.value as ItemSortKey)} className="collection-select">
+          <button type="button" aria-label="分类筛选" value={categoryId ?? ''} aria-expanded={filterExpanded} aria-controls="item-category-filters"
+            onClick={() => setFilterExpanded(value => !value)} className="collection-select flex items-center justify-between gap-2 text-left">
+            <span className="truncate">{allCategories.find(category => category.id === categoryId)?.name ?? '全部分类'}</span><span aria-hidden>{filterExpanded ? '−' : '+'}</span>
+          </button>
+          <select aria-label="物品排序" value={sort} onChange={(event) => { layout.capture(); setSort(event.target.value as ItemSortKey) }} className="collection-select">
             {SORTS.map(option => <option key={option.key} value={option.key}>{option.key === 'cost' && status === 'disposed' ? '实际持有成本' : option.label}</option>)}
           </select>
           <button
             type="button"
-            onClick={() => setView(view === 'grid' ? 'list' : 'grid')}
+            onClick={() => { layout.capture(); setView(view === 'grid' ? 'list' : 'grid') }}
             aria-label={view === 'grid' ? '切换为列表视图' : '切换为网格视图'}
             className="flex h-[42px] w-[42px] items-center justify-center rounded-control border border-line bg-surface text-ink-secondary transition-colors active:bg-surface-sunken hover:text-accent"
           >
@@ -345,13 +326,22 @@ export default function ItemsListPage() {
           </button>
         </div>
       </div>
+      <div id="item-category-filters" className="filter-disclosure" data-open={filterExpanded} inert={!filterExpanded} aria-hidden={!filterExpanded}>
+        <div className="min-h-0 overflow-hidden">
+          <div role="group" aria-label="筛选分类" className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 pt-3">
+            {[{ id: '', name: '全部分类' }, ...allCategories].map(category => <button key={category.id} type="button" data-category-value={category.id}
+              aria-pressed={(categoryId ?? '') === category.id} onClick={() => { layout.capture(); setCategoryId(category.id || null) }}
+              className={`choice-chip min-h-10 shrink-0 rounded-pill border px-3 text-caption ${ (categoryId ?? '') === category.id ? 'border-accent-line bg-accent-soft text-accent' : 'border-line bg-surface text-ink-secondary' }`}>{category.name}</button>)}
+          </div>
+        </div>
+      </div>
 
       {/* 结果 */}
       <div className="mt-5">
         {filtered && (
           <div className="mb-4 flex min-h-8 items-center justify-between gap-3 text-caption">
             <p role="status" className="text-ink-tertiary">找到 <span className="num text-ink-secondary">{visible.length}</span> 件物品</p>
-            <button type="button" onClick={() => { setQuery(''); setCategoryId(null); setDisposition('all') }} className="min-h-8 text-accent hover:underline">重置筛选</button>
+            <button type="button" onClick={() => { layout.capture(); setQuery(''); setCategoryId(null); setDisposition('all') }} className="min-h-8 text-accent hover:underline">重置筛选</button>
           </div>
         )}
         {visible.length === 0 ? (
@@ -369,9 +359,9 @@ export default function ItemsListPage() {
                     : '通过「新增物品」记录第一件物品'
             }
           />
-        ) : view === 'grid' ? (
-          <div className="grid grid-cols-2 gap-3 pb-2 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
-            {visible.map((item) => (
+        ) : (
+          <div ref={layout.ref} data-layout-view={view} className={view === 'grid' ? 'grid grid-cols-2 gap-3 pb-2 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4' : 'divide-y divide-line-inner rounded-surface border border-line bg-surface shadow-card'}>
+            {visible.map((item) => view === 'grid' ? (
               <ItemCard
                 key={item.id}
                 item={item}
@@ -382,11 +372,7 @@ export default function ItemsListPage() {
                 tagNames={tagNamesOf(item.id, links, tags)}
                 today={today}
               />
-            ))}
-          </div>
-        ) : (
-          <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-surface shadow-card">
-            {visible.map((item) => (
+            ) : (
               <ListRow
                 key={item.id}
                 item={item}

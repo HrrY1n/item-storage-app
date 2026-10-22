@@ -196,7 +196,7 @@ export default function ItemCard({
   const hasDetails = !summary && (cells.length > 0 || p.finance !== null)
 
   return (
-    <article className={`relative min-w-0 ${summary ? 'h-full' : 'self-start'}`} data-item-card="" data-expanded={expanded}>
+    <article className={`relative min-w-0 ${summary ? 'h-full' : 'self-start'}`} data-item-card="" data-layout-id={item.id} data-expanded={expanded}>
       <Link
         to={to}
         state={{ itemBackground: location }}

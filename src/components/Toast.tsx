@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 /**
  * 轻量 Toast（操作反馈）。
@@ -9,6 +9,7 @@ import { useCallback, useRef, useState } from 'react'
 export function useToast() {
   const [message, setMessage] = useState<string | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
   const show = useCallback((msg: string, duration = 1800) => {
     if (timer.current) clearTimeout(timer.current)
@@ -18,11 +19,11 @@ export function useToast() {
 
   const toast = message ? (
     <div
-      className="animate-pop-in fixed left-1/2 z-30 -translate-x-1/2 rounded-pill bg-ink-solid px-5 py-2.5 text-secondary text-ink-inverse shadow-sheet"
+      className="fixed left-1/2 z-30 -translate-x-1/2"
       style={{ bottom: 'calc(92px + env(safe-area-inset-bottom))' }}
       role="status"
     >
-      {message}
+      <div className="animate-pop-in rounded-pill bg-ink-solid px-5 py-2.5 text-secondary text-ink-inverse shadow-sheet">{message}</div>
     </div>
   ) : null
 

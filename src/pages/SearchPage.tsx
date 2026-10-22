@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import SearchField from '../components/SearchField'
 import { Link, useLocation, useSearchParams } from 'react-router'
 import { searchItems } from '../domain/searchItems'
 import { categoryPath } from '../domain/categoryTree'
@@ -50,12 +51,6 @@ export default function SearchPage() {
   const [input, setInput] = useState('')
   const [query, setQuery] = useState('')
   const [recent, setRecent] = useState<string[]>(() => loadRecent())
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
-
   // 150ms 防抖实时搜索
   useEffect(() => {
     const t = setTimeout(() => setQuery(input), 150)
@@ -106,36 +101,10 @@ export default function SearchPage() {
             rememberQuery(input)
           }}
         >
-          <div className="field-shell flex h-12 items-center gap-2.5 rounded-card border border-line bg-surface px-4 shadow-card">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-tertiary">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.8-3.8" />
-            </svg>
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value)
-                if (tagParam) setSearchParams({})
-              }}
-              placeholder="搜索物品、标签或分类……"
-              className="min-w-0 flex-1 bg-transparent text-[16px] text-ink-primary outline-none placeholder:text-ink-tertiary"
-              type="search"
-              enterKeyHint="search"
-            />
-            {input && (
-              <button
-                type="button"
-                onClick={() => setInput('')}
-                aria-label="清空"
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-sunken text-ink-secondary active:opacity-60"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
+          <SearchField autoFocus value={input} placeholder="搜索物品、标签或分类……" onChange={value => {
+            setInput(value)
+            if (tagParam) setSearchParams({})
+          }} />
         </form>
       </div>
 

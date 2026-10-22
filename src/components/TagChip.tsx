@@ -21,7 +21,8 @@ export default function TagChip({ name, size = 'md', selected = false, onClick }
       <button
         type="button"
         onClick={onClick}
-        className={`${base} ${color} transition-colors duration-150 active:scale-95`}
+        aria-pressed={selected}
+        className={`${base} ${color} choice-chip`}
       >
         #{name}
       </button>

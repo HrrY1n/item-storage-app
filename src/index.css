@@ -233,10 +233,17 @@
   padding-bottom: 0;
   background: var(--color-surface-raised);
 }
+.modal-sheet[data-sheet][data-size='compact'] .modal-sheet-panel { height: auto; min-height: 0; max-height: min(86dvh, 560px); max-width: 440px; }
+.modal-sheet[data-sheet][data-size='content'] .modal-sheet-panel { height: 65dvh; min-height: 0; max-width: 560px; }
+.choice-chip { transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 100ms ease; }
+.choice-chip:active { transform: scale(.98); }
+.search-control { display: flex; min-width: 0; align-items: center; }
+.search-cancel { width: 0; opacity: 0; overflow: hidden; flex-shrink: 0; }
+.search-control[data-focused='true'] .search-cancel { width: 56px; opacity: 1; }
 .modal-sheet[data-state='closing'] .modal-sheet-panel { transform: translateY(100%); }
 .modal-sheet[data-state='closing'] .modal-sheet-backdrop { opacity: 0; }
-.warranty-disclosure { display: grid; grid-template-rows: 0fr; opacity: 0; }
-.warranty-disclosure[data-open='true'] { grid-template-rows: 1fr; opacity: 1; }
+.warranty-disclosure, .category-disclosure, .filter-disclosure { display: grid; grid-template-rows: 0fr; opacity: 0; }
+.warranty-disclosure[data-open='true'], .category-disclosure[data-open='true'], .filter-disclosure[data-open='true'] { grid-template-rows: 1fr; opacity: 1; }
 @media (min-width: 640px) {
   .modal-sheet { align-items: center; padding: 24px; }
   .modal-sheet-panel { max-height: calc(100dvh - 48px); min-height: min(720px, calc(100dvh - 48px)); border-radius: 28px; }
@@ -244,16 +251,29 @@
   .modal-sheet-grip { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .modal-sheet-panel { transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .modal-sheet-panel { transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1); }
   .modal-sheet[data-sheet='picker'] .modal-sheet-panel { transition-duration: 340ms; }
-  .modal-sheet-backdrop { transition: opacity 280ms ease-out; }
+  .modal-sheet-backdrop { transition: opacity 220ms ease-out; }
   .modal-sheet[data-state='closing'] .modal-sheet-panel,
-  .modal-sheet[data-state='closing'] .modal-sheet-backdrop { transition-duration: 380ms; }
-  .warranty-disclosure { transition: grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease; }
+  .modal-sheet[data-state='closing'] .modal-sheet-backdrop { transition-duration: 300ms; }
+  .warranty-disclosure, .category-disclosure, .filter-disclosure { transition: grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease; }
+  .search-cancel { transition: width 160ms ease-out, opacity 140ms ease-out; }
+  .segmented-indicator { transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), width 180ms ease; }
+  .item-panel-content[data-intent='forward'] { animation: panel-forward 200ms ease-out; }
+  .item-panel-content[data-intent='back'] { animation: panel-back 180ms ease-out; }
+  .route-content[data-direction='forward'] { animation: route-forward 180ms ease-out; }
+  .route-content[data-direction='back'] { animation: route-back 180ms ease-out; }
   @starting-style {
     .modal-sheet[data-state='open'] .modal-sheet-panel { transform: translateY(100%); }
     .modal-sheet[data-state='open'] .modal-sheet-backdrop { opacity: 0; }
   }
+}
+@keyframes panel-forward { from { opacity: .65; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes panel-back { from { opacity: .65; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes route-forward { from { opacity: .85; transform: translateX(6px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes route-back { from { opacity: .85; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .chrome { background: var(--color-canvas) !important; backdrop-filter: none !important; }
 }
 .nav-brand, .nav-footer { display: none; }
 .app-nav {
@@ -594,7 +614,7 @@ p {
    */
   html.theme-shift main,
   html.theme-shift main section,
-  html.theme-shift main div,
+  html.theme-shift main div:not([data-expanded]):not([data-open]):not(.search-cancel),
   html.theme-shift nav,
   html.theme-shift .plate-surface {
     transition:

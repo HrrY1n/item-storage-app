@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { BrowserRouter, Outlet, Route, Routes, useLocation, type Location } from 'react-router'
 import { itemPanelBackground } from './features/ui/itemPanelRouting'
 import { seedIfEmpty, syncPresetAssets, upgradeSchemaVersionMeta } from './db/seed'
@@ -19,6 +19,8 @@ import SettingsPage from './pages/SettingsPage'
 import CategoryManagePage from './pages/CategoryManagePage'
 import TagManagePage from './pages/TagManagePage'
 import IconLibraryPage from './pages/IconLibraryPage'
+import ItemPanel from './components/ItemPanel'
+import { tabMotionDirection } from './features/ui/navigationMotion'
 
 /** 路由切换时回到顶部 */
 function ScrollToTop() {
@@ -36,6 +38,8 @@ function isFormRoute(pathname: string): boolean {
 
 function Layout() {
   const { pathname } = useLocation()
+  const route = useRef({ path: pathname, direction: 'none' })
+  if (route.current.path !== pathname) route.current = { path: pathname, direction: tabMotionDirection(route.current.path, pathname) }
   const showBottomNav = !isFormRoute(pathname)
 
   const widePage = ['/', '/items', '/categories'].includes(pathname)
@@ -56,7 +60,7 @@ function Layout() {
           showBottomNav ? 'pb-[calc(96px+env(safe-area-inset-bottom))]' : 'pb-6'
         }`}
       >
-        <Outlet />
+        <div key={pathname} className="route-content" data-direction={route.current.direction}><Outlet /></div>
       </main>
       {showBottomNav && <BottomNav />}
       {/* 更新提示只在"不能立刻刷新"时出现；安全状态下后台静默完成更新 */}
@@ -118,11 +122,13 @@ function Boot() {
         <Route path="*" element={<HomePage />} />
       </Route>
     </Routes>
-    {panelLocation && <Routes location={panelLocation}>
-      <Route path="items/new" element={<ItemFormPage key={panelLocation.pathname} panel={{ open: !!background, onExited: () => setExitingPanel(undefined) }} />} />
-      <Route path="items/:id" element={<ItemDetailPage key={panelLocation.pathname} panel={{ open: !!background, onExited: () => setExitingPanel(undefined) }} />} />
-      <Route path="items/:id/edit" element={<ItemFormPage key={panelLocation.pathname} panel={{ open: !!background, onExited: () => setExitingPanel(undefined) }} />} />
-    </Routes>}
+    {panelLocation && <ItemPanel path={panelLocation.pathname} open={!!background} onExited={() => setExitingPanel(undefined)}>
+      <Routes location={panelLocation}>
+        <Route path="items/new" element={<ItemFormPage />} />
+        <Route path="items/:id" element={<ItemDetailPage />} />
+        <Route path="items/:id/edit" element={<ItemFormPage />} />
+      </Routes>
+    </ItemPanel>}
     </>
   )
 }

@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
-import ModalSheet, { type ItemPanelProps } from '../components/ModalSheet'
+import { useItemPanel } from '../components/ItemPanel'
 import { childrenOf } from '../domain/categoryTree'
 import { presetIconOfAssetId } from '../data/icons'
 import type { ItemStatus, PurchasePlatform } from '../domain/types'
@@ -44,7 +44,7 @@ import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
  */
 function GroupCard({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
-    <section className="animate-fade-rise">
+    <section>
       <div className="mb-2 flex items-baseline justify-between px-1">
         <p className="text-label text-ink-tertiary">{title}</p>
         {hint && <p className="text-caption text-ink-tertiary">{hint}</p>}
@@ -95,7 +95,7 @@ function ChipButton({
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`flex min-h-[36px] items-center whitespace-nowrap rounded-pill px-3.5 text-secondary transition-colors duration-150 active:scale-[0.97] ${
+      className={`choice-chip flex min-h-[36px] items-center whitespace-nowrap rounded-pill px-3.5 text-secondary ${
         selected ? 'bg-accent text-ink-inverse' : restClass
       }`}
     >
@@ -105,7 +105,7 @@ function ChipButton({
 }
 
 /** 新增（/items/new）与编辑（/items/:id/edit）共用的物品表单 */
-export default function ItemFormPage({ panel }: { panel?: ItemPanelProps }) {
+export default function ItemFormPage() {
   const { id } = useParams<{ id: string }>()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
@@ -218,12 +218,16 @@ export default function ItemFormPage({ panel }: { panel?: ItemPanelProps }) {
     warranty,
   ])
 
+  const handleBack = () => {
+    if (dirty) setConfirmDiscard(true)
+    else navigate(-1)
+  }
+  useItemPanel(handleBack, !loading)
+
   if (loading) {
     const pending = <div><PageHeader title={isEdit ? '编辑物品' : '新增物品'} onBack={() => navigate(-1)} />
       <p className="px-5 py-10 text-secondary text-ink-tertiary" role="status">正在载入表单…</p></div>
-    return panel
-      ? <ModalSheet {...panel} label="载入物品表单" variant="detail" onClose={() => navigate(-1)}>{pending}</ModalSheet>
-      : pending
+    return pending
   }
 
   const roots = childrenOf(categories, null)
@@ -263,11 +267,6 @@ export default function ItemFormPage({ panel }: { panel?: ItemPanelProps }) {
     } catch (e) {
       show(e instanceof Error ? e.message : '标签创建失败')
     }
-  }
-
-  const handleBack = () => {
-    if (dirty) setConfirmDiscard(true)
-    else navigate(-1)
   }
 
   const handleSave = async () => {
@@ -506,8 +505,11 @@ export default function ItemFormPage({ panel }: { panel?: ItemPanelProps }) {
             </FormRow>
 
             <FormRow>
-              <button type="button" aria-expanded={warrantyExpanded} aria-controls={warrantyPanelId}
-                data-warranty-toggle onClick={() => setWarrantyExpanded(value => !value)}
+            <button type="button" aria-expanded={warrantyExpanded} aria-controls={warrantyPanelId}
+                data-warranty-toggle onClick={event => {
+                  if (warrantyExpanded) event.currentTarget.focus({ preventScroll: true })
+                  setWarrantyExpanded(value => !value)
+                }}
                 className="flex min-h-12 w-full items-center gap-3 rounded-control text-left text-ink-primary">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-info-soft text-info" aria-hidden="true">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m12 3 8 3v5c0 5-8 10-8 10S4 16 4 11V6z" /><path d="m8.5 12 2.2 2.2 4.8-4.8" /></svg>
@@ -681,7 +683,5 @@ export default function ItemFormPage({ panel }: { panel?: ItemPanelProps }) {
       {toast}
     </div>
   )
-  return panel
-    ? <ModalSheet {...panel} label={isEdit ? '编辑物品' : '新增物品'} variant="detail" onClose={handleBack}>{content}</ModalSheet>
-    : content
+  return content
 }

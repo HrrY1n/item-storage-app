@@ -1,5 +1,5 @@
 import { useId, useRef, useState } from 'react'
-import ModalLayer from './ModalLayer'
+import ModalSheet from './ModalSheet'
 import { clampCalendarDate, formatPurchaseDate, parseDateToDayNumber, todayString } from '../domain/purchase'
 
 /** 年/月/日只修改草稿，明确点「确定」后才通知表单，避免依赖原生日期弹窗的提交时机。 */
@@ -42,14 +42,14 @@ export default function DateField({ label, value, onChange, min, max }: {
       <span className={value ? 'num' : 'text-ink-tertiary'}>{value ? formatPurchaseDate(value) : '请选择日期'}</span>
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M16 3v4M8 3v4M3 11h18" /></svg>
     </button>
-    <ModalLayer open={open} label={label} onClose={() => setOpen(false)}>
-      <div aria-labelledby={titleId} data-date-picker
-        className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6">
-        <div className="absolute inset-0 bg-overlay backdrop-blur-[2px]" onClick={() => setOpen(false)} />
-        <div className="animate-drawer-up relative max-h-[90dvh] w-full max-w-[420px] overflow-y-auto rounded-t-sheet border border-line bg-surface-raised p-5 pb-[calc(20px+env(safe-area-inset-bottom))] shadow-sheet sm:rounded-sheet sm:pb-5">
+    <ModalSheet open={open} label={label} onClose={() => setOpen(false)} variant="picker" size="compact">
+      <div data-date-picker className="contents" aria-labelledby={titleId}>
+      <header className="shrink-0 px-5 pb-3 pt-2">
           <h2 id={titleId} className="text-section text-ink-primary">{label}</h2>
           <p className="mt-1 text-caption text-ink-tertiary">选好年月日后，点「确定」生效。</p>
-          <div className="mt-5 grid grid-cols-[1.2fr_1fr_1fr] gap-3">
+      </header>
+      <div className="min-h-0 overflow-y-auto overscroll-contain px-5 pb-[calc(20px+env(safe-area-inset-bottom))]">
+          <div className="grid grid-cols-[1.2fr_1fr_1fr] gap-3">
             <label className="text-label text-ink-tertiary">年
               <select aria-label="年" value={year} className={`${selectClass} mt-2`} onChange={event => setDraft(clampCalendarDate(Number(event.target.value), month, day)!)}>
                 {Array.from({ length: lastYear - firstYear + 1 }, (_, i) => firstYear + i).map(y => <option key={y} value={y}>{y}年</option>)}
@@ -73,8 +73,8 @@ export default function DateField({ label, value, onChange, min, max }: {
             {value && <button type="button" onClick={() => { onChange(''); setOpen(false) }} className="h-11 rounded-control px-3 text-secondary text-ink-tertiary">清除</button>}
             <button type="button" disabled={!!error} onClick={() => { onChange(draft); setOpen(false) }} className="h-11 flex-1 rounded-control bg-ink-solid text-secondary font-medium text-ink-inverse disabled:opacity-40">确定</button>
           </div>
-        </div>
       </div>
-    </ModalLayer>
+      </div>
+    </ModalSheet>
   </>
 }

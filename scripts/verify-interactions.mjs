@@ -133,12 +133,38 @@ try {
   await page.until(`document.querySelectorAll('[data-item-card]').length === 18`)
   await page.click('input[aria-label="搜索物品"]')
   await page.send('Input.insertText', { text: '交互样品' })
-  await page.ev(`for (const [label,value] of [['分类筛选',window.fixtureCategory],['物品排序','name']]) {
+  await page.check('Search focus reveals a cancel action without replacing the input', `document.querySelector('.search-control').dataset.focused==='true' && !document.querySelector('.search-cancel').inert`)
+  await page.click('.search-cancel button')
+  await page.check('Cancel leaves the query intact and releases input focus', `document.querySelector('input[aria-label="搜索物品"]').value==='交互样品' && document.activeElement!==document.querySelector('input[aria-label="搜索物品"]')`)
+  await page.click('input[aria-label="搜索物品"]')
+  await page.click('button[aria-label="清空"]')
+  await page.check('Clear preserves keyboard focus and empties the query', `document.activeElement===document.querySelector('input[aria-label="搜索物品"]') && document.activeElement.value===''`)
+  await page.send('Input.insertText', { text: '交互样品' })
+  await page.click('button[aria-label="分类筛选"]')
+  await page.check('Category filter expands a persistent accessible chip strip', `document.querySelector('button[aria-label="分类筛选"]').getAttribute('aria-expanded')==='true' && !document.querySelector('#item-category-filters').inert`)
+  await page.until(`document.querySelector('#item-category-filters').clientHeight>35 && document.querySelector('#item-category-filters').getAnimations().length===0 && document.querySelector('.search-cancel').getAnimations().length===0`)
+  const fixtureCategory = await page.ev('window.fixtureCategory')
+  await page.click(`button[data-category-value="${fixtureCategory}"]`)
+  await page.until(`document.querySelector('button[aria-label="分类筛选"]').value===${JSON.stringify(fixtureCategory)}`)
+  await page.ev(`for (const [label,value] of [['物品排序','name']]) {
     const select=document.querySelector('select[aria-label="'+label+'"]');
     select.value=value; select.dispatchEvent(new Event('change',{bubbles:true}));
   }`)
-  await page.click('[data-item-card]:nth-child(5) button[aria-expanded]')
-  await sleep(300)
+  await page.until(`[...document.querySelectorAll('[data-layout-id]')].every(node=>node.getAnimations().length===0)`)
+  await page.ev(`document.querySelector('[data-item-card]:nth-child(5) button[aria-expanded]').scrollIntoView({block:'center'})`)
+  await page.ev(`document.documentElement.classList.add('theme-shift')`)
+  await page.check('Theme color changes preserve disclosure layout transitions', `getComputedStyle(document.querySelector('[data-item-card]:nth-child(5) .item-card-details')).transitionProperty.includes('grid-template-rows')`)
+  const disclosureSamples = await page.ev(`new Promise(resolve=>{
+    const sibling=document.querySelector('[data-item-card]:nth-child(7)');
+    const samples=[sibling.getBoundingClientRect().top+scrollY];const start=performance.now();
+    document.querySelector('[data-item-card]:nth-child(5) button[aria-expanded]').click();
+    const sample=()=>{samples.push(sibling.getBoundingClientRect().top+scrollY);if(performance.now()-start>400)resolve(samples);else requestAnimationFrame(sample)};
+    requestAnimationFrame(sample);
+  })`)
+  await writeFile(`${OUT}/10-disclosure-layout-samples.json`, JSON.stringify(disclosureSamples))
+  assert.ok(disclosureSamples.at(-1)>disclosureSamples[0]+5 && new Set(disclosureSamples.map(value=>Math.round(value))).size>2, 'Disclosure moves following rows continuously: '+JSON.stringify({first:disclosureSamples[0],last:disclosureSamples.at(-1),positions:new Set(disclosureSamples.map(value=>Math.round(value))).size}))
+  results.push('Disclosure moves following rows continuously using existing CSS layout')
+  console.log('PASS Disclosure moves following rows continuously using existing CSS layout')
   await page.ev(`window.listCard=document.querySelector('[data-item-card]:nth-child(5)');
     window.listLink=listCard.querySelector('a'); listLink.scrollIntoView({block:'center'});
     window.listInput=document.querySelector('input[aria-label="搜索物品"]'); window.listY=scrollY;
@@ -166,7 +192,7 @@ try {
   await page.check('Return restores scroll, filters, card disclosure and focus', `
     location.pathname==='/items' && Math.abs(scrollY-listY)<2 && document.activeElement===listLink
     && listInput===document.querySelector('input[aria-label="搜索物品"]') && listInput.value==='交互样品'
-    && listCard.dataset.expanded==='true' && document.querySelector('select[aria-label="分类筛选"]').value===fixtureCategory
+    && listCard.dataset.expanded==='true' && document.querySelector('button[aria-label="分类筛选"]').value===fixtureCategory
     && document.querySelector('select[aria-label="物品排序"]').value==='name' && document.body.style.overflow===''
     && document.body.style.paddingRight===''`)
 
@@ -186,9 +212,13 @@ try {
   await page.until(`document.querySelectorAll('dialog:modal').length===2`)
   await page.escape()
   await page.check('Delete confirmation cancels above detail', `document.querySelectorAll('dialog:modal').length===1 && listCard.isConnected`)
-  await page.click('dialog[open] a[href$="/edit"]')
+  await page.ev(`window.detailFrame=document.querySelector('.modal-sheet-panel');detailFrame.scrollTop=180`)
+  await sleep(80)
+  await page.ev(`window.detailY=detailFrame.scrollTop;document.querySelector('dialog[open] a[href$="/edit"]').click()`)
   await page.until(`!!document.querySelector('dialog input[placeholder="比如：AirPods Pro"]')`)
   await sleep(550)
+  await page.check('Detail to edit reuses the same settled sheet instead of reopening', `detailFrame===document.querySelector('.modal-sheet-panel') && document.querySelectorAll('dialog:modal').length===1 && Math.abs(new DOMMatrixReadOnly(getComputedStyle(detailFrame).transform).m42)<1 && detailFrame.scrollTop===0`)
+  await page.shot('09-edit-shared-panel')
   await page.click('dialog input[placeholder="比如：AirPods Pro"]')
   await page.send('Input.insertText', { text: ' 草稿' })
   await page.ev(`window.nameDraft=document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value`)
@@ -207,6 +237,8 @@ try {
   await page.click('dialog [data-date-field="购买日期"]')
   await page.until(`!!document.querySelector('[data-date-picker]')`)
   await page.escape()
+  await page.check('Date close remains mounted and inert through its exit', `!!document.querySelector('[data-size="compact"][data-state="closing"] .modal-sheet-panel[inert]') && document.body.style.overflow==='hidden'`)
+  await page.until(`!document.querySelector('[data-date-picker]')`)
   await page.check('Nested date cancel preserves the date and restores its trigger', `
     !document.querySelector('[data-date-picker]') && document.querySelectorAll('dialog:modal').length===1
     && document.activeElement.dataset.dateField==='购买日期' && document.activeElement.dataset.dateValue==='2026-01-15'`)
@@ -239,6 +271,7 @@ try {
   await page.click('dialog[aria-label="放弃此次修改？"] button', '放弃修改')
   await page.until(`!!document.querySelector('dialog[aria-label="物品详情"]')`)
   await sleep(550)
+  await page.check('Edit cancel restores detail scroll inside the same sheet', `detailFrame===document.querySelector('.modal-sheet-panel') && Math.abs(detailFrame.scrollTop-detailY)<2`)
   await page.escape()
   await page.until(`!document.querySelector('dialog[open]')`)
   await page.check('Discard returns through detail to the original list and releases all locks', `listCard.isConnected && document.body.style.overflow===''`)
@@ -306,6 +339,7 @@ try {
   touch = await page.touchStart(creationTitle)
   await page.touchMove(touch, 220)
   await page.touchEnd()
+  await page.check('Dismissal continues from the released drag position', `(()=>{const panel=document.querySelector('.modal-sheet-panel');return !panel || (panel.closest('.modal-sheet').dataset.state==='closing' && new DOMMatrixReadOnly(getComputedStyle(panel).transform).m42>=215)})()`)
   await page.until(`!document.querySelector('dialog[open]')`)
   await page.check('Long pull dismisses pristine creation and restores the list/focus', `location.pathname==='/items' && creationList.isConnected && document.activeElement.matches('a[aria-label="新增物品"]') && document.body.style.overflow===''`)
 
@@ -336,6 +370,28 @@ try {
   await page.click('dialog[aria-label="放弃此次修改？"] button', '放弃修改')
   await page.until(`!document.querySelector('dialog[open]')`)
   await page.check('Discard after gestures writes no business records and releases locks', `creationList.isConnected && document.querySelectorAll('[data-item-card]').length===18 && document.body.style.overflow===''`)
+  await page.ev(`window.layoutIds=[...document.querySelectorAll('[data-layout-id]')].map(node=>node.dataset.layoutId);document.querySelector('button[aria-label="切换为列表视图"]').click()`)
+  await page.until(`document.querySelector('[data-layout-view]')?.dataset.layoutView==='list'`)
+  await page.check('View switch animates stable visible item identities', `JSON.stringify(layoutIds)===JSON.stringify([...document.querySelectorAll('[data-layout-id]')].map(node=>node.dataset.layoutId)) && [...document.querySelectorAll('[data-layout-id]')].some(node=>node.getAnimations().length>0)`)
+  await page.click('button[aria-label="切换为网格视图"]')
+  await sleep(300)
+  await page.check('Interrupted layout motion settles without stale transforms or ghosts', `document.querySelectorAll('[data-item-card]').length===18 && [...document.querySelectorAll('[data-layout-id]')].every(node=>node.getAnimations().length===0)`)
+  await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
+  await page.click('button[aria-label="切换为列表视图"]')
+  await sleep(80)
+  await page.check('Reduced motion skips layout animation and retains all results', `document.querySelectorAll('[data-layout-id]').length===18 && [...document.querySelectorAll('[data-layout-id]')].every(node=>node.getAnimations().length===0)`)
+  await page.send('Emulation.setEmulatedMedia', { features: [] })
+  await page.click('button[aria-label="切换为网格视图"]')
+  await sleep(300)
+  await page.click('[role="radiogroup"][aria-label="物品状态"] button', '心愿')
+  await sleep(220)
+  await page.check('Segment indicator aligns with the selected accessible radio', `(()=>{const selected=document.querySelector('[role="radiogroup"][aria-label="物品状态"] [aria-checked="true"]'),indicator=selected.parentElement.querySelector('.segmented-indicator');return selected.textContent.includes('心愿')&&Math.abs(selected.getBoundingClientRect().left-indicator.getBoundingClientRect().left)<2})()`)
+  await page.click('[role="radiogroup"][aria-label="物品状态"] button', '持有')
+  await page.until(`document.querySelectorAll('[data-item-card]').length===18`)
+  await page.click('button[aria-label="分类筛选"]')
+  await page.click('input[aria-label="搜索物品"]')
+  await sleep(260)
+  await page.shot('08-search-filter-motion')
   assert.deepEqual(errors, [], 'No runtime exceptions')
   console.log(`PASS ${results.length} interaction checks; no runtime exceptions`)
 } catch (error) {
@@ -343,7 +399,7 @@ try {
     focus:document.activeElement?.outerHTML.slice(0,300),sameFocus:document.activeElement===window.listLink,
     sameInput:window.listInput===document.querySelector('input[aria-label="搜索物品"]'),
     query:window.listInput?.value,expanded:window.listCard?.dataset.expanded,
-    category:document.querySelector('select[aria-label="分类筛选"]')?.value,expectedCategory:window.fixtureCategory,
+    category:document.querySelector('button[aria-label="分类筛选"]')?.value,expectedCategory:window.fixtureCategory,
     sort:document.querySelector('select[aria-label="物品排序"]')?.value,overflow:document.body.style.overflow,
     viewport:[innerWidth,innerHeight],panel:document.querySelector('.modal-sheet-panel')?.getBoundingClientRect().toJSON(),
     events:window.modalEvents, dialogs:[...document.querySelectorAll('dialog')].map(d=>({label:d.ariaLabel,open:d.open}))})`).catch(() => null))

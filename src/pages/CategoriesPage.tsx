@@ -57,7 +57,7 @@ function RootCategoryBlock({
           type="button"
           onClick={() => setExpanded((value) => !value)}
           aria-expanded={expanded}
-          aria-controls={expanded ? panelId : undefined}
+          aria-controls={panelId}
           className={rowClass}
         >
           {rowInner}
@@ -68,8 +68,9 @@ function RootCategoryBlock({
         </Link>
       )}
 
-      {children.length > 0 && expanded && (
-        <div id={panelId} className="border-t border-line-inner px-3.5 pb-2.5 pt-3">
+      {children.length > 0 && (
+        <div id={panelId} className="category-disclosure" data-open={expanded} inert={!expanded} aria-hidden={!expanded}>
+        <div className="min-h-0 overflow-hidden"><div className="border-t border-line-inner px-3.5 pb-2.5 pt-3">
           <div className="grid grid-cols-2 gap-2">
             {children.map((child) => (
               <Link
@@ -95,7 +96,7 @@ function RootCategoryBlock({
           {directCount > 0 && (
             <p className="pb-1 text-caption text-ink-tertiary">另有 {directCount} 件物品直接归入此大类</p>
           )}
-        </div>
+        </div></div></div>
       )}
     </section>
   )

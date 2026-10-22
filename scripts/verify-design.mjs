@@ -161,7 +161,8 @@ try {
   await key('ArrowRight', 39)
   check('Keyboard arrows select wishlist and move focus', await evaluate(`document.querySelector('main h1').textContent === '心愿物品' && document.activeElement.getAttribute('aria-checked') === 'true'`))
   await key('Home', 36)
-  await evaluate(`(() => { const select = document.querySelector('[aria-label="分类筛选"]'); select.value = [...select.options].find(option => option.text === '数码与电子').value; select.dispatchEvent(new Event('change', { bubbles: true })); })()`)
+  await evaluate(`document.querySelector('button[aria-label="分类筛选"]').click()`)
+  await evaluate(`[...document.querySelectorAll('button[data-category-value]')].find(button=>button.textContent==='数码与电子').click()`)
   await pause(200)
   check('Category filtering narrows the collection', await evaluate(`document.querySelectorAll('.item-card').length > 0 && document.querySelectorAll('.item-card').length < 14`))
   await evaluate(`document.querySelector('input[type="search"]').focus()`)
@@ -198,6 +199,10 @@ try {
   check('Icon picker is an accessible modal', await evaluate(`!!document.querySelector('[role="dialog"][aria-modal="true"]')`))
   await shot('mobile-icon-picker')
   await key('Escape', 27)
+  for (let attempt = 0; attempt < 50; attempt++) {
+    if (await evaluate(`!document.querySelector('[role="dialog"]')`)) break
+    await pause(20)
+  }
   check('Escape closes the picker', await evaluate(`!document.querySelector('[role="dialog"]')`))
 
   const captures = []
