@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useLocation, useSearchParams } from 'react-router'
 import { searchItems } from '../domain/searchItems'
 import { categoryPath } from '../domain/categoryTree'
 import type { Item } from '../types'
@@ -246,12 +246,14 @@ function ResultRows({
   iconOf: (item: Item) => string
   onSelect?: () => void
 }) {
+  const location = useLocation()
   return (
     <div className="divide-y divide-line-inner overflow-hidden rounded-surface border border-line bg-surface shadow-card">
       {rows.map(({ item, matchedVia }) => (
         <Link
           key={item.id}
           to={`/items/${item.id}`}
+          state={{ itemBackground: location }}
           onClick={onSelect}
           className="group flex min-h-[72px] items-center gap-3.5 px-4 py-3 transition-colors active:bg-surface-sunken sm:hover:bg-surface-sunken"
         >

@@ -67,7 +67,11 @@ const shot = async name => {
   const { data } = await send('Page.captureScreenshot', { format: 'png' })
   await writeFile(`${OUT}/${name}.png`, Buffer.from(data, 'base64'))
 }
-const scrollToWarranty = () => ev(`document.querySelector('[data-warranty-input]').scrollIntoView({ block: 'center' })`)
+const scrollToWarranty = async () => {
+  await ev(`document.querySelector('[data-warranty-toggle][aria-expanded="false"]')?.click()`)
+  await sleep(260)
+  await ev(`document.querySelector('[data-warranty-input]').scrollIntoView({ block: 'center' })`)
+}
 const save = async () => {
   await button('保存', `document.querySelector('header')`)
   await poll(`location.pathname.startsWith('/items/') && location.pathname.split('/').length===3 && !location.pathname.endsWith('/new')`)
@@ -90,6 +94,7 @@ try {
   const countBefore = (await records()).length
   check('新增默认选择 12 个月，未填购买日时不虚构到期日', await selected(12) && await dateValue('保修到期日') === '')
   check('目标表单不再使用原生 date 输入框', await ev(`document.querySelectorAll('input[type="date"]').length === 0`))
+  await scrollToWarranty()
   await selectDate(session, '购买日期', '2024-01-31')
   check('确认购买日后默认自动计算一年', await dateValue('保修到期日') === '2025-01-31')
   await button('3个月')
@@ -145,6 +150,7 @@ try {
   await save()
   await navigate(`/items/${id}/edit`)
   check('历史未填写的到期日保持为空', await dateValue('保修到期日') === '' && await ev(`!![...document.querySelectorAll('[data-warranty-input] button[aria-pressed="true"]')].find(b=>b.textContent==='不适用')`))
+  await scrollToWarranty()
   await button('自定义')
   await setInput('input[inputmode="numeric"]', '0')
   await button('保存', `document.querySelector('header')`)

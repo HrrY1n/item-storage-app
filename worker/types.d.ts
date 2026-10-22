@@ -78,7 +78,26 @@ interface Request {
   readonly url: string
   headers: Headers
   json(): Promise<unknown>
+  readonly body: ReadableStream<Uint8Array> | null
 }
+
+interface ReadableStream<T> {
+  getReader(): {
+    read(): Promise<{ done: boolean; value?: T }>
+    cancel(): Promise<void>
+    releaseLock(): void
+  }
+}
+
+declare const Request: { new(url: string, init?: { method?: string; headers?: Record<string, string>; body?: string }): Request }
+declare class TextDecoder { decode(input: Uint8Array): string }
+interface Blob {
+  readonly size: number
+  readonly type: string
+  arrayBuffer(): Promise<ArrayBuffer>
+}
+declare function setTimeout(callback: () => void, ms: number): number
+declare function clearTimeout(id: number): void
 
 /** Workers 提供 TextEncoder（与 DOM 同名，但 lib: ES2022 里没有） */
 declare class TextEncoder {

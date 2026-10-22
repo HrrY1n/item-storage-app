@@ -1,18 +1,17 @@
 import type { ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import ModalLayer from './ModalLayer'
 
 /** 遮罩 + 入场，所有对话框共用。渲染到 body，避免被祖先的 overflow / transform 裁剪。 */
-function Overlay({ onClose, children }: { onClose: () => void; children: ReactNode }) {
-  return createPortal(
+function Overlay({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
+  return <ModalLayer open label={label} onClose={onClose}>
     <div className="fixed inset-0 z-40 flex items-center justify-center px-8">
       <div
         className="animate-[pop-in_200ms_cubic-bezier(0.22,1,0.36,1)_both] absolute inset-0 bg-overlay backdrop-blur-[2px]"
         onClick={onClose}
       />
       {children}
-    </div>,
-    document.body,
-  )
+    </div>
+  </ModalLayer>
 }
 
 const btnBase =
@@ -43,7 +42,7 @@ export default function ConfirmDialog({
 }: ConfirmProps) {
   if (!open) return null
   return (
-    <Overlay onClose={onCancel}>
+    <Overlay label={title} onClose={onCancel}>
       <div className="animate-pop-in relative w-full max-w-[312px] rounded-sheet border border-line bg-surface-raised p-6 shadow-sheet">
         <p className="text-center text-section text-ink-primary">{title}</p>
         {message && (
@@ -88,7 +87,7 @@ export function AlertDialog({
 }) {
   if (!open) return null
   return (
-    <Overlay onClose={onClose}>
+    <Overlay label={title} onClose={onClose}>
       <div className="animate-pop-in relative w-full max-w-[312px] rounded-sheet border border-line bg-surface-raised p-6 shadow-sheet">
         <p className="text-center text-section text-ink-primary">{title}</p>
         <p className="mt-2.5 whitespace-pre-line text-center text-secondary leading-relaxed text-ink-tertiary">
@@ -119,7 +118,7 @@ export function FormDialog({
   onClose: () => void
 }) {
   if (!open) return null
-  return createPortal(
+  return <ModalLayer open label={title} onClose={onClose}>
     <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center">
       <div
         className="animate-[pop-in_200ms_cubic-bezier(0.22,1,0.36,1)_both] absolute inset-0 bg-overlay backdrop-blur-[2px]"
@@ -131,7 +130,6 @@ export function FormDialog({
         <p className="mb-4 text-item text-ink-primary">{title}</p>
         {children}
       </div>
-    </div>,
-    document.body,
-  )
+    </div>
+  </ModalLayer>
 }

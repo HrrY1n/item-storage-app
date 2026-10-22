@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { todayString } from '../domain/purchase'
 import {
   ITEM_STATUS_LABELS,
@@ -89,6 +89,7 @@ function ListRow({
   categoryName: string
   today: string
 }) {
+  const location = useLocation()
   const p = itemPresentation(item, { today, categoryName })
   const warranty = warrantyInfo(item.warrantyExpiresAt, today)
   const isDisposed = p.badge !== null
@@ -96,6 +97,7 @@ function ListRow({
   return (
     <Link
       to={to}
+      state={{ itemBackground: location }}
       className="flex min-h-[76px] items-center gap-3.5 px-4 py-2.5 transition-colors duration-150 active:bg-surface-sunken sm:hover:bg-surface-sunken"
     >
       <div className="relative shrink-0">

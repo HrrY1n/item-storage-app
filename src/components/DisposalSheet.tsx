@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
+import ModalLayer from './ModalLayer'
 import { DISPOSAL_METHOD_LABELS, validateDisposal } from '../domain/lifecycle'
 import type { DisposalMethod, Item } from '../domain/types'
 import { parsePriceInput, todayString } from '../domain/purchase'
@@ -54,15 +54,6 @@ export default function DisposalSheet({
     setBusy(false)
   }, [open, item.id])
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
-
   if (!open) return null
 
   const handleAmount = (raw: string) => {
@@ -95,7 +86,7 @@ export default function DisposalSheet({
     }
   }
 
-  return createPortal(
+  return <ModalLayer open label="处置物品" onClose={onClose}>
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
       <div
         className="animate-[pop-in_200ms_cubic-bezier(0.22,1,0.36,1)_both] absolute inset-0 bg-overlay backdrop-blur-[2px]"
@@ -190,7 +181,6 @@ export default function DisposalSheet({
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
-  )
+    </div>
+  </ModalLayer>
 }

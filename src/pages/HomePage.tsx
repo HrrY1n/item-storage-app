@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { childrenOf } from '../domain/categoryTree'
 import { formatCents, formatCentsCompact, todayString } from '../domain/purchase'
 import { categoryDistribution, dashboardStats, expiringWarranties, isOwned } from '../domain/lifecycle'
@@ -31,6 +31,7 @@ function DistributionBar({ name, count, ratio, onClick }: { name: string; count:
 }
 
 export default function HomePage() {
+  const location = useLocation()
   const navigate = useNavigate()
   const items = useItems()
   const categories = useCategories()
@@ -114,7 +115,7 @@ export default function HomePage() {
               <p className="shrink-0 text-caption text-danger"><span className="num">{expiring.length}</span> 件物品将在 30 天内过保</p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 {expiring.slice(0, 4).map(({ item, info }) => (
-                  <Link key={item.id} to={`/items/${item.id}`} className="inline-flex min-h-6 items-center gap-1.5 text-caption text-ink-secondary underline decoration-line-strong underline-offset-4 hover:text-danger">
+                  <Link key={item.id} to={`/items/${item.id}`} state={{ itemBackground: location }} className="inline-flex min-h-6 items-center gap-1.5 text-caption text-ink-secondary underline decoration-line-strong underline-offset-4 hover:text-danger">
                     <span className="max-w-[120px] truncate">{item.name}</span><span className="num text-ink-tertiary">{info.detail}</span>
                   </Link>
                 ))}

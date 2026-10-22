@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
+import ModalSheet, { type ItemPanelProps } from '../components/ModalSheet'
 import { childrenOf } from '../domain/categoryTree'
 import { presetIconOfAssetId } from '../data/icons'
 import type { ItemStatus, PurchasePlatform } from '../domain/types'
@@ -30,6 +31,8 @@ import TagChip from '../components/TagChip'
 import ConfirmDialog from '../components/Dialogs'
 import { useToast } from '../components/Toast'
 import IconPickerSheet from '../components/IconPickerSheet'
+import AiRecognitionSheet from '../components/AiRecognitionSheet'
+import { matchRecognitionCategory } from '../domain/recognition'
 import DateField from '../components/DateField'
 import WarrantyInput from '../components/WarrantyInput'
 import { DEFAULT_WARRANTY_MONTHS, validateWarranty, warrantyDate, warrantySelectionFromDates, type WarrantySelection } from '../domain/warranty'
@@ -102,10 +105,11 @@ function ChipButton({
 }
 
 /** 新增（/items/new）与编辑（/items/:id/edit）共用的物品表单 */
-export default function ItemFormPage() {
+export default function ItemFormPage({ panel }: { panel?: ItemPanelProps }) {
   const { id } = useParams<{ id: string }>()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const location = useLocation()
   const { toast, show } = useToast()
 
   const categories = useCategories()
@@ -116,6 +120,7 @@ export default function ItemFormPage() {
 
   const [iconAssetId, setIconAssetId] = useState('preset-other')
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [recognitionOpen, setRecognitionOpen] = useState(false)
   const [name, setName] = useState('')
   const [rootId, setRootId] = useState<string | null>(null)
   const [categoryId, setCategoryId] = useState<string | null>(null)
@@ -129,6 +134,8 @@ export default function ItemFormPage() {
   const [purchasePlatform, setPurchasePlatform] = useState<PurchasePlatform | null>(null)
   const [status, setStatus] = useState<ItemStatus>('owned')
   const [warranty, setWarranty] = useState<WarrantySelection>({ kind: 'months', months: DEFAULT_WARRANTY_MONTHS })
+  const [warrantyExpanded, setWarrantyExpanded] = useState(false)
+  const warrantyPanelId = useId()
   const warrantyExpiresAt = warrantyDate(purchaseDate, warranty)
   const [confirmDiscard, setConfirmDiscard] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -163,6 +170,7 @@ export default function ItemFormPage() {
     setPurchasePlatform(existingItem.purchasePlatform)
     setStatus(statusOf(existingItem))
     setWarranty(warrantySelectionFromDates(existingItem.purchaseDate, existingItem.warrantyExpiresAt))
+    setWarrantyExpanded(existingItem.warrantyExpiresAt !== null)
   }, [isEdit, existingItem, categories, links])
 
   const loading = !categories || !tags || !links || !assetMap || (isEdit && !initialized.current)
@@ -210,7 +218,13 @@ export default function ItemFormPage() {
     warranty,
   ])
 
-  if (loading) return null
+  if (loading) {
+    const pending = <div><PageHeader title={isEdit ? '编辑物品' : '新增物品'} onBack={() => navigate(-1)} />
+      <p className="px-5 py-10 text-secondary text-ink-tertiary" role="status">正在载入表单…</p></div>
+    return panel
+      ? <ModalSheet {...panel} label="载入物品表单" variant="detail" onClose={() => navigate(-1)}>{pending}</ModalSheet>
+      : pending
+  }
 
   const roots = childrenOf(categories, null)
   const childCategories = rootId ? childrenOf(categories, rootId) : []
@@ -286,7 +300,7 @@ export default function ItemFormPage() {
           ...purchase,
         })
         show('已保存')
-        setTimeout(() => navigate(`/items/${id}`, { replace: true }), 300)
+        setTimeout(() => navigate(`/items/${id}`, { replace: true, state: location.state }), 300)
       } else {
         const item = await itemRepository.create({
           name,
@@ -305,7 +319,7 @@ export default function ItemFormPage() {
     }
   }
 
-  return (
+  const content = (
     <div>
       <PageHeader
         title={isEdit ? '编辑物品' : '新增物品'}
@@ -327,6 +341,11 @@ export default function ItemFormPage() {
       />
 
       <div className="flex flex-col gap-7 px-5 pt-5">
+        <button type="button" onClick={() => setRecognitionOpen(true)} data-ai-entry
+          className="flex min-h-16 items-center justify-between gap-3 rounded-card border border-accent-line bg-accent-soft px-4 py-3 text-left text-accent">
+          <span><span className="block text-item">AI 辅助录入</span><span className="mt-1 block text-caption">拍照或选订单截图，确认后填入表单</span></span>
+          <span aria-hidden="true">＋</span>
+        </button>
         {/* ---------- 基本信息 ---------- */}
         <GroupCard title="基本信息">
           {/* 生命周期：只在新增时选。之后的状态变更走详情页的「转为持有 / 处置 / 恢复为持有」，
@@ -487,7 +506,23 @@ export default function ItemFormPage() {
             </FormRow>
 
             <FormRow>
-              <WarrantyInput purchaseDate={purchaseDate} value={warranty} onChange={setWarranty} />
+              <button type="button" aria-expanded={warrantyExpanded} aria-controls={warrantyPanelId}
+                data-warranty-toggle onClick={() => setWarrantyExpanded(value => !value)}
+                className="flex min-h-12 w-full items-center gap-3 rounded-control text-left text-ink-primary">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-info-soft text-info" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m12 3 8 3v5c0 5-8 10-8 10S4 16 4 11V6z" /><path d="m8.5 12 2.2 2.2 4.8-4.8" /></svg>
+                </span>
+                <span className="min-w-0 flex-1"><span className="block text-body">保修信息</span><span className="mt-0.5 block truncate text-caption text-ink-tertiary">
+                  {warrantyExpiresAt ? `到期日 ${warrantyExpiresAt}` : warranty.kind === 'none' ? '不记录保修' : '选择购买日期后计算到期日'}
+                </span></span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"
+                  className={`shrink-0 text-ink-tertiary transition-transform duration-200 ${warrantyExpanded ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+              <div id={warrantyPanelId} className="warranty-disclosure" data-open={warrantyExpanded} aria-hidden={!warrantyExpanded} inert={!warrantyExpanded}>
+                <div className="min-h-0 overflow-hidden"><div className="pt-4">
+                  <WarrantyInput purchaseDate={purchaseDate} value={warranty} onChange={setWarranty} />
+                </div></div>
+              </div>
             </FormRow>
 
             {/* 购买价格 + 附加花费：并排布局，缩短表单高度（快速录入优先） */}
@@ -617,6 +652,20 @@ export default function ItemFormPage() {
         onClose={() => setPickerOpen(false)}
       />
 
+      <AiRecognitionSheet open={recognitionOpen} onClose={() => setRecognitionOpen(false)} categories={categories} allowPurchaseInfo={status !== 'wishlist'}
+        current={{ name, categoryName: categories.find(category => category.id === categoryId)?.name ?? '', note, priceText, purchaseDate, purchasePlatform: purchasePlatform ?? '' }}
+        onApply={values => {
+          if (values.name != null) setName(values.name)
+          if (values.note != null) setNote(values.note)
+          const category = matchRecognitionCategory(values.categoryName ?? null, categories)
+          if (category) { setCategoryId(category.id); setRootId(category.parentId ?? category.id) }
+          if (status !== 'wishlist') {
+            if (values.priceText != null) setPriceText(values.priceText)
+            if (values.purchaseDate != null) setPurchaseDate(values.purchaseDate)
+            if (values.purchasePlatform != null) setPurchasePlatform(values.purchasePlatform)
+          }
+        }} />
+
       <ConfirmDialog
         open={confirmDiscard}
         title="放弃此次修改？"
@@ -632,4 +681,7 @@ export default function ItemFormPage() {
       {toast}
     </div>
   )
+  return panel
+    ? <ModalSheet {...panel} label={isEdit ? '编辑物品' : '新增物品'} variant="detail" onClose={handleBack}>{content}</ModalSheet>
+    : content
 }

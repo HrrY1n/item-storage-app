@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
+import ModalLayer from './ModalLayer'
 import type { Item, PurchasePlatform } from '../domain/types'
 import { PURCHASE_PLATFORMS, parsePriceInput, platformLabel, todayString } from '../domain/purchase'
 import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
@@ -54,15 +54,6 @@ export default function ConvertToOwnedSheet({
     setBusy(false)
   }, [open, item.id])
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
-
   if (!open) return null
 
   const amount = (raw: string, set: (v: string) => void) => {
@@ -93,13 +84,13 @@ export default function ConvertToOwnedSheet({
   const fieldShell =
     'field-shell flex h-11 items-center gap-2 rounded-control border border-line bg-surface px-3 transition-colors focus-within:border-line-strong'
 
-  return createPortal(
+  return <ModalLayer open label="转为持有" onClose={onClose}>
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
       <div
         className="animate-[pop-in_200ms_cubic-bezier(0.22,1,0.36,1)_both] absolute inset-0 bg-overlay backdrop-blur-[2px]"
         onClick={onClose}
       />
-      <div role="dialog" aria-modal="true" aria-label="转为持有" className="animate-sheet-up relative max-h-[90dvh] w-full max-w-[420px] overflow-y-auto rounded-t-sheet border border-line bg-surface-raised p-5 pb-[calc(24px+env(safe-area-inset-bottom))] shadow-sheet sm:animate-pop-in sm:rounded-sheet sm:pb-5">
+      <div className="animate-sheet-up relative max-h-[90dvh] w-full max-w-[420px] overflow-y-auto rounded-t-sheet border border-line bg-surface-raised p-5 pb-[calc(24px+env(safe-area-inset-bottom))] shadow-sheet sm:animate-pop-in sm:rounded-sheet sm:pb-5">
         <div className="mx-auto mb-4 h-1 w-9 rounded-pill bg-line-strong sm:hidden" />
 
         <h2 className="text-section text-ink-primary">转为持有</h2>
@@ -184,7 +175,6 @@ export default function ConvertToOwnedSheet({
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
-  )
+    </div>
+  </ModalLayer>
 }

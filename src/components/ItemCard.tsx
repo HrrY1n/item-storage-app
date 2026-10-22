@@ -1,10 +1,9 @@
 import { useId, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import TagChip from './TagChip'
 import { DisposalChip, DisposalOverlay, FINANCE_TONES, StatusChip } from './StatusChip'
 import WarrantyStrip from './WarrantyStrip'
 import { statusOf } from '../domain/lifecycle'
-import { SHARED_OBJECT_NAME, navigateWithViewTransition, supportsViewTransition } from '../features/ui/viewTransition'
 import type { Item } from '../domain/types'
 import {
   itemPresentation,
@@ -189,7 +188,7 @@ export default function ItemCard({
   className = '',
   summary = false,
 }: Props) {
-  const navigate = useNavigate()
+  const location = useLocation()
   const [expanded, setExpanded] = useState(false)
   const detailsId = useId()
   const p = itemPresentation(item, { today, categoryName })
@@ -200,17 +199,8 @@ export default function ItemCard({
     <article className={`relative min-w-0 ${summary ? 'h-full' : 'self-start'}`} data-item-card="" data-expanded={expanded}>
       <Link
         to={to}
+        state={{ itemBackground: location }}
         aria-label={`查看${name}详情`}
-        onClick={(event) => {
-          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !supportsViewTransition()) return
-          event.preventDefault()
-          const plate = event.currentTarget.querySelector<HTMLElement>('[data-object-plate]')
-          navigateWithViewTransition(
-            () => navigate(to),
-            () => { if (plate) plate.style.viewTransitionName = SHARED_OBJECT_NAME },
-            () => { if (plate) plate.style.viewTransitionName = '' },
-          )
-        }}
         className={`item-card group flex h-full flex-col overflow-hidden rounded-surface border border-line bg-surface active:bg-surface-sunken ${className}`}
       >
         <div className="relative">

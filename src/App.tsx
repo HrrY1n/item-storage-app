@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router'
+import { useEffect, useLayoutEffect, useState } from 'react'
+import { BrowserRouter, Outlet, Route, Routes, useLocation, type Location } from 'react-router'
+import { itemPanelBackground } from './features/ui/itemPanelRouting'
 import { seedIfEmpty, syncPresetAssets, upgradeSchemaVersionMeta } from './db/seed'
 import { upgradeDefaultCategories } from './db/repositories/categoryRepository'
 import { requestPersistentStorage } from './services/pwa'
@@ -66,8 +67,16 @@ function Layout() {
 
 /** 启动闸：先完成首次 seed 与预置图标同步，再渲染应用 */
 function Boot() {
+  const location = useLocation()
+  const background = itemPanelBackground(location)
+  const [exitingPanel, setExitingPanel] = useState<Location>()
+  const panelLocation = background ? location : exitingPanel
   const [ready, setReady] = useState(false)
   const [failed, setFailed] = useState(false)
+
+  useLayoutEffect(() => {
+    if (background && ready) setExitingPanel(location)
+  }, [background, location, ready])
 
   useEffect(() => {
     // 尽力申请持久化存储；不支持或被拒绝都静默跳过，绝不阻塞启动
@@ -91,7 +100,8 @@ function Boot() {
   if (!ready) return null
 
   return (
-    <Routes>
+    <>
+    <Routes location={background ?? location}>
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="items" element={<ItemsListPage />} />
@@ -108,6 +118,11 @@ function Boot() {
         <Route path="*" element={<HomePage />} />
       </Route>
     </Routes>
+    {panelLocation && <Routes location={panelLocation}>
+      <Route path="items/:id" element={<ItemDetailPage key={panelLocation.pathname} panel={{ open: !!background, onExited: () => setExitingPanel(undefined) }} />} />
+      <Route path="items/:id/edit" element={<ItemFormPage key={panelLocation.pathname} panel={{ open: !!background, onExited: () => setExitingPanel(undefined) }} />} />
+    </Routes>}
+    </>
   )
 }
 

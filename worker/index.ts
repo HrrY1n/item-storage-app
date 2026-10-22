@@ -45,8 +45,9 @@ import {
 } from './syncSql'
 import { executePush } from './pushPipeline'
 import { SYNC_PROTOCOL_VERSION } from '../src/domain/syncProtocol'
+import { handleRecognition, type RecognitionEnv } from './recognition'
 
-interface Env {
+interface Env extends RecognitionEnv {
   /** D1 绑定名（与 wrangler.jsonc 的 d1_databases[].binding 一致） */
   SYNC_DB: D1Database
   SYNC_DISABLED?: string
@@ -261,6 +262,10 @@ export default {
     if (env.SYNC_DISABLED === 'true' || !env.SYNC_DB) return fail(503, 'sync-unavailable')
 
     try {
+      if (path === '/api/ai/recognize' && request.method === 'POST') {
+        const authErr = await authenticate(request, env)
+        return authErr ?? await handleRecognition(request, env)
+      }
       if (path === '/api/sync/status' && request.method === 'GET') return await handleStatus(request, env)
       if (path === '/api/sync/bootstrap' && request.method === 'POST') return await handleBootstrap(request, env)
       if (path === '/api/sync/push' && request.method === 'POST') return await handlePush(request, env)

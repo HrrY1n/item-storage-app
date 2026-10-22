@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import ModalSheet, { type ItemPanelProps } from '../components/ModalSheet'
+import { itemPanelBackground } from '../features/ui/itemPanelRouting'
 import { categoryPath } from '../domain/categoryTree'
 import {
   calculateTotalCostCents,
@@ -174,9 +176,24 @@ function ActionGlyph({ d, circle = false }: { d: string; circle?: boolean }) {
  * 分组 = GroupCard（surface）+ InnerCell（sunken）+ hairline，不是一堆等权重卡片。
  * 不伪造数据：保修 / 处置 / 标签 / 备注 / 记录信息都只在有数据时出现。
  */
-export default function ItemDetailPage() {
+export default function ItemDetailPage({ panel }: { panel?: ItemPanelProps }) {
+  const navigate = useNavigate()
+  const handleBack = () => {
+    if (window.history.state?.idx > 0) navigate(-1)
+    else navigate('/items', { replace: true })
+  }
+  const content = <ItemDetailContent onBack={handleBack} />
+  return panel
+    ? <ModalSheet {...panel} label="物品详情" variant="detail" onClose={handleBack}>{content}</ModalSheet>
+    : content
+}
+
+function ItemDetailContent({ onBack }: { onBack: () => void }) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const background = itemPanelBackground(location)
+  const editState = background ? { itemBackground: background } : undefined
   const { toast, show } = useToast()
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [disposalOpen, setDisposalOpen] = useState(false)
@@ -190,12 +207,12 @@ export default function ItemDetailPage() {
   const assetMap = usePresetAssetMap()
 
   const loading = !categories || !tags || !links || !assetMap || item === undefined
-  if (loading) return null
+  if (loading) return <p className="px-5 py-10 text-secondary text-ink-tertiary" role="status">正在载入物品…</p>
 
   if (!item) {
     return (
       <div>
-        <PageHeader title="物品" />
+        <PageHeader title="物品" onBack={onBack} />
         <EmptyState title="物品不存在" subtitle="它可能已经被删除" />
       </div>
     )
@@ -285,7 +302,7 @@ export default function ItemDetailPage() {
     try {
       await itemRepository.softDelete(item.id)
       show('已删除')
-      setTimeout(() => navigate(-1), 350)
+      setTimeout(onBack, 350)
     } catch (e) {
       show(e instanceof Error ? e.message : '删除失败')
     }
@@ -295,11 +312,13 @@ export default function ItemDetailPage() {
     <div>
       <PageHeader
         title="物品详情"
+        onBack={onBack}
         floating
         collapsed={collapsed}
         right={
           <Link
             to={`/items/${item.id}/edit`}
+            state={editState}
             className="flex min-h-[28px] items-center px-1 text-item text-ink-primary transition-opacity active:opacity-50 sm:hover:opacity-60"
           >
             编辑
@@ -514,7 +533,7 @@ export default function ItemDetailPage() {
             hint="修改物品信息"
             tone="info"
             icon={<ActionGlyph d="M4.5 19.5h4L19 9a2.1 2.1 0 0 0-3-3L5.5 16.5zM14.5 7.5l2 2" />}
-            onClick={() => navigate(`/items/${item.id}/edit`)}
+            onClick={() => navigate(`/items/${item.id}/edit`, { state: editState })}
           />
           <ActionButton
             label="删除物品"
