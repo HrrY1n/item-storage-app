@@ -177,7 +177,11 @@ try {
     location.pathname===itemPath && document.querySelector('dialog:modal').contains(document.activeElement)
     && document.body.style.overflow==='hidden' && listCard.isConnected && listInput.value==='交互样品'
     && Math.abs(listLink.getBoundingClientRect().left-listX)<1`)
+  await page.check('Initial panel focus does not outline the back button', `document.activeElement===document.querySelector('.item-panel-content') && !document.querySelector('dialog button[aria-label="返回"]').matches(':focus-visible')`)
   await page.shot('01-detail-mobile')
+  await page.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 })
+  await page.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 })
+  await page.check('Keyboard Tab still visibly focuses the back button', `document.activeElement===document.querySelector('dialog button[aria-label="返回"]') && document.activeElement.matches(':focus-visible') && parseFloat(getComputedStyle(document.activeElement).outlineWidth)>=2`)
   const largeTitleVisible = await page.ev(`document.querySelector('dialog header h1').getAttribute('aria-hidden')==='true'`)
   await page.ev(`document.querySelector('.modal-sheet-panel').scrollTop=200`)
   await page.until(`document.querySelector('dialog header h1').getAttribute('aria-hidden')==='false'`)

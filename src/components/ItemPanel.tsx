@@ -44,7 +44,7 @@ export default function ItemPanel({ path, open, onExited, children }: {
       if (run !== generation.current || !panel?.closest('dialog')?.open || panel.closest('.modal-sheet')?.getAttribute('data-state') !== 'open') return
       panel.scrollTop = positions.current.get(path) ?? 0
       ready.current = true
-      node?.querySelector<HTMLElement>('header button, header a')?.focus({ preventScroll: true })
+      node?.focus({ preventScroll: true })
     })
   }, [path])
   useLayoutEffect(() => {
@@ -57,7 +57,7 @@ export default function ItemPanel({ path, open, onExited, children }: {
   const label = path.endsWith('/new') ? '新增物品' : path.endsWith('/edit') ? '编辑物品' : '物品详情'
   return <ModalSheet open={open} label={label} onClose={() => close.current?.()} onExited={onExited} variant="detail">
     <PanelContext.Provider value={{ close, path, restore }}>
-      <div key={path} ref={content} className="item-panel-content" data-intent={route.current.intent}>{children}</div>
+      <div key={path} ref={content} tabIndex={-1} data-modal-autofocus className="item-panel-content outline-none" data-intent={route.current.intent}>{children}</div>
     </PanelContext.Provider>
   </ModalSheet>
 }
