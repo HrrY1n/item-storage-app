@@ -51,7 +51,7 @@ const tabs = [
 export default function BottomNav() {
   const location = useLocation()
   return (
-    <nav aria-label="主导航" className="app-nav chrome chrome-edge-top z-20">
+    <nav aria-label="主导航" className="app-nav z-20">
       <Link to="/" className="nav-brand" aria-label="物品库 · 概览">
         <span className="flex h-11 w-11 items-center justify-center rounded-card bg-accent-soft text-accent">
           <svg width="25" height="25" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden>
@@ -62,7 +62,8 @@ export default function BottomNav() {
         <span><span className="block text-section text-ink-primary">物品库</span><span className="mt-1 block text-caption text-ink-tertiary">记录拥有，珍惜日常</span></span>
       </Link>
       <div className="nav-body">
-        <div className="nav-links">
+        <div className="nav-links chrome">
+          <span className="nav-indicator" aria-hidden="true" />
           {tabs.map(({ to, label, Icon, end }) => (
             <NavLink
               key={to}
@@ -73,7 +74,7 @@ export default function BottomNav() {
               {({ isActive }) => (
                 <span
                   className={`nav-link-inner transition-colors duration-200 ease-out-quint ${
-                    isActive ? 'bg-accent-soft text-accent' : 'text-ink-tertiary'
+                    isActive ? 'text-accent' : 'text-ink-secondary'
                   }`}
                 >
                   <Icon active={isActive} />
@@ -94,7 +95,7 @@ export default function BottomNav() {
           to="/items/new"
           state={{ itemBackground: location }}
           aria-label="新增物品"
-          className="nav-add flex shrink-0 items-center justify-center gap-2 bg-ink-solid text-ink-inverse transition-transform duration-150 ease-out-quint active:scale-[0.96]"
+          className="nav-add chrome flex shrink-0 items-center justify-center gap-2 text-ink-primary shadow-card transition-transform duration-150 ease-out-quint active:scale-[0.96]"
         >
           <svg
             width="22"

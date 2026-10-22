@@ -10,7 +10,7 @@
    因此深色模式是**独立设计的一套主题**，而不是浅色的颜色反转。
 
    分层逻辑（浅色）：
-     canvas（页面底） → surface（卡片） → plate（物品底衬，暖白、略沉）
+     canvas（浅紫灰页面底） → surface（白色卡片） → plate（浅紫物品底衬）
    分层逻辑（深色）：
      canvas 近黑 → surface 抬升 → surface-raised 更高（浮层） → plate 作为"打光的展台"
    明度差刻意克制（每级 4~8% L），靠 hairline 与留白而非强对比建立层次。
@@ -23,15 +23,15 @@
   /* Phase 2H：页面底明显比卡片沉一档（冷灰 canvas ≈ #F2F2F4），卡片靠明度差自然抬升，
      而不是靠阴影硬撑。iOS grouped interface 的三级结构：
      canvas（页面）→ surface（section 卡）→ sunken（inner cell） */
-  --color-canvas: #f2f2f4;
+  --color-canvas: #eeedf5;
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-surface-sunken: #e9e9ec;
-  --color-plate: #f5f4f0;
+  --color-surface-sunken: #eeedf4;
+  --color-plate: #f6eef9;
   /* 物品展台的"打光"：同一套配方，不是每张卡片随机渐变 */
   --plate-sheen: rgba(255, 255, 255, 0.85);
-  --plate-top: #faf9f6;
-  --plate-bottom: #efeee9;
+  --plate-top: #f8f3fb;
+  --plate-bottom: #f1e8f8;
   --plate-glow: rgba(255, 255, 255, 0.92);
 
   --color-ink-primary: #171717;
@@ -50,38 +50,38 @@
   --color-line-strong: rgba(23, 23, 23, 0.1);
   --color-line-inner: rgba(23, 23, 23, 0.045);
 
-  /* 品牌强调：陶土。只用于选中、导航指示、极少量点缀 */
-  --color-accent: #b4553b;
-  --color-accent-soft: #f7f0eb;
-  --color-accent-line: #e7d9cf;
+  /* 蓝色交互与浅紫画布；小字号用较深蓝保证对比度。 */
+  --color-accent: #0067d9;
+  --color-accent-soft: #e5effc;
+  --color-accent-line: #c7dcf7;
 
   /* 金钱语义：价格 / 总投入 / 日均成本 —— 与品牌色区分，避免"到处是强调色" */
-  --color-money: #8a5a16;
-  --color-money-deep: #74490f;
-  --color-money-soft: #faf3e5;
-  --color-money-line: #eadcc0;
+  --color-money: #45517a;
+  --color-money-deep: #35435f;
+  --color-money-soft: #edf1fa;
+  --color-money-line: #d6deef;
 
   --color-success: #2f7d5b;
   --color-success-soft: #eaf4ef;
+  --color-warranty-elapsed: #d57920;
   --color-danger: #c0392b;
   --color-danger-soft: #fbefed;
 
-  /* info：普通交互链接 / 清除 / 设置 / 查看全部。
-     系统蓝风格但降过饱和以适配暖色品牌；品牌 accent 仍然只做选中与品牌强调。 */
-  --color-info: #2f6bd0;
-  --color-info-soft: #edf2fb;
+  /* 普通交互链接与选中态共用蓝色。 */
+  --color-info: #0067d9;
+  --color-info-soft: #e5effc;
 
   /* Hero Surface：物品身份卡的专属材质，独立于普通 surface。
-     浅色 = 极淡的暖 plum tint（柔和、不艳），底部透出品牌陶土的微光。 */
+     浅色使用录屏可见的淡紫色与局部光晕。 */
   --color-hero: #f2eef3;
-  --color-hero-top: #f7f4f8;
-  --color-hero-bottom: #ebe6ee;
+  --color-hero-top: #faf4fc;
+  --color-hero-bottom: #eedff5;
   --color-hero-line: rgba(23, 23, 23, 0.07);
-  --hero-glow: rgba(180, 85, 59, 0.09);
+  --hero-glow: rgba(173, 112, 224, 0.12);
 
   --color-overlay: rgba(23, 23, 23, 0.26);
   --color-focus-ring: rgba(23, 23, 23, 0.55);
-  --color-selection: rgba(180, 85, 59, 0.16);
+  --color-selection: rgba(0, 103, 217, 0.16);
   --color-ambient: rgba(23, 23, 23, 0.035);
 
   /* 控件层材质（导航 / 顶栏）：内容层一律实色，只有 chrome 允许半透明 */
@@ -94,7 +94,7 @@
   --shadow-sheet: 0 24px 64px -16px rgba(16, 16, 16, 0.28);
   --shadow-fab: 0 8px 22px -6px rgba(16, 16, 16, 0.32), 0 2px 6px -2px rgba(16, 16, 16, 0.18);
 
-  --grain-opacity: 0.03;
+  --grain-opacity: 0;
   --grain-blend: multiply;
 }
 
@@ -111,7 +111,7 @@
   --plate-sheen: rgba(255, 255, 255, 0.055);
   --plate-top: #303039;
   --plate-bottom: #212127;
-  --plate-glow: rgba(216, 138, 98, 0.17);
+  --plate-glow: rgba(142, 116, 222, 0.14);
 
   --color-ink-primary: #f4f4f2;
   --color-ink-secondary: #b8b8b5;
@@ -129,35 +129,34 @@
   --color-line-strong: rgba(255, 255, 255, 0.15);
   --color-line-inner: rgba(255, 255, 255, 0.055);
 
-  /* 深色下强调色需要提亮才够对比（#D97455 on #17171A ≈ 6.4:1） */
-  --color-accent: #d97455;
-  --color-accent-soft: #2a1e19;
-  --color-accent-line: #3c2b23;
+  --color-accent: #75b5ff;
+  --color-accent-soft: #172b46;
+  --color-accent-line: #2b4669;
 
-  --color-money: #e0a855;
-  --color-money-deep: #eec07b;
-  --color-money-soft: #271f14;
-  --color-money-line: #3a3021;
+  --color-money: #c7d1ef;
+  --color-money-deep: #d6dff5;
+  --color-money-soft: #20283b;
+  --color-money-line: #35425d;
 
   --color-success: #5cab86;
   --color-success-soft: #16241d;
+  --color-warranty-elapsed: #f0b673;
   --color-danger: #e5645a;
   --color-danger-soft: #2a1a19;
 
   --color-info: #7aa7f0;
   --color-info-soft: #1d2536;
 
-  /* 深色 Hero：与浅色同一规则，但更深、更饱和——暖 plum 底 + 陶土微光，
-     "同一信息架构，两套独立调过的材质"的样板。 */
+  /* 深色保留紫色层次，使用独立的明度与边界。 */
   --color-hero: #252130;
   --color-hero-top: #2d2839;
   --color-hero-bottom: #1e1a28;
   --color-hero-line: rgba(255, 255, 255, 0.08);
-  --hero-glow: rgba(224, 150, 120, 0.14);
+  --hero-glow: rgba(157, 124, 231, 0.14);
 
   --color-overlay: rgba(0, 0, 0, 0.62);
   --color-focus-ring: rgba(244, 244, 242, 0.6);
-  --color-selection: rgba(217, 116, 85, 0.28);
+  --color-selection: rgba(117, 181, 255, 0.28);
   --color-ambient: rgba(0, 0, 0, 0.4);
 
   --color-chrome: rgba(20, 20, 22, 0.72);
@@ -170,7 +169,7 @@
   --shadow-sheet: 0 28px 72px -18px rgba(0, 0, 0, 0.8);
   --shadow-fab: 0 10px 26px -8px rgba(0, 0, 0, 0.7), 0 2px 8px -3px rgba(0, 0, 0, 0.5);
 
-  --grain-opacity: 0.045;
+  --grain-opacity: 0;
   --grain-blend: screen;
 }
 
@@ -186,6 +185,8 @@
   margin-inline: auto;
 }
 .app-main { min-width: 0; }
+.page-content { padding: calc(18px + env(safe-area-inset-top)) 16px 0; }
+@media (min-width: 640px) { .page-content { padding-inline: 28px; } }
 
 .modal-layer {
   position: fixed;
@@ -207,20 +208,21 @@
   position: relative;
   width: 100%;
   max-width: 1000px;
-  max-height: 95dvh;
-  min-height: min(720px, 95dvh);
+  max-height: calc(100dvh - max(12px, env(safe-area-inset-top)));
+  min-height: min(720px, calc(100dvh - max(12px, env(safe-area-inset-top))));
   overflow-y: auto;
   overscroll-behavior: contain;
   border: 1px solid var(--color-line);
-  border-radius: 28px 28px 0 0;
+  border-radius: 38px 38px 0 0;
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
   background: var(--color-canvas);
   box-shadow: var(--shadow-sheet);
   transform: translateY(var(--sheet-drag-y, 0px));
 }
-.modal-sheet-grip { display: flex; height: 20px; flex-shrink: 0; justify-content: center; align-items: center; touch-action: none; cursor: grab; }
+.modal-sheet-grip { display: flex; height: 12px; flex-shrink: 0; justify-content: center; align-items: center; touch-action: none; cursor: grab; }
 .modal-sheet-handle { width: 36px; height: 4px; border-radius: 99px; background: var(--color-line-strong); }
 .modal-sheet-panel header { touch-action: none; }
+.modal-sheet-panel .page-header-row { padding-top: 0; }
 .modal-sheet[data-dragging='true'] .modal-sheet-panel,
 .modal-sheet[data-dragging='true'] .modal-sheet-backdrop { transition: none; user-select: none; }
 .modal-sheet[data-sheet='picker'] .modal-sheet-panel {
@@ -251,14 +253,16 @@
   .modal-sheet-grip { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .modal-sheet-panel { transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .modal-sheet-panel { transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1); }
   .modal-sheet[data-sheet='picker'] .modal-sheet-panel { transition-duration: 340ms; }
+  .modal-sheet[data-rebounding='true'] .modal-sheet-panel { transition-duration: 260ms; }
   .modal-sheet-backdrop { transition: opacity 220ms ease-out; }
   .modal-sheet[data-state='closing'] .modal-sheet-panel,
   .modal-sheet[data-state='closing'] .modal-sheet-backdrop { transition-duration: 300ms; }
   .warranty-disclosure, .category-disclosure, .filter-disclosure { transition: grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease; }
   .search-cancel { transition: width 160ms ease-out, opacity 140ms ease-out; }
   .segmented-indicator { transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), width 180ms ease; }
+  .nav-indicator { transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 140ms ease; }
   .item-panel-content[data-intent='forward'] { animation: panel-forward 200ms ease-out; }
   .item-panel-content[data-intent='back'] { animation: panel-back 180ms ease-out; }
   .route-content[data-direction='forward'] { animation: route-forward 180ms ease-out; }
@@ -284,12 +288,29 @@
   max-width: var(--shell-max);
   transform: translateX(-50%);
 }
-.nav-body { display: flex; align-items: center; gap: 6px; padding: 4px 12px env(safe-area-inset-bottom); }
-.nav-links { display: flex; flex: 1; }
-.nav-link { display: flex; flex: 1; min-height: 64px; align-items: center; justify-content: center; }
-.nav-link-inner { display: flex; flex-direction: column; align-items: center; gap: 5px; border-radius: 999px; padding: 7px 12px; }
+.nav-body { display: flex; align-items: center; gap: 8px; padding: 0 16px calc(12px + env(safe-area-inset-bottom)); }
+.nav-links { position: relative; display: flex; flex: 1; padding: 4px; border: 1px solid var(--color-line); border-radius: 999px; box-shadow: inset 0 1px 0 var(--color-chrome-edge), 0 4px 18px -8px rgba(0,0,0,.14); }
+.nav-indicator { position: absolute; pointer-events: none; inset: 4px auto 4px 4px; width: calc((100% - 8px) / 4); border-radius: 999px; background: var(--color-surface-sunken); transform: translateX(calc(var(--nav-index, 0) * 100%)); opacity: 0; }
+.nav-links:has(a[aria-current='page']) .nav-indicator { opacity: 1; }
+.nav-links:has(a:nth-of-type(2)[aria-current='page']) { --nav-index: 1; }
+.nav-links:has(a:nth-of-type(3)[aria-current='page']) { --nav-index: 2; }
+.nav-links:has(a:nth-of-type(4)[aria-current='page']) { --nav-index: 3; }
+.nav-link { position: relative; display: flex; flex: 1; min-width: 0; min-height: 50px; align-items: center; justify-content: center; }
+.nav-link-inner { display: flex; flex-direction: column; align-items: center; gap: 4px; border-radius: 999px; padding: 5px 8px; }
 .nav-label { font-size: 11px; line-height: 1; }
-.nav-add { width: 52px; height: 52px; border-radius: 999px; }
+.nav-add { width: 60px; height: 60px; border: 1px solid var(--color-line); border-radius: 999px; }
+.collection-header .segmented-indicator { background: var(--color-accent-soft); }
+.collection-header [role='radio'][aria-checked='true'] { color: var(--color-accent); }
+.collection-header [role='radio'] .num { display: none; }
+.collection-toolbar .field-shell { border-radius: 999px; background: var(--color-chrome); padding-inline: 12px 4px; }
+.collection-toolbar input::placeholder { font-size: 13px; }
+.search-tools { display: flex; align-items: center; gap: 2px; max-width: 180px; overflow: hidden; flex-shrink: 0; }
+.search-control[data-focused='true'] .search-tools { max-width: 0; opacity: 0; }
+.search-tool { display: flex; align-items: center; justify-content: center; min-width: 36px; height: 44px; color: var(--color-accent); }
+.collection-sort { position: relative; width: 36px; }
+.collection-sort select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.collection-sort:focus-within { outline: 2px solid var(--color-focus-ring); outline-offset: -4px; border-radius: 999px; }
+@media (prefers-reduced-motion: no-preference) { .search-tools { transition: max-width 160ms ease, opacity 120ms ease; } }
 .collection-select {
   min-width: 0;
   height: 42px;
@@ -336,12 +357,14 @@
   }
   .nav-brand { display: flex; align-items: center; gap: 12px; padding-inline: 8px; }
   .nav-body { flex-direction: column; align-items: stretch; gap: 24px; margin-top: 48px; padding: 0; }
-  .nav-links { flex-direction: column; gap: 8px; }
+  .nav-links { flex-direction: column; gap: 8px; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .nav-indicator { display: none; }
   .nav-link { display: block; min-height: 48px; }
   .nav-link-inner { flex-direction: row; gap: 14px; min-height: 48px; padding: 12px 16px; border-radius: 12px; }
   .nav-link:hover .nav-link-inner { background-color: var(--color-accent-soft); }
+  .nav-link[aria-current='page'] .nav-link-inner { background-color: var(--color-accent-soft); }
   .nav-label { font-size: 14px; line-height: 20px; }
-  .nav-add { width: 100%; height: 46px; border-radius: 12px; }
+  .nav-add { width: 100%; height: 46px; border-radius: 12px; background: var(--color-accent-soft); color: var(--color-accent); }
   .nav-footer { display: block; margin-top: auto; padding-top: 40px; }
   .nav-brand:focus-visible { outline-offset: 6px; }
 }
@@ -371,6 +394,22 @@
 }
 .item-card-details[data-expanded='true'] { grid-template-rows: 1fr; opacity: 1; }
 .detail-layout { margin-top: 16px; }
+.overview-assets {
+  --color-ink-primary: #ffffff;
+  --color-ink-secondary: #d1d4dc;
+  --color-ink-tertiary: #afb5c1;
+  --color-money: #ffffff;
+  --color-money-deep: #cad8f2;
+  --color-hero-line: rgba(255,255,255,.12);
+  background: linear-gradient(135deg, #21242c, #343841);
+}
+.form-identity { position: relative; min-height: 164px; margin-top: 18px; padding: 68px 20px 22px; border-radius: 24px; background: linear-gradient(130deg, #23262e, #343841); color: #fff; }
+.form-name { color: #fff; caret-color: #9cc8ff; }
+.form-name::placeholder { color: #b1b6c1; }
+.form-cover { position: absolute; top: -20px; left: 18px; width: 72px; height: 72px; border-radius: 22px; padding: 5px; background: #30343f; box-shadow: 0 3px 12px rgba(0,0,0,.12); }
+.form-cover-edit { position: absolute; bottom: -4px; right: -5px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-surface); color: var(--color-ink-primary); border: 1px solid var(--color-line); font-size: 14px; }
+.form-field-button { min-width: 0; min-height: 88px; border: 1px solid var(--color-line); border-radius: 18px; background: var(--color-surface); padding: 16px; text-align: left; }
+.form-field-button:active { background: var(--color-surface-sunken); }
 
 @media (min-width: 640px) {
   .overview-objects { height: 188px; }
@@ -419,13 +458,6 @@ body {
     'Microsoft YaHei',
     sans-serif;
   -webkit-tap-highlight-color: transparent;
-  /* 桌面端：给居中的应用容器一层极轻的环境底色，避免"一根窄柱"悬在白底上 */
-  background-image: radial-gradient(
-    120% 80% at 50% 0%,
-    var(--color-ambient) 0%,
-    transparent 60%
-  );
-  background-repeat: no-repeat;
 }
 
 /* 标题/段落：更好的换行与断行 */

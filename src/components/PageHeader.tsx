@@ -22,7 +22,7 @@ interface Props {
 /** 浮层模式下，返回 / 右侧按钮包一层圆形 chrome 底（悬浮在内容上仍可读） */
 function ChromeCircle({ children }: { children: ReactNode }) {
   return (
-    <span className="chrome flex h-9 min-w-[36px] items-center justify-center rounded-pill border border-line px-1.5 shadow-card">
+    <span className="chrome flex h-11 min-w-[44px] items-center justify-center rounded-pill border border-line px-2 shadow-card">
       {children}
     </span>
   )
@@ -45,24 +45,24 @@ export default function PageHeader({
         solid ? 'chrome border-line' : 'border-transparent bg-transparent'
       }`}
     >
-      <div className="flex min-h-[52px] items-center px-2 pt-[env(safe-area-inset-top)]">
+      <div className="page-header-row flex min-h-[56px] items-center px-4 pt-[env(safe-area-inset-top)]">
         <button
           type="button"
           onClick={onBack ?? (() => navigate(-1))}
-          className="flex min-h-[44px] min-w-[44px] items-center gap-0.5 px-1 text-ink-primary transition-opacity active:opacity-50"
+          className={`flex min-h-[44px] min-w-[44px] items-center justify-center gap-0.5 ${backLabel ? 'chrome rounded-pill border border-line px-4' : floating ? '' : 'px-1'} text-ink-primary transition-opacity active:opacity-50`}
           aria-label="返回"
         >
-          {floating ? (
+          {!backLabel && (floating ? (
             <ChromeCircle>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m15 6-6 6 6 6" />
+                <path d="m7 7 10 10M17 7 7 17" />
               </svg>
             </ChromeCircle>
           ) : (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m15 6-6 6 6 6" />
             </svg>
-          )}
+          ))}
           {backLabel && <span className="text-body">{backLabel}</span>}
         </button>
         <h1

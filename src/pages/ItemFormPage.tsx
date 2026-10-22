@@ -27,6 +27,8 @@ import {
 import { itemRepository } from '../db/repositories/itemRepository'
 import { tagRepository } from '../db/repositories/tagRepository'
 import PageHeader from '../components/PageHeader'
+import ModalSheet from '../components/ModalSheet'
+import { CategoryIconTile } from '../components/CategoryCard'
 import TagChip from '../components/TagChip'
 import ConfirmDialog from '../components/Dialogs'
 import { useToast } from '../components/Toast'
@@ -121,6 +123,8 @@ export default function ItemFormPage() {
   const [iconAssetId, setIconAssetId] = useState('preset-other')
   const [pickerOpen, setPickerOpen] = useState(false)
   const [recognitionOpen, setRecognitionOpen] = useState(false)
+  const [categoryOpen, setCategoryOpen] = useState(false)
+  const [sourceOpen, setSourceOpen] = useState(false)
   const [name, setName] = useState('')
   const [rootId, setRootId] = useState<string | null>(null)
   const [categoryId, setCategoryId] = useState<string | null>(null)
@@ -323,15 +327,16 @@ export default function ItemFormPage() {
       <PageHeader
         title={isEdit ? '编辑物品' : '新增物品'}
         onBack={handleBack}
+        backLabel="取消"
         right={
           <button
             type="button"
             onClick={handleSave}
             disabled={!canSave}
-            className={`flex h-8 items-center rounded-pill px-3.5 text-secondary transition-colors duration-200 ${
+            className={`chrome flex h-11 min-w-16 items-center justify-center rounded-pill border border-line px-4 text-secondary transition-colors duration-200 ${
               canSave
-                ? 'bg-ink-solid font-medium text-ink-inverse active:opacity-70'
-                : 'bg-surface-sunken text-ink-faint'
+                ? 'font-medium text-accent active:opacity-70'
+                : 'text-ink-faint'
             }`}
           >
             保存
@@ -339,12 +344,32 @@ export default function ItemFormPage() {
         }
       />
 
-      <div className="flex flex-col gap-7 px-5 pt-5">
+      <div className="flex flex-col gap-4 px-4 pt-8 sm:px-7">
+        <section className="form-identity">
+          <button type="button" onClick={() => setPickerOpen(true)} className="form-cover" aria-label="更换物品图标">
+            <img src={iconUrl} alt="" className="h-full w-full object-contain" draggable={false} />
+            <span className="sr-only">{currentIcon?.label ?? '自定义图片'}，点击本行更换图标</span>
+            <span className="form-cover-edit" aria-hidden>✎</span>
+          </button>
+          <p className="text-caption text-white/60">物品名称</p>
+          <input value={name} onChange={event => setName(event.target.value)} aria-label="物品名称"
+            placeholder="比如：AirPods Pro" className="form-name mt-2 w-full min-w-0 bg-transparent text-[26px] font-semibold leading-tight" />
+        </section>
         <button type="button" onClick={() => setRecognitionOpen(true)} data-ai-entry
-          className="flex min-h-16 items-center justify-between gap-3 rounded-card border border-accent-line bg-accent-soft px-4 py-3 text-left text-accent">
-          <span><span className="block text-item">AI 辅助录入</span><span className="mt-1 block text-caption">拍照或选订单截图，确认后填入表单</span></span>
-          <span aria-hidden="true">＋</span>
+          className="flex min-h-12 items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3 text-left text-ink-primary">
+          <span className="flex items-center gap-2"><span className="text-accent" aria-hidden>✦</span><span className="text-item">AI 辅助录入</span></span>
+          <span className="text-caption text-ink-tertiary">照片或订单截图 ›</span>
         </button>
+        <div className={`grid gap-3 ${status === 'wishlist' ? '' : 'grid-cols-2'}`}>
+          <button type="button" aria-label="选择分类" onClick={() => setCategoryOpen(true)} className="form-field-button">
+            <span className="text-caption text-ink-tertiary">分类 <span aria-hidden className="float-right">›</span></span>
+            <span className="mt-2 block truncate text-item text-ink-primary">{categories.find(category => category.id === categoryId)?.name ?? (rootId ? '请选择子分类' : '请选择')}</span>
+          </button>
+          {status !== 'wishlist' && <button type="button" aria-label="选择购买来源" onClick={() => setSourceOpen(true)} className="form-field-button">
+            <span className="text-caption text-ink-tertiary">购买来源 <span aria-hidden className="float-right">›</span></span>
+            <span className="mt-2 block truncate text-item text-ink-primary">{purchasePlatform ? platformLabel(purchasePlatform) : '请选择'}</span>
+          </button>}
+        </div>
         {/* ---------- 基本信息 ---------- */}
         <GroupCard title="基本信息">
           {/* 生命周期：只在新增时选。之后的状态变更走详情页的「转为持有 / 处置 / 恢复为持有」，
@@ -369,83 +394,6 @@ export default function ItemFormPage() {
               </p>
             </FormRow>
           )}
-
-          <FormRow>
-            {/* 图标：只展示当前选中的那一个，选择交给浮层（避免 150+ 图标撑长页面） */}
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="group flex w-full items-center gap-4 text-left transition-opacity active:opacity-70"
-            >
-              <span className="block h-[62px] w-[62px] shrink-0 overflow-hidden rounded-card border border-line-inner plate-surface">
-                <img
-                  src={iconUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                  draggable={false}
-                />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-item text-ink-primary">
-                  {currentIcon?.label ?? '自定义图片'}
-                </span>
-                <span className="mt-1 block text-caption text-ink-tertiary">
-                  点击本行更换图标
-                </span>
-              </span>
-              <svg
-                width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                className="shrink-0 text-ink-faint transition-transform duration-300 ease-out-quint sm:group-hover:translate-x-0.5"
-              >
-                <path d="m9 6 6 6-6 6" />
-              </svg>
-            </button>
-          </FormRow>
-
-          <FormRow>
-            <RowLabel label="名称" />
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="比如：AirPods Pro"
-              className={bareInputClass}
-            />
-          </FormRow>
-
-          <FormRow>
-            <RowLabel
-              label="分类"
-              hint={rootId && !categoryId && childCategories.length > 0 ? '请选择子分类' : undefined}
-            />
-            <div className="flex flex-wrap gap-2">
-              {roots.map((c) => (
-                <ChipButton
-                  key={c.id}
-                  label={c.name}
-                  selected={rootId === c.id}
-                  onClick={() => {
-                    setRootId(c.id)
-                    const children = childrenOf(categories, c.id)
-                    setCategoryId(children.length > 0 ? null : c.id)
-                  }}
-                />
-              ))}
-            </div>
-            {childCategories.length > 0 && (
-              <div className="mt-2.5 flex flex-wrap gap-2">
-                {childCategories.map((c) => (
-                  <ChipButton
-                    key={c.id}
-                    label={c.name}
-                    selected={categoryId === c.id}
-                    quiet
-                    onClick={() => setCategoryId(c.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </FormRow>
 
           <FormRow>
             <RowLabel label="标签" hint={tagIds.length > 0 ? `已选 ${tagIds.length}` : '可多选'} />
@@ -560,20 +508,6 @@ export default function ItemFormPage() {
               </div>
             </FormRow>
 
-            <FormRow>
-              <RowLabel label="购买平台" />
-              <div className="flex flex-wrap gap-2">
-                {PURCHASE_PLATFORMS.map((p) => (
-                  <ChipButton
-                    key={p}
-                    label={platformLabel(p)}
-                    selected={purchasePlatform === p}
-                    onClick={() => setPurchasePlatform(purchasePlatform === p ? null : p)}
-                  />
-                ))}
-              </div>
-            </FormRow>
-
             {/* 实时预览：总投入 / 已持有天数 / 日均使用成本 */}
             {previewTotalCents !== null && (
               <FormRow>
@@ -627,7 +561,7 @@ export default function ItemFormPage() {
             disabled={!canSave}
             className={`flex h-12 items-center justify-center gap-2 rounded-control text-body font-medium transition-all duration-150 ${
               canSave
-                ? 'bg-ink-solid text-ink-inverse shadow-fab active:scale-[0.98] active:opacity-80'
+                ? 'bg-accent text-ink-inverse shadow-card active:scale-[0.98] active:opacity-80'
                 : 'bg-surface-sunken text-ink-faint'
             }`}
           >
@@ -653,6 +587,38 @@ export default function ItemFormPage() {
         onSelect={setIconAssetId}
         onClose={() => setPickerOpen(false)}
       />
+
+      <ModalSheet open={categoryOpen} onClose={() => setCategoryOpen(false)} label="分类" variant="picker">
+        <header className="flex min-h-14 items-center justify-between border-b border-line px-4">
+          <h2 tabIndex={-1} data-modal-autofocus className="text-section text-ink-primary outline-none">分类</h2>
+          <button type="button" onClick={() => setCategoryOpen(false)} className="min-h-11 rounded-pill px-4 text-secondary text-accent">完成</button>
+        </header>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-[calc(24px+env(safe-area-inset-bottom))]">
+          <div className="grid grid-cols-3 gap-2">
+            {roots.map(category => <button key={category.id} type="button" aria-pressed={rootId === category.id} className={`choice-chip flex min-h-20 flex-col items-center justify-center gap-2 rounded-control border p-2 text-caption ${rootId === category.id ? 'border-accent-line bg-accent-soft text-accent' : 'border-line bg-surface text-ink-secondary'}`}
+              onClick={() => { setRootId(category.id); setCategoryId(childrenOf(categories, category.id).length > 0 ? null : category.id) }}>
+              <CategoryIconTile category={category} size={28} />{category.name}
+            </button>)}
+          </div>
+          {childCategories.length > 0 && <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="子分类">
+            {childCategories.map(category => <ChipButton key={category.id} label={category.name} selected={categoryId === category.id} quiet onClick={() => setCategoryId(category.id)} />)}
+          </div>}
+          {rootId && !categoryId && childCategories.length > 0 && <p className="mt-3 text-caption text-ink-tertiary">请选择子分类</p>}
+        </div>
+      </ModalSheet>
+
+      <ModalSheet open={sourceOpen} onClose={() => setSourceOpen(false)} label="购买来源" variant="picker" size="compact">
+        <header className="flex min-h-14 items-center justify-between border-b border-line px-4">
+          <h2 tabIndex={-1} data-modal-autofocus className="text-section text-ink-primary outline-none">购买来源</h2>
+          <button type="button" onClick={() => setSourceOpen(false)} className="min-h-11 rounded-pill px-4 text-secondary text-accent">完成</button>
+        </header>
+        <div className="min-h-0 overflow-y-auto p-4 pb-[calc(24px+env(safe-area-inset-bottom))]">
+          <div className="grid grid-cols-3 gap-2">
+            {([null, ...PURCHASE_PLATFORMS] as const).map(platform => <button key={platform ?? 'none'} type="button" aria-pressed={purchasePlatform === platform}
+              onClick={() => setPurchasePlatform(platform)} className={`choice-chip min-h-16 rounded-control border p-2 text-caption ${purchasePlatform === platform ? 'border-accent-line bg-accent-soft text-accent' : 'border-line bg-surface text-ink-secondary'}`}>{platform ? platformLabel(platform) : '未填写'}</button>)}
+          </div>
+        </div>
+      </ModalSheet>
 
       <AiRecognitionSheet open={recognitionOpen} onClose={() => setRecognitionOpen(false)} categories={categories} allowPurchaseInfo={status !== 'wishlist'}
         current={{ name, categoryName: categories.find(category => category.id === categoryId)?.name ?? '', note, priceText, purchaseDate, purchasePlatform: purchasePlatform ?? '' }}

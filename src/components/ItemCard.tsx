@@ -81,17 +81,19 @@ function MetricCell({
   value,
   label,
   money,
+  stacked,
 }: {
   value: string
   label: string
   money?: boolean
+  stacked: boolean
 }) {
   return (
-    <div className="flex min-w-0 items-baseline justify-between gap-2">
-      <p className="text-[11px] leading-tight text-ink-tertiary">{label}</p>
+    <div className={`flex min-w-0 ${stacked ? 'items-baseline justify-between gap-2' : 'flex-col-reverse items-center gap-1'}`}>
+      <p className={`${stacked ? 'text-[11px]' : 'text-[10px]'} leading-tight text-ink-tertiary`}>{label}</p>
       <p
-        className={`num min-w-0 break-words text-right tabular-nums ${metricValueClass(value, 1)} ${
-          money ? 'text-money' : 'text-ink-primary'
+        className={`num min-w-0 break-words ${stacked ? 'text-right' : 'text-center font-semibold'} tabular-nums ${metricValueClass(value, stacked ? 1 : 3)} ${
+          money && stacked ? 'text-money' : 'text-ink-primary'
         }`}
       >
         {value}
@@ -105,9 +107,10 @@ function MetricCell({
  */
 export function MetricRow({ cells }: { cells: PresentationMetric[] }) {
   if (cells.length === 0) return null
+  const stacked = cells.some(cell => cell.value.length > 7)
   return (
     <div
-      className="space-y-1.5 border-t border-line-inner pt-2.5"
+      className={stacked ? 'space-y-1.5' : 'grid gap-1'} style={stacked ? undefined : { gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))` }}
     >
       {cells.map((c) => (
         <MetricCell
@@ -115,6 +118,7 @@ export function MetricRow({ cells }: { cells: PresentationMetric[] }) {
           value={c.value}
           label={c.label}
           money={c.money}
+          stacked={stacked}
         />
       ))}
     </div>
@@ -168,7 +172,7 @@ export function DisposalBadge({
  * ItemCard：档案册中的一条物品条目。
  *
  * 结构为「图版 → 名称 → 副标题 → ≤2 个标签 → 可收起的指标（+ 财务行）」。
- * 明细默认收起，保修点阵始终可见；展开按钮独立于导航链接，避免嵌套交互元素。
+ * 明细默认展开，保修点阵始终可见；展开按钮独立于导航链接，避免嵌套交互元素。
  *
  * 处置态的全部差异都来自 `itemPresentation(item)`（唯一展示模型）：
  * - 图区左上方法徽标（已售出 / 已丢弃 / 其他处置 / 已处置兜底）
@@ -189,7 +193,7 @@ export default function ItemCard({
   summary = false,
 }: Props) {
   const location = useLocation()
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(!summary)
   const detailsId = useId()
   const p = itemPresentation(item, { today, categoryName })
   const cells: PresentationMetric[] = p.metrics
@@ -203,11 +207,11 @@ export default function ItemCard({
         aria-label={`查看${name}详情`}
         className={`item-card group flex h-full flex-col overflow-hidden rounded-surface border border-line bg-surface active:bg-surface-sunken ${className}`}
       >
-        <div className="relative">
+        <div className="relative p-2.5 pb-0">
           <ObjectPlate
             src={iconUrl}
             alt={name}
-            className="item-art aspect-[4/3] w-full shrink-0"
+            className="item-art aspect-[1.15/1] w-full shrink-0 rounded-card"
           />
           {/* 处置方法徽标：图区左上。pointer-events-none，不影响整卡点击。 */}
           {p.badge !== null && (
@@ -215,16 +219,16 @@ export default function ItemCard({
               <DisposalChip method={p.badge} size="sm" />
             </span>
           )}
-          {statusOf(item) === 'wishlist' && (
-            <span className="absolute left-2.5 top-2.5"><StatusChip status="wishlist" size="sm" /></span>
+          {statusOf(item) !== 'disposed' && !summary && (
+            <span className="absolute left-3.5 top-3.5"><StatusChip status={statusOf(item)} size="sm" /></span>
           )}
           {/* 图片结果 overlay：仅出售。物品图标保持 opacity 1，不灰化 / 不加叉。 */}
           {p.overlay !== null && <DisposalOverlay text={p.overlay} />}
         </div>
-        <div className="flex flex-1 flex-col p-3 sm:p-3.5">
+        <div className="flex flex-1 flex-col px-3 pb-3 pt-2.5 sm:px-3.5">
           {/* 名称允许两行：档案册里"物品叫什么"比整齐的单行截断更重要 */}
-          <p className="line-clamp-2 min-h-[42px] text-item text-ink-primary">{name}</p>
-          <p className="mt-0.5 truncate text-caption text-ink-tertiary">{p.subtitle}</p>
+          <p className="line-clamp-2 text-item font-semibold text-ink-primary">{name}</p>
+          <p className="mt-1.5 max-w-full truncate self-start rounded-pill bg-surface-sunken px-2 py-0.5 text-[11px] text-ink-tertiary">{p.subtitle}</p>
           {tagNames.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1">
               {tagNames.slice(0, 2).map((t) => (
@@ -235,7 +239,7 @@ export default function ItemCard({
           {hasDetails && (
             <div id={detailsId} className="item-card-details" data-expanded={expanded} aria-hidden={!expanded}>
               <div className="min-h-0 overflow-hidden">
-                <div className="pt-3">
+                <div className="pt-3.5">
                   {cells.length > 0 && <MetricRow cells={cells} />}
                   {p.finance !== null && <FinanceLine grossText={p.grossText} finance={p.finance} />}
                 </div>
@@ -254,7 +258,7 @@ export default function ItemCard({
           aria-label={`${expanded ? '收起' : '展开'}${name}的详细信息`}
           onClick={() => setExpanded(value => !value)}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-pill border border-line bg-chrome backdrop-blur-sm">
+          <span className="flex h-7 w-7 items-center justify-center rounded-pill border border-line bg-chrome backdrop-blur-sm">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
               <path d="m6 9 6 6 6-6" />
             </svg>

@@ -109,6 +109,18 @@ try {
   await page.until(`!!document.querySelector('dialog[aria-label="AI 辅助录入"]')`)
   await sleep(400)
   await page.check('Opens a focused recognition sheet with camera capture', `document.activeElement.matches('[aria-label="关闭 AI 识别"]') && document.querySelector('[data-ai-file="camera"]').getAttribute('capture')==='environment'`)
+  await page.ev(`window.aiSizeObserved=false;window.aiSizeObserver=new MutationObserver(()=>{
+    const panel=document.querySelector('dialog[aria-label="AI 辅助录入"] .modal-sheet-panel');
+    const animation=panel.getAnimations().find(value=>value.effect?.getKeyframes().some(frame=>frame.height));
+    if(animation){animation.currentTime=100;animation.pause();window.aiSizeObserved=true;window.aiSizeObserver.disconnect()}
+  });aiSizeObserver.observe(document.querySelector('dialog[aria-label="AI 辅助录入"] .modal-sheet'),{attributes:true,attributeFilter:['data-size']})`)
+  await page.file()
+  await page.until(`aiSizeObserved`)
+  await page.click('button[aria-label="关闭 AI 识别"]')
+  await page.check('Closing during a height change freezes the visible sheet height', `(()=>{const panel=document.querySelector('dialog[aria-label="AI 辅助录入"] .modal-sheet-panel');return panel.closest('.modal-sheet').dataset.state==='closing' && parseFloat(panel.style.height)>0 && !panel.getAnimations().some(animation=>animation.effect?.getKeyframes().some(frame=>frame.height))})()`)
+  await page.until(`!document.querySelector('dialog[aria-label="AI 辅助录入"]')`)
+  await page.click('[data-ai-entry]'); await sleep(400)
+  await page.check('Reopening releases the temporary height and resets the image', `(()=>{const panel=document.querySelector('dialog[aria-label="AI 辅助录入"] .modal-sheet-panel');return panel.style.height==='' && panel.closest('.modal-sheet').dataset.size==='content' && !document.querySelector('img[alt="待识别图片预览"]')})()`)
   await page.file()
   await page.click('dialog button', '开始识别')
   await page.until(`document.querySelector('dialog [role="alert"]')?.textContent.includes('配对')`)

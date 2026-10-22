@@ -137,9 +137,12 @@ async function run() {
   for (let i = 0; i < 15 && await s.ev(`!!document.querySelector('[data-sheet="picker"]')`); i++) await sleep(100)
   await s.focusByPlaceholder('比如：AirPods')
   await s.type('AirPods Pro 2')
+  await s.ev(`document.querySelector('button[aria-label="选择分类"]').click()`)
   await s.clickText('button', '数码与电子')
   await sleep(200)
   await s.clickText('button', '音频设备')
+  await s.ev(`document.querySelector('dialog[aria-label="分类"] header button').click()`)
+  await sleep(400)
   // 新建标签 #Apple #常用（空库中没有现成标签）
   await s.focusByPlaceholder('新建标签')
   await s.type('Apple')

@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 /** 取消只退出聚焦；清空是独立动作，并保留输入焦点。 */
-export default function SearchField({ value, onChange, placeholder, autoFocus = false }: {
+export default function SearchField({ value, onChange, placeholder, autoFocus = false, children }: {
   value: string
   onChange: (value: string) => void
   placeholder: string
   autoFocus?: boolean
+  children?: ReactNode
 }) {
   const input = useRef<HTMLInputElement>(null)
   const [focused, setFocused] = useState(false)
@@ -35,6 +36,7 @@ export default function SearchField({ value, onChange, placeholder, autoFocus = 
         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-pill bg-surface-sunken text-ink-secondary">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden><path d="M18 6 6 18M6 6l12 12" /></svg>
       </button>}
+      {children && <div className="search-tools" inert={focused} aria-hidden={focused}>{children}</div>}
     </div>
     <div className="search-cancel" inert={!focused} aria-hidden={!focused}>
       <button type="button" onPointerDown={event => event.preventDefault()} onClick={() => input.current?.blur()} className="h-11 w-14 text-secondary text-accent">取消</button>

@@ -68,10 +68,10 @@ describe('dotted warranty strip', () => {
 })
 
 describe('per-card disclosure', () => {
-  it('starts collapsed while keeping the dotted warranty and navigation available', () => {
+  it('starts expanded while keeping the dotted warranty and navigation available', () => {
     const html = renderCard()
-    expect(html).toContain('aria-expanded="false"')
-    expect(html).toContain('aria-hidden="true"')
+    expect(html).toContain('aria-expanded="true"')
+    expect(html).toContain('aria-hidden="false"')
     expect(html).toContain('href="/items/item-1"')
     expect(html.match(/data-warranty-dot=""/g)).toHaveLength(12)
     expect(html).toMatch(/<\/a><button/)

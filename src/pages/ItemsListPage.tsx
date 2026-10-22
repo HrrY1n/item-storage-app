@@ -45,7 +45,7 @@ const SORTS: { key: ItemSortKey; label: string }[] = [
 ]
 
 const STATUS_TABS: { key: ItemStatus; label: string }[] = [
-  { key: 'owned', label: '持有' },
+  { key: 'owned', label: '收纳' },
   { key: 'wishlist', label: '心愿' },
   { key: 'disposed', label: '处置' },
 ]
@@ -57,7 +57,7 @@ const STATUS_TABS: { key: ItemStatus; label: string }[] = [
  * 每种lifecycle 的两个词都显式给出，副标题只拼数量。
  */
 const PAGE_WORDS: Record<ItemStatus, { title: string; unit: string }> = {
-  owned: { title: '我的物品', unit: '持有物品' },
+  owned: { title: '物品管理', unit: '持有物品' },
   wishlist: { title: '心愿物品', unit: '心愿物品' },
   disposed: { title: '已处置物品', unit: '已处置物品' },
 }
@@ -250,15 +250,15 @@ export default function ItemsListPage() {
   const filtered = query.trim() !== '' || categoryId !== null || (status === 'disposed' && disposition !== 'all')
 
   return (
-    <div className="px-5 pt-[calc(28px+env(safe-area-inset-top))] sm:px-7 lg:pt-7">
-      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+    <div className="page-content">
+      <header className="collection-header flex items-center justify-between gap-3">
         <div>
           <h1 className="text-page-title text-ink-primary">{words.title}</h1>
           <p className="mt-1.5 text-secondary text-ink-tertiary">
             <span className="num text-ink-primary">{counts[status]}</span> 件{words.unit}
           </p>
         </div>
-        <div className="w-full sm:max-w-[300px]">
+        <div className="w-[178px] shrink-0 sm:w-[260px]">
           <SegmentedControl
             ariaLabel="物品状态"
             value={status}
@@ -294,22 +294,18 @@ export default function ItemsListPage() {
       )}
 
       {/* 工具栏：搜索 / 分类 / 排序 / 视图 */}
-      <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center lg:gap-3">
-        <SearchField value={query} onChange={value => { layout.capture(); setQuery(value) }} placeholder="搜索名称、分类或标签" />
-
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_42px] gap-2 lg:mt-0">
+      <div className="collection-toolbar mt-3">
+        <SearchField value={query} onChange={value => { layout.capture(); setQuery(value) }} placeholder="搜索物品">
           <button type="button" aria-label="分类筛选" value={categoryId ?? ''} aria-expanded={filterExpanded} aria-controls="item-category-filters"
-            onClick={() => setFilterExpanded(value => !value)} className="collection-select flex items-center justify-between gap-2 text-left">
-            <span className="truncate">{allCategories.find(category => category.id === categoryId)?.name ?? '全部分类'}</span><span aria-hidden>{filterExpanded ? '−' : '+'}</span>
+            onClick={() => setFilterExpanded(value => !value)} className="search-tool max-w-[88px] gap-1 px-2 text-caption">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden><path d="M4 7h16M7 12h10M10 17h4" /></svg>
+            <span className="truncate">{allCategories.find(category => category.id === categoryId)?.name ?? '全部'}</span>
           </button>
-          <select aria-label="物品排序" value={sort} onChange={(event) => { layout.capture(); setSort(event.target.value as ItemSortKey) }} className="collection-select">
-            {SORTS.map(option => <option key={option.key} value={option.key}>{option.key === 'cost' && status === 'disposed' ? '实际持有成本' : option.label}</option>)}
-          </select>
           <button
             type="button"
             onClick={() => { layout.capture(); setView(view === 'grid' ? 'list' : 'grid') }}
             aria-label={view === 'grid' ? '切换为列表视图' : '切换为网格视图'}
-            className="flex h-[42px] w-[42px] items-center justify-center rounded-control border border-line bg-surface text-ink-secondary transition-colors active:bg-surface-sunken hover:text-accent"
+            className="search-tool shrink-0 rounded-pill active:bg-accent-soft"
           >
             {view === 'grid' ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
@@ -324,7 +320,13 @@ export default function ItemsListPage() {
               </svg>
             )}
           </button>
-        </div>
+          <span className="search-tool collection-sort">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M8 20V4m-4 4 4-4 4 4m4-4v16m-4-4 4 4 4-4" /></svg>
+            <select aria-label="物品排序" value={sort} onChange={(event) => { layout.capture(); setSort(event.target.value as ItemSortKey) }}>
+              {SORTS.map(option => <option key={option.key} value={option.key}>{option.key === 'cost' && status === 'disposed' ? '实际持有成本' : option.label}</option>)}
+            </select>
+          </span>
+        </SearchField>
       </div>
       <div id="item-category-filters" className="filter-disclosure" data-open={filterExpanded} inert={!filterExpanded} aria-hidden={!filterExpanded}>
         <div className="min-h-0 overflow-hidden">
@@ -337,7 +339,7 @@ export default function ItemsListPage() {
       </div>
 
       {/* 结果 */}
-      <div className="mt-5">
+      <div className="mt-4">
         {filtered && (
           <div className="mb-4 flex min-h-8 items-center justify-between gap-3 text-caption">
             <p role="status" className="text-ink-tertiary">找到 <span className="num text-ink-secondary">{visible.length}</span> 件物品</p>
@@ -360,7 +362,7 @@ export default function ItemsListPage() {
             }
           />
         ) : (
-          <div ref={layout.ref} data-layout-view={view} className={view === 'grid' ? 'grid grid-cols-2 gap-3 pb-2 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4' : 'divide-y divide-line-inner rounded-surface border border-line bg-surface shadow-card'}>
+          <div ref={layout.ref} data-layout-view={view} className={view === 'grid' ? 'grid grid-cols-2 gap-4 pb-2 sm:grid-cols-3 xl:grid-cols-4' : 'divide-y divide-line-inner rounded-surface border border-line bg-surface shadow-card'}>
             {visible.map((item) => view === 'grid' ? (
               <ItemCard
                 key={item.id}

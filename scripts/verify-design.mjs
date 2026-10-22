@@ -112,13 +112,17 @@ try {
 
   await nav('/items')
   check('All fourteen owned items are visible', await evaluate(`document.querySelectorAll('main .item-card').length === 14`))
-  check('Each detailed card starts collapsed with its own accessible control', await evaluate(`
+  check('Detailed cards initially show metrics with an independent accessible collapse control', await evaluate(`
     [...document.querySelectorAll('[data-item-card]')].every(card => {
       const button = card.querySelector('.item-card-toggle');
       const panel = document.getElementById(button.getAttribute('aria-controls'));
-      return button.getAttribute('aria-expanded') === 'false' && !button.closest('a') && panel.getAttribute('aria-hidden') === 'true' && panel.getBoundingClientRect().height === 0;
+      return button.getAttribute('aria-expanded') === 'true' && !button.closest('a') && panel.getAttribute('aria-hidden') === 'false' && panel.getBoundingClientRect().height > 0;
     })
   `))
+  check('List header and capsule toolbar stay compact on mobile', await evaluate(`document.querySelector('[data-item-card]').getBoundingClientRect().top < 180 && document.querySelector('.collection-toolbar .search-tools').contains(document.querySelector('select[aria-label="物品排序"]'))`))
+  await shot('mobile-cards-native-density')
+  await evaluate(`document.querySelectorAll('.item-card-toggle').forEach(button=>button.click())`)
+  await pause(300)
   check('Every visible warranty keeps twelve dots and a real remaining percentage', await evaluate(`
     [...document.querySelectorAll('[data-warranty-strip]')].length > 0 && [...document.querySelectorAll('[data-warranty-strip]')].every(strip =>
       strip.querySelectorAll('[data-warranty-dot]').length === 12 && strip.getBoundingClientRect().height > 30 && Number.isFinite(Number(strip.querySelector('[role="progressbar"]').getAttribute('aria-valuenow'))))
@@ -213,7 +217,7 @@ try {
       for (const [route, label] of [['/', 'home'], ['/items', 'items'], [detail, 'detail'], ['/categories', 'categories'], ['/items/new', 'form']]) {
         await nav(route)
         if (route === '/items') {
-          await evaluate(`document.querySelector('.item-card-toggle').click()`)
+          await evaluate(`const button=document.querySelector('.item-card-toggle');if(button.getAttribute('aria-expanded')==='false')button.click()`)
           await pause(250)
         }
         await shot(`${device}-${label}-${theme}`)
@@ -230,7 +234,7 @@ try {
   check('Desktop uses document scrolling with reachable navigation', await evaluate(`scrollY > 0 && document.querySelector('nav').getBoundingClientRect().top >= 0`))
   await nav(detail)
   check('Desktop separates identity and records into columns', await evaluate(`document.querySelector('.detail-identity').getBoundingClientRect().right < document.querySelector('.detail-record').getBoundingClientRect().left`))
-  const typography = await evaluate(`({ heading: getComputedStyle(document.querySelector('main .text-page-title')).fontSize, body: getComputedStyle(document.body).fontFamily })`)
+  const typography = await evaluate(`({ heading: getComputedStyle(document.querySelector('main h1:not([aria-hidden])')).fontSize, body: getComputedStyle(document.body).fontFamily })`)
   console.log(JSON.stringify({ typography }))
   check('Desktop heading typography scales with viewport', parseFloat(typography.heading) >= 32)
 
@@ -239,7 +243,7 @@ try {
     for (const route of ['/', '/items', '/categories', detail, '/items/new', '/settings', '/search', '/settings/icons']) {
       await nav(route)
       if (route === '/items') {
-        await evaluate(`document.querySelector('.item-card-toggle').click()`)
+        await evaluate(`const button=document.querySelector('.item-card-toggle');if(button.getAttribute('aria-expanded')==='false')button.click()`)
         await pause(250)
         check(`${width}px expanded metrics remain readable`, await evaluate(`
           [...document.querySelector('.item-card-details').querySelectorAll('p')].every(p => p.getBoundingClientRect().height > 0 && p.scrollWidth <= p.clientWidth + 1)
@@ -253,9 +257,10 @@ try {
   check('Reduced-motion keeps cards visible without animations', await evaluate(`document.getAnimations().length === 0 && document.querySelectorAll('.item-card').length === 14`))
   await evaluate(`document.querySelector('.item-card-toggle').click()`)
   await pause(100)
-  check('Reduced-motion disclosure still works without running animations', await evaluate(`document.querySelector('.item-card-toggle').getAttribute('aria-expanded') === 'true' && document.querySelector('.item-card-details').getBoundingClientRect().height > 0 && document.getAnimations().length === 0`))
+  check('Reduced-motion disclosure collapses without running animations', await evaluate(`document.querySelector('.item-card-toggle').getAttribute('aria-expanded') === 'false' && document.querySelector('.item-card-details').getBoundingClientRect().height === 0 && document.getAnimations().length === 0`))
   const categoryId = await evaluate(`import('/src/db/db.ts').then(async ({db}) => (await db.items.toArray()).find(item => item.status === 'owned').categoryId)`)
   await nav('/categories/' + categoryId)
+  await evaluate(`document.querySelectorAll('.item-card-toggle[aria-expanded="true"]').forEach(button=>button.click())`)
   await evaluate(`document.querySelector('.item-card-toggle').click()`)
   await pause(100)
   check('Category detail shares the same independent disclosure', await evaluate(`document.querySelectorAll('[data-item-card][data-expanded="true"]').length === 1 && document.querySelector('.item-card-details').getBoundingClientRect().height > 0`))

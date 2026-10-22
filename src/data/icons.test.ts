@@ -287,7 +287,7 @@ describe('index.html 主题引导脚本', () => {
     expect(html).toContain('prefers-color-scheme: dark')
     expect(html).toContain('document.documentElement.dataset.theme')
     expect(html).toContain('#101013')
-    expect(html).toContain('#F2F2F4')
+    expect(html).toContain('#EEEDF5')
     // 脚本必须出现在 body（React 入口）之前
     expect(html.indexOf('localStorage.getItem(KEY)')).toBeLessThan(html.indexOf('id="root"'))
   })

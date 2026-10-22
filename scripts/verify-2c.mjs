@@ -125,12 +125,15 @@ async function createItem(s, { name, category, subCategory, iconIndex, tags = []
   )
   await s.focusByPlaceholder('比如：AirPods')
   await s.type(name)
+  await s.ev(`document.querySelector('button[aria-label="选择分类"]').click()`)
   await s.clickText('button', category)
   await sleep(250)
   if (subCategory) {
     await s.clickText('button', subCategory)
     await sleep(250)
   }
+  await s.ev(`document.querySelector('dialog[aria-label="分类"] header button').click()`)
+  await sleep(400)
   for (const t of tags) {
     await s.focusByPlaceholder('新建标签')
     await s.type(t)

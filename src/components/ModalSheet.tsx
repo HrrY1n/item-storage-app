@@ -20,6 +20,7 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, si
   const panelRef = useRef<HTMLElement>(null)
   const measuredHeight = useRef<number | null>(null)
   const sizeAnimation = useRef<Animation | null>(null)
+  const previousSize = useRef(size)
   const visible = open || present
   openRef.current = open
   exitedRef.current = onExited
@@ -36,15 +37,27 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, si
 
   useLayoutEffect(() => {
     const panel = panelRef.current
+    const sizeChanged = previousSize.current !== size
+    previousSize.current = size
     if (!visible || !panel) return
+    if (!open) {
+      if (sheetRef.current) delete sheetRef.current.dataset.rebounding
+      if (sizeAnimation.current && sizeAnimation.current.playState !== 'finished') {
+        const height = panel.getBoundingClientRect().height
+        sizeAnimation.current.cancel()
+        panel.style.height = `${height}px`
+      }
+      return
+    }
     const from = measuredHeight.current
+    panel.style.removeProperty('height')
     sizeAnimation.current?.cancel()
     const to = panel.getBoundingClientRect().height
-    if (from !== null && Math.abs(from - to) > 1 && openRef.current && panel.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (sizeChanged && from !== null && Math.abs(from - to) > 1 && panel.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       sizeAnimation.current = panel.animate([{ height: `${from}px` }, { height: `${to}px` }], { duration: 260, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' })
     }
     measuredHeight.current = to
-  }, [size, visible])
+  }, [size, visible, open])
   useLayoutEffect(() => {
     const panel = panelRef.current
     if (!visible || !panel || typeof ResizeObserver === 'undefined') return
@@ -68,6 +81,8 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, si
     const reset = () => {
       cancelAnimationFrame(releaseFrame)
       releaseFrame = 0
+      if (openRef.current && sheet.style.getPropertyValue('--sheet-drag-y')) sheet.dataset.rebounding = 'true'
+      else delete sheet.dataset.rebounding
       gesture = undefined
       delete sheet.dataset.dragging
       sheet.style.removeProperty('--sheet-drag-y')
@@ -94,6 +109,9 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, si
         const direction = sheetDragDirection(gesture.start, point)
         if (direction === 'pending') return
         if (direction === 'scroll') { reset(); return }
+        // 入场/回弹在方向判定期间仍可移动，接管时使用当前视觉位置。
+        gesture.base = Math.max(0, new DOMMatrixReadOnly(getComputedStyle(panel).transform).m42)
+        delete sheet.dataset.rebounding
         gesture.dragging = true
       }
       if (event.cancelable) event.preventDefault()
@@ -188,7 +206,10 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, si
     <div ref={sheetRef} className="modal-sheet" data-sheet={variant} data-size={size ?? (variant === 'picker' ? 'tall' : undefined)} data-state={open ? 'open' : 'closing'}>
       <div className="modal-sheet-backdrop bg-overlay backdrop-blur-[2px]" onClick={requestClose} />
       <section ref={panelRef} className="modal-sheet-panel" inert={!open} onTransitionEnd={event => {
-        if (event.target === event.currentTarget && event.propertyName === 'transform') finishExit()
+        if (event.target === event.currentTarget && event.propertyName === 'transform') {
+          if (sheetRef.current) delete sheetRef.current.dataset.rebounding
+          finishExit()
+        }
       }}>
         <div className="modal-sheet-grip" data-sheet-grip aria-hidden="true"><div className="modal-sheet-handle" /></div>
         {children}

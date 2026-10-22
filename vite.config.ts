@@ -3,10 +3,9 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 /**
- * 应用主题色：必须与 Phase 2H 的浅色 canvas token 一致。
- * （旧值 #FAFAFA 是 2H 之前的 canvas，2H 已改为冷灰 #F2F2F4）
+ * 安装与启动背景必须与浅色 canvas / theme.ts 一致。
  */
-const CANVAS = '#F2F2F4'
+const CANVAS = '#EEEDF5'
 
 /**
  * 预缓存清单条目：`ManifestEntry` 的必填字段 + workbox 在 transform 阶段附带的 `size`。

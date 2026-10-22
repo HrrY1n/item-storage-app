@@ -59,7 +59,7 @@ export default function WarrantyStrip({
         >
           {Array.from({ length: SEGMENTS }, (_, index) => {
             const remaining = Math.min(1, Math.max(0, index + 1 - elapsedPosition))
-            const elapsedColor = expired ? 'bg-line-strong' : expiring ? 'bg-danger' : index < elapsedPosition / 2 ? 'bg-accent' : 'bg-money'
+            const elapsedColor = expired ? 'bg-line-strong' : expiring ? 'bg-danger' : index < elapsedPosition / 2 ? 'bg-danger' : 'bg-warranty-elapsed'
             return (
               <span key={index} data-warranty-dot="" aria-hidden="true" className="relative h-[5px] min-w-0 flex-1 overflow-hidden rounded-pill bg-line">
                 <span className={`absolute inset-y-0 left-0 rounded-pill ${elapsedColor}`} style={{ width: `${(1 - remaining) * 100}%` }} />

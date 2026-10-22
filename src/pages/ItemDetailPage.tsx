@@ -45,9 +45,9 @@ import { useHeaderCollapse } from '../features/ui/useHeaderCollapse'
 /** 分组容器：section 卡 + 标题。整页的 grouped 语言由此统一。 */
 function GroupCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="mt-3 overflow-hidden rounded-surface border border-line bg-surface shadow-card">
-      <h2 className="px-4 pt-4 text-secondary text-ink-secondary">{title}</h2>
-      <div className="px-4 pb-4 pt-2">{children}</div>
+    <section className="mt-5 overflow-hidden rounded-surface border border-line bg-surface shadow-card">
+      <h2 className="flex items-center gap-2 px-4 pt-4 text-section text-ink-primary"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-pill bg-accent-soft text-accent" aria-hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6m-6 4h6m-6 4h4" /></svg></span>{title}</h2>
+      <div className="px-4 pb-4 pt-3">{children}</div>
     </section>
   )
 }
@@ -324,18 +324,18 @@ function ItemDetailContent({ onBack }: { onBack: () => void }) {
         }
       />
 
-      <div className={`${panel ? '' : 'animate-fade-rise'} px-5 pt-3 sm:px-7`}>
+      <div className={`${panel ? '' : 'animate-fade-rise'} px-4 pt-3 sm:px-7`}>
         {/* Large Title：滚动离场后由 sticky header 的居中小标题接管 */}
         <div ref={sentinelRef}>
-          <h1 className="text-page-title text-ink-primary">物品详情</h1>
+          <h1 className="text-[32px] font-bold leading-tight text-ink-primary">物品详情</h1>
         </div>
 
         <div className="detail-layout">
         <div className="detail-identity">
         <section className="hero-surface overflow-hidden rounded-sheet border border-hero-line">
-          <div className="flex items-center gap-4 px-5 pb-5 pt-5 lg:flex-col-reverse lg:items-start lg:px-6 lg:pt-6">
+          <div className="flex items-center gap-3 px-4 pb-4 pt-4 lg:flex-col-reverse lg:items-start lg:px-6 lg:pt-6">
             <div className="min-w-0 flex-1">
-              <h2 className="break-words text-title-card text-ink-primary lg:text-[28px] lg:leading-tight">{item.name}</h2>
+              <h2 className="break-words text-[26px] font-semibold leading-tight text-ink-primary lg:text-[28px]">{item.name}</h2>
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                 <StatusChip status={status} />
                 {category && (

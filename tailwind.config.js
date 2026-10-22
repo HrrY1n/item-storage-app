@@ -13,7 +13,7 @@ export default {
        * - 指标数字（metric / metric-lg）是纯阿拉伯数字 + 等宽数位，负字距才是正解。
        */
       fontSize: {
-        'page-title': ['clamp(28px, 2.6vw, 36px)', { lineHeight: '1.25', letterSpacing: '0.01em', fontWeight: '600' }],
+        'page-title': ['clamp(24px, 2.6vw, 36px)', { lineHeight: '1.25', letterSpacing: '0', fontWeight: '700' }],
         'title-card': ['22px', { lineHeight: '28px', letterSpacing: '0.01em', fontWeight: '600' }],
         section: ['17px', { lineHeight: '24px', letterSpacing: '0.02em', fontWeight: '600' }],
         item: ['15px', { lineHeight: '21px', fontWeight: '500' }],
@@ -60,7 +60,7 @@ export default {
           inner: 'var(--color-line-inner)',
         },
         /**
-         * 品牌强调色：陶土。只用于「有意义的强调」——
+         * 品牌强调色：蓝色。只用于「有意义的强调」——
          * 选中态、导航指示、极少量点缀，绝不铺面。
          */
         accent: {
@@ -105,6 +105,7 @@ export default {
           line: 'var(--color-hero-line)',
         },
         overlay: 'var(--color-overlay)',
+        'warranty-elapsed': 'var(--color-warranty-elapsed)',
         /**
          * 已售出图片贴纸（斜向「售出」）。
          * 刻意与 overlay 分开：overlay 是整页遮罩，这个是贴在物品上的一小条浅色斜签，

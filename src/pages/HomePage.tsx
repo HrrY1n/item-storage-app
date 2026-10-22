@@ -56,7 +56,7 @@ export default function HomePage() {
   const dailyText = stats.dailyTotalCents !== null ? formatCentsCompact(stats.dailyTotalCents) : null
 
   return (
-    <div className="px-5 pt-[calc(28px+env(safe-area-inset-top))] sm:px-7 lg:pt-7">
+    <div className="page-content">
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-page-title text-ink-primary">概览</h1>
@@ -84,7 +84,7 @@ export default function HomePage() {
         </div>
       ) : (
         <>
-          <section aria-label="持有概况" className="hero-surface mt-6 overflow-hidden rounded-sheet border border-hero-line">
+          <section aria-label="持有概况" className="overview-assets mt-6 overflow-hidden rounded-sheet border border-hero-line">
             <div className={`grid items-center gap-2 px-5 py-5 sm:gap-5 sm:px-7 sm:py-6 ${displayItems.length > 0 ? 'grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] sm:grid-cols-2' : ''}`}>
               <div className="relative z-[2] min-w-0">
                 <p className="text-caption text-money-deep">持有中总投入</p>
