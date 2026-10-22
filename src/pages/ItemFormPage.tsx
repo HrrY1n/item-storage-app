@@ -311,7 +311,7 @@ export default function ItemFormPage({ panel }: { panel?: ItemPanelProps }) {
           ...purchase,
         })
         show('已添加')
-        setTimeout(() => navigate(`/items/${item.id}`, { replace: true }), 300)
+        setTimeout(() => navigate(`/items/${item.id}`, { replace: true, state: location.state }), 300)
       }
     } catch (e) {
       show(e instanceof Error ? e.message : '保存失败')

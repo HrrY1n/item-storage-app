@@ -78,7 +78,7 @@ export default function HomePage() {
           <EmptyPlinthHero />
           <h2 className="mt-8 text-title-card text-ink-primary">还没有物品</h2>
           <p className="mx-auto mt-3 max-w-[280px] text-body text-ink-tertiary">从一件喜欢的物品开始，慢慢建立你的私人物品档案。</p>
-          <Link to="/items/new" className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-pill bg-ink-solid px-7 text-secondary font-medium text-ink-inverse transition-transform active:scale-[0.97]">
+          <Link to="/items/new" state={{ itemBackground: location }} className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-pill bg-ink-solid px-7 text-secondary font-medium text-ink-inverse transition-transform active:scale-[0.97]">
             <span aria-hidden className="text-xl">＋</span>添加物品
           </Link>
         </div>

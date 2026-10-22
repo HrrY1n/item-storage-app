@@ -119,6 +119,7 @@ function Boot() {
       </Route>
     </Routes>
     {panelLocation && <Routes location={panelLocation}>
+      <Route path="items/new" element={<ItemFormPage key={panelLocation.pathname} panel={{ open: !!background, onExited: () => setExitingPanel(undefined) }} />} />
       <Route path="items/:id" element={<ItemDetailPage key={panelLocation.pathname} panel={{ open: !!background, onExited: () => setExitingPanel(undefined) }} />} />
       <Route path="items/:id/edit" element={<ItemFormPage key={panelLocation.pathname} panel={{ open: !!background, onExited: () => setExitingPanel(undefined) }} />} />
     </Routes>}

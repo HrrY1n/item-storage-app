@@ -59,6 +59,23 @@ class Session {
     await this.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 })
     await this.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 })
   }
+  async touchStart(selector) {
+    const point = await this.ev(`(() => {
+      const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();
+      return {x:r.x+r.width/2,y:r.y+r.height/2};
+    })()`)
+    await this.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, ...point }] })
+    return point
+  }
+  async touchMove(point, distance, duration = 300) {
+    for (let i=1;i<=6;i++) {
+      await this.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ id: 1, x: point.x, y: point.y + distance*i/6 }] })
+      await sleep(duration/6)
+    }
+  }
+  async touchEnd(cancel = false) {
+    await this.send('Input.dispatchTouchEvent', { type: cancel ? 'touchCancel' : 'touchEnd', touchPoints: [] })
+  }
   async shot(name) {
     const { data } = await this.send('Page.captureScreenshot', { format: 'png' })
     await writeFile(`${OUT}/${name}.png`, Buffer.from(data, 'base64'))
@@ -135,6 +152,12 @@ try {
     && document.body.style.overflow==='hidden' && listCard.isConnected && listInput.value==='交互样品'
     && Math.abs(listLink.getBoundingClientRect().left-listX)<1`)
   await page.shot('01-detail-mobile')
+  const largeTitleVisible = await page.ev(`document.querySelector('dialog header h1').getAttribute('aria-hidden')==='true'`)
+  await page.ev(`document.querySelector('.modal-sheet-panel').scrollTop=200`)
+  await page.until(`document.querySelector('dialog header h1').getAttribute('aria-hidden')==='false'`)
+  await page.ev(`document.querySelector('.modal-sheet-panel').scrollTop=0`)
+  await page.until(`document.querySelector('dialog header h1').getAttribute('aria-hidden')==='true'`)
+  await page.check('Compact detail title follows sheet scroll and expands again', `${largeTitleVisible} && document.querySelector('.modal-sheet-panel').scrollTop===0`)
   await page.click('dialog[open] button[aria-label="返回"]')
   await page.until(`!!document.querySelector('[data-sheet="detail"][data-state="closing"]')`)
   await page.check('Detail exit stays mounted and blocks repeated interaction', `!!document.querySelector('[data-sheet="detail"] .modal-sheet-panel[inert]')`)
@@ -228,7 +251,7 @@ try {
   await page.check('Reduced motion still completes close and focus restoration', `document.body.style.overflow==='' && document.activeElement===listLink`)
   await page.send('Emulation.setEmulatedMedia', { features: [] })
   await page.click('[data-item-card]:nth-child(5) a')
-  await sleep(550)
+  await page.until(`!!document.querySelector('.modal-sheet-panel') && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42)<1`)
   for (const width of [375, 430, 768, 1280]) {
     await page.send('Emulation.setDeviceMetricsOverride', { width, height: 844, deviceScaleFactor: 1, mobile: width < 640 })
     await page.ev('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
@@ -246,6 +269,73 @@ try {
   await page.send('Page.navigate', { url: BASE + path })
   await page.until(`document.body.innerText.includes('交互样品')`)
   await page.check('Direct detail URL remains a normal page', `!document.querySelector('dialog') && !!document.querySelector('header button[aria-label="返回"]')`)
+
+  await page.send('Emulation.setEmulatedMedia', { features: [] })
+  await page.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true })
+  await page.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 })
+  await page.send('Page.navigate', { url: BASE + '/items' })
+  await page.until(`document.querySelectorAll('[data-item-card]').length===18`)
+  await page.ev(`window.creationList=document.querySelector('[data-item-card]');window.creationSearch=document.querySelector('input[aria-label="搜索物品"]');void 0`)
+  await page.click('a[aria-label="新增物品"]')
+  await page.until(`!!document.querySelector('dialog[aria-label="新增物品"] input[placeholder="比如：AirPods Pro"]')`)
+  await sleep(550)
+  await page.check('Creation is a sheet above the same list', `location.pathname==='/items/new' && creationList.isConnected && creationSearch===document.querySelector('input[aria-label="搜索物品"]')`)
+  const creationTitle = 'dialog[aria-label="新增物品"] header h1'
+  let touch = await page.touchStart(creationTitle)
+  await page.touchMove(touch, 75)
+  await page.check('Touch drag moves the sheet with the finger', `document.querySelector('[data-sheet="detail"]').dataset.dragging==='true' && new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42>=70`)
+  await page.shot('06-creation-follow-finger')
+  await sleep(150)
+  await page.touchEnd()
+  await sleep(550)
+  await page.check('Short slow pull rebounds without closing or changing the draft', `location.pathname==='/items/new' && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42)<1 && document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value===''`)
+  touch = await page.touchStart(creationTitle)
+  await page.touchMove(touch, 100)
+  await page.touchEnd(true)
+  await sleep(550)
+  await page.check('Cancelled touch rebounds and keeps the sheet usable', `location.pathname==='/items/new' && !document.querySelector('[data-dragging="true"]') && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42)<1`)
+
+  await page.ev(`const h=[...document.querySelectorAll('dialog p')].find(e=>e.textContent==='购买信息');h.scrollIntoView({block:'center'});window.scrollTestTarget=h;window.beforeSheetScroll=document.querySelector('.modal-sheet-panel').scrollTop`)
+  const scrollPoint = await page.ev(`(()=>{const r=scrollTestTarget.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`)
+  await page.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, ...scrollPoint }] })
+  await page.touchMove(scrollPoint, 150)
+  await page.touchEnd()
+  await sleep(150)
+  await page.check('A gesture starting in scrolled content stays native', `beforeSheetScroll>100 && document.querySelector('.modal-sheet-panel').scrollTop<beforeSheetScroll-20 && !document.querySelector('[data-dragging="true"]') && location.pathname==='/items/new'`)
+  await page.ev(`document.querySelector('.modal-sheet-panel').scrollTop=0`)
+  touch = await page.touchStart(creationTitle)
+  await page.touchMove(touch, 220)
+  await page.touchEnd()
+  await page.until(`!document.querySelector('dialog[open]')`)
+  await page.check('Long pull dismisses pristine creation and restores the list/focus', `location.pathname==='/items' && creationList.isConnected && document.activeElement.matches('a[aria-label="新增物品"]') && document.body.style.overflow===''`)
+
+  await page.click('a[aria-label="新增物品"]')
+  await page.until(`!!document.querySelector('dialog input[placeholder="比如：AirPods Pro"]')`)
+  await sleep(550)
+  await page.click('dialog input[placeholder="比如：AirPods Pro"]')
+  await page.send('Input.insertText', { text: '需要保留的下拉草稿' })
+  touch = await page.touchStart(creationTitle)
+  await page.touchMove(touch, 220)
+  await page.touchEnd()
+  await page.until(`!!document.querySelector('dialog[aria-label="放弃此次修改？"]')`)
+  await page.escape()
+  await sleep(550)
+  await page.check('Dirty swipe requests confirmation and cancelling preserves input', `location.pathname==='/items/new' && document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value==='需要保留的下拉草稿' && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42)<1`)
+  await page.click('dialog button', '点击本行更换图标')
+  await page.until(`document.querySelectorAll('dialog:modal').length===2`)
+  await sleep(380)
+  touch = await page.touchStart('dialog[aria-label="选择物品图标"] header h2')
+  await page.touchMove(touch, 200)
+  await page.check('Nested drag leaves the parent sheet stationary', `new DOMMatrixReadOnly(getComputedStyle(document.querySelector('dialog[aria-label="新增物品"] .modal-sheet-panel')).transform).m42===0 && document.querySelectorAll('dialog:modal').length===2`)
+  await page.shot('07-nested-picker-drag')
+  await page.touchEnd()
+  await page.until(`document.querySelectorAll('dialog:modal').length===1`)
+  await page.check('Nested drag closes only the picker and keeps the draft/scroll lock', `location.pathname==='/items/new' && document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value==='需要保留的下拉草稿' && document.body.style.overflow==='hidden'`)
+  await page.escape()
+  await page.until(`!!document.querySelector('dialog[aria-label="放弃此次修改？"]')`)
+  await page.click('dialog[aria-label="放弃此次修改？"] button', '放弃修改')
+  await page.until(`!document.querySelector('dialog[open]')`)
+  await page.check('Discard after gestures writes no business records and releases locks', `creationList.isConnected && document.querySelectorAll('[data-item-card]').length===18 && document.body.style.overflow===''`)
   assert.deepEqual(errors, [], 'No runtime exceptions')
   console.log(`PASS ${results.length} interaction checks; no runtime exceptions`)
 } catch (error) {

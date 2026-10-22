@@ -202,7 +202,7 @@
 }
 .modal-layer::backdrop { background: transparent; }
 .modal-sheet { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; }
-.modal-sheet-backdrop { position: absolute; inset: 0; opacity: 1; }
+.modal-sheet-backdrop { position: absolute; inset: 0; opacity: calc(1 - var(--sheet-drag-progress, 0)); }
 .modal-sheet-panel {
   position: relative;
   width: 100%;
@@ -216,9 +216,13 @@
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
   background: var(--color-canvas);
   box-shadow: var(--shadow-sheet);
-  transform: translateY(0);
+  transform: translateY(var(--sheet-drag-y, 0px));
 }
-.modal-sheet-handle { width: 36px; height: 4px; flex-shrink: 0; margin: 10px auto 0; border-radius: 99px; background: var(--color-line-strong); }
+.modal-sheet-grip { display: flex; height: 20px; flex-shrink: 0; justify-content: center; align-items: center; touch-action: none; cursor: grab; }
+.modal-sheet-handle { width: 36px; height: 4px; border-radius: 99px; background: var(--color-line-strong); }
+.modal-sheet-panel header { touch-action: none; }
+.modal-sheet[data-dragging='true'] .modal-sheet-panel,
+.modal-sheet[data-dragging='true'] .modal-sheet-backdrop { transition: none; user-select: none; }
 .modal-sheet[data-sheet='picker'] .modal-sheet-panel {
   display: flex;
   flex-direction: column;
@@ -237,7 +241,7 @@
   .modal-sheet { align-items: center; padding: 24px; }
   .modal-sheet-panel { max-height: calc(100dvh - 48px); min-height: min(720px, calc(100dvh - 48px)); border-radius: 28px; }
   .modal-sheet[data-sheet='picker'] .modal-sheet-panel { height: 80dvh; }
-  .modal-sheet-handle { display: none; }
+  .modal-sheet-grip { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .modal-sheet-panel { transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1); }

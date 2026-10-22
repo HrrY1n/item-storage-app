@@ -1,4 +1,4 @@
-import { Link, NavLink } from 'react-router'
+import { Link, NavLink, useLocation } from 'react-router'
 
 /** 概览：仪表盘式图形（一条趋势线 + 坐标基线），形状与其他三个 tab 明显不同 */
 function OverviewIcon({ active }: { active: boolean }) {
@@ -49,6 +49,7 @@ const tabs = [
 
 /** 手机底栏、桌面侧栏共用同一组入口。 */
 export default function BottomNav() {
+  const location = useLocation()
   return (
     <nav aria-label="主导航" className="app-nav chrome chrome-edge-top z-20">
       <Link to="/" className="nav-brand" aria-label="物品库 · 概览">
@@ -91,6 +92,7 @@ export default function BottomNav() {
 
         <Link
           to="/items/new"
+          state={{ itemBackground: location }}
           aria-label="新增物品"
           className="nav-add flex shrink-0 items-center justify-center gap-2 bg-ink-solid text-ink-inverse transition-transform duration-150 ease-out-quint active:scale-[0.96]"
         >

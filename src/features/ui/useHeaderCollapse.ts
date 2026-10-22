@@ -28,7 +28,7 @@ export function useHeaderCollapse<T extends HTMLElement = HTMLElement>() {
         const entry = entries[0]
         if (entry) setCollapsed(!entry.isIntersecting)
       },
-      { threshold: 0, rootMargin: '-52px 0px 0px 0px' },
+      { root: sentinel.closest('.modal-sheet-panel'), threshold: 0, rootMargin: '-52px 0px 0px 0px' },
     )
     observer.observe(sentinel)
     return () => observer.disconnect()

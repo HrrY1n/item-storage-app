@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import ModalLayer from './ModalLayer'
+import { sheetDragDirection, shouldDismissSheet, type SheetPoint } from '../features/ui/sheetGesture'
 
 export interface ItemPanelProps {
   open: boolean
@@ -18,8 +19,13 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, ch
   const openRef = useRef(open)
   const presentRef = useRef(open)
   const exitedRef = useRef(onExited)
+  const closeRef = useRef(onClose)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
+  const visible = open || present
   openRef.current = open
   exitedRef.current = onExited
+  closeRef.current = onClose
   presentRef.current = open || present
 
   const finishExit = () => {
@@ -29,6 +35,111 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, ch
     exitedRef.current?.()
   }
   const requestClose = () => { if (openRef.current) onClose() }
+
+  useLayoutEffect(() => {
+    const sheet = sheetRef.current, panel = panelRef.current
+    if (!visible || !sheet || !panel) return
+    let gesture: { id: number; kind: 'touch' | 'pointer'; start: SheetPoint; base: number; distance: number; dragging: boolean; samples: SheetPoint[] } | undefined
+    const topmost = () => {
+      const dialogs = document.querySelectorAll('dialog[open]')
+      return openRef.current && panel.closest('dialog') === dialogs[dialogs.length - 1]
+    }
+    const reset = () => {
+      gesture = undefined
+      delete sheet.dataset.dragging
+      sheet.style.removeProperty('--sheet-drag-y')
+      sheet.style.removeProperty('--sheet-drag-progress')
+    }
+    const start = (target: EventTarget | null, point: SheetPoint, id: number, kind: 'touch' | 'pointer') => {
+      if (!topmost() || !(target instanceof Element) || target.closest('button,a,input,textarea,select,[contenteditable="true"],[role="slider"]')) return
+      const header = target.closest('header,[data-sheet-grip]')
+      if (kind === 'pointer' && !header) return
+      if (!header) {
+        // 一根手指从已滚动的内容开始时，整段手势交给内容，不在途中抢走。
+        for (let node: Element | null = target; node && panel.contains(node); node = node.parentElement) {
+          if (node.scrollTop > 1 && /auto|scroll/.test(getComputedStyle(node).overflowY)) return
+          if (node === panel) break
+        }
+      }
+      const base = Math.max(0, new DOMMatrixReadOnly(getComputedStyle(panel).transform).m42)
+      gesture = { id, kind, start: point, base, distance: base, dragging: false, samples: [point] }
+    }
+    const move = (point: SheetPoint, event: Event) => {
+      if (!gesture) return
+      if (!topmost()) { reset(); return }
+      if (!gesture.dragging) {
+        const direction = sheetDragDirection(gesture.start, point)
+        if (direction === 'pending') return
+        if (direction === 'scroll') { reset(); return }
+        gesture.dragging = true
+      }
+      if (event.cancelable) event.preventDefault()
+      gesture.samples.push(point)
+      while (gesture.samples.length > 2 && point.time - gesture.samples[0].time > 100) gesture.samples.shift()
+      gesture.distance = Math.max(0, gesture.base + point.y - gesture.start.y)
+      sheet.dataset.dragging = 'true'
+      sheet.style.setProperty('--sheet-drag-y', `${gesture.distance}px`)
+      sheet.style.setProperty('--sheet-drag-progress', String(Math.min(1, gesture.distance / panel.clientHeight)))
+    }
+    const finish = (point?: SheetPoint) => {
+      const current = gesture
+      const sample = current?.samples[0]
+      const velocity = point && sample ? (point.y - sample.y) / Math.max(1, point.time - sample.time) : 0
+      const dismiss = !!(point && current?.dragging && topmost() && shouldDismissSheet(current.distance, panel.clientHeight, velocity))
+      reset()
+      if (dismiss) closeRef.current()
+    }
+    const touchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) { finish(); return }
+      const touch = event.touches[0]
+      start(event.target, { x: touch.clientX, y: touch.clientY, time: event.timeStamp }, touch.identifier, 'touch')
+    }
+    const touchMove = (event: TouchEvent) => {
+      if (gesture?.kind !== 'touch') return
+      if (event.touches.length !== 1) { finish(); return }
+      const touch = event.touches[0]
+      if (touch.identifier === gesture.id) move({ x: touch.clientX, y: touch.clientY, time: event.timeStamp }, event)
+    }
+    const touchEnd = (event: TouchEvent) => {
+      if (gesture?.kind !== 'touch') return
+      const touch = Array.from(event.changedTouches).find(touch => touch.identifier === gesture?.id)
+      finish(event.touches.length === 0 && touch ? { x: touch.clientX, y: touch.clientY, time: event.timeStamp } : undefined)
+    }
+    const pointerStart = (event: PointerEvent) => {
+      if (event.pointerType === 'touch' || event.button !== 0) return
+      start(event.target, { x: event.clientX, y: event.clientY, time: event.timeStamp }, event.pointerId, 'pointer')
+      if (gesture?.kind === 'pointer') panel.setPointerCapture(event.pointerId)
+    }
+    const pointerMove = (event: PointerEvent) => {
+      if (gesture?.kind === 'pointer' && gesture.id === event.pointerId) move({ x: event.clientX, y: event.clientY, time: event.timeStamp }, event)
+    }
+    const pointerEnd = (event: PointerEvent) => {
+      if (gesture?.kind === 'pointer' && gesture.id === event.pointerId) finish({ x: event.clientX, y: event.clientY, time: event.timeStamp })
+    }
+    const cancel = () => finish()
+    panel.addEventListener('touchstart', touchStart, { passive: true })
+    // passive:false 只在判定为下拉面板后阻止原生滚动，其余方向保留浏览器行为。
+    panel.addEventListener('touchmove', touchMove, { passive: false })
+    panel.addEventListener('touchend', touchEnd)
+    panel.addEventListener('touchcancel', cancel)
+    panel.addEventListener('pointerdown', pointerStart)
+    panel.addEventListener('pointermove', pointerMove)
+    panel.addEventListener('pointerup', pointerEnd)
+    panel.addEventListener('pointercancel', cancel)
+    window.addEventListener('blur', cancel)
+    return () => {
+      reset()
+      panel.removeEventListener('touchstart', touchStart)
+      panel.removeEventListener('touchmove', touchMove)
+      panel.removeEventListener('touchend', touchEnd)
+      panel.removeEventListener('touchcancel', cancel)
+      panel.removeEventListener('pointerdown', pointerStart)
+      panel.removeEventListener('pointermove', pointerMove)
+      panel.removeEventListener('pointerup', pointerEnd)
+      panel.removeEventListener('pointercancel', cancel)
+      window.removeEventListener('blur', cancel)
+    }
+  }, [visible])
 
   useEffect(() => {
     if (open) {
@@ -46,12 +157,12 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, ch
   }, [open, present])
 
   return <ModalLayer open={open || present} label={label} onClose={requestClose}>
-    <div className="modal-sheet" data-sheet={variant} data-state={open ? 'open' : 'closing'}>
+    <div ref={sheetRef} className="modal-sheet" data-sheet={variant} data-state={open ? 'open' : 'closing'}>
       <div className="modal-sheet-backdrop bg-overlay backdrop-blur-[2px]" onClick={requestClose} />
-      <section className="modal-sheet-panel" inert={!open} onTransitionEnd={event => {
+      <section ref={panelRef} className="modal-sheet-panel" inert={!open} onTransitionEnd={event => {
         if (event.target === event.currentTarget && event.propertyName === 'transform') finishExit()
       }}>
-        <div className="modal-sheet-handle" aria-hidden="true" />
+        <div className="modal-sheet-grip" data-sheet-grip aria-hidden="true"><div className="modal-sheet-handle" /></div>
         {children}
       </section>
     </div>

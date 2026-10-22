@@ -1,8 +1,8 @@
 import type { Location } from 'react-router'
 
-/** 只将带有站内背景位置的详情/编辑导航解释为弹层；直接链接仍显示完整页面。 */
+/** 站内新增/详情/编辑保留背景；直接链接仍显示完整页面。 */
 export function itemPanelBackground(location: Location): Location | undefined {
-  if (!/^\/items\/[^/]+(?:\/edit)?$/.test(location.pathname) || location.pathname === '/items/new') return
+  if (!/^\/items\/[^/]+(?:\/edit)?$/.test(location.pathname)) return
   const background: unknown = location.state?.itemBackground
   if (!background || typeof background !== 'object') return
   const candidate = background as Partial<Location>
