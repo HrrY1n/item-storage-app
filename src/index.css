@@ -202,6 +202,8 @@
   color: var(--color-ink-primary);
 }
 .modal-layer::backdrop { background: transparent; }
+/* 面板内部负责滚动；聚焦不能把屏幕外的入场面板拉进视口。 */
+.modal-layer:has(> .modal-sheet) { overflow: clip; }
 .modal-sheet { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; }
 .modal-sheet-backdrop { position: absolute; inset: 0; opacity: calc(1 - var(--sheet-drag-progress, 0)); }
 .modal-sheet-panel {
@@ -244,6 +246,9 @@
 .search-control[data-focused='true'] .search-cancel { width: 56px; opacity: 1; }
 .modal-sheet[data-state='closing'] .modal-sheet-panel { transform: translateY(100%); }
 .modal-sheet[data-state='closing'] .modal-sheet-backdrop { opacity: 0; }
+.modal-sheet[data-state='pending'] .modal-sheet-panel { transform: translateY(100%); }
+.modal-sheet[data-state='pending'] .modal-sheet-backdrop { opacity: 0; }
+.modal-sheet[data-ready='false'] .modal-sheet-panel { opacity: 0; }
 .warranty-disclosure, .category-disclosure, .filter-disclosure { display: grid; grid-template-rows: 0fr; opacity: 0; }
 .warranty-disclosure[data-open='true'], .category-disclosure[data-open='true'], .filter-disclosure[data-open='true'] { grid-template-rows: 1fr; opacity: 1; }
 @media (min-width: 640px) {
@@ -693,6 +698,7 @@ input[type='search']::-webkit-search-cancel-button {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .modal-sheet-panel, .modal-sheet-backdrop { transition: none !important; }
   *,
   *::before,
   *::after {

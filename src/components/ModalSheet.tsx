@@ -2,8 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import ModalLayer from './ModalLayer'
 import { sheetDragDirection, shouldDismissSheet, type SheetPoint } from '../features/ui/sheetGesture'
 
-export default function ModalSheet({ open, label, onClose, onExited, variant, size, children }: {
+export default function ModalSheet({ open, ready = true, label, onClose, onExited, variant, size, children }: {
   open: boolean
+  ready?: boolean
   label: string
   onClose: () => void
   onExited?: () => void
@@ -203,9 +204,9 @@ export default function ModalSheet({ open, label, onClose, onExited, variant, si
   }, [open, present])
 
   return <ModalLayer open={open || present} label={label} onClose={requestClose}>
-    <div ref={sheetRef} className="modal-sheet" data-sheet={variant} data-size={size ?? (variant === 'picker' ? 'tall' : undefined)} data-state={open ? 'open' : 'closing'}>
+    <div ref={sheetRef} className="modal-sheet" data-sheet={variant} data-size={size ?? (variant === 'picker' ? 'tall' : undefined)} data-ready={ready} data-state={open ? ready ? 'open' : 'pending' : 'closing'}>
       <div className="modal-sheet-backdrop bg-overlay backdrop-blur-[2px]" onClick={requestClose} />
-      <section ref={panelRef} className="modal-sheet-panel" inert={!open} onTransitionEnd={event => {
+      <section ref={panelRef} className="modal-sheet-panel" inert={!open || !ready} onTransitionEnd={event => {
         if (event.target === event.currentTarget && event.propertyName === 'transform') {
           if (sheetRef.current) delete sheetRef.current.dataset.rebounding
           finishExit()

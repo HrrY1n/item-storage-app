@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { mkdir, writeFile } from 'node:fs/promises'
 
-const CDP = 'http://127.0.0.1:9222'
+const CDP = `http://127.0.0.1:${process.env.EDGE_TEST_PORT ?? '9222'}`
 const BASE = 'http://127.0.0.1:5173'
 const OUT = '.tmp/browser-verification/interactions'
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -335,6 +335,67 @@ try {
   await page.send('Page.navigate', { url: BASE + '/items' })
   await page.until(`document.querySelectorAll('[data-item-card]').length===18`)
   await page.ev(`window.creationList=document.querySelector('[data-item-card]');window.creationSearch=document.querySelector('input[aria-label="搜索物品"]');void 0`)
+  for (const rate of [1, 4]) {
+    await page.send('Emulation.setCPUThrottlingRate', { rate })
+    const entryFrames = await page.ev(`(async () => {
+      const {assetRepository}=await import('/src/db/repositories/assetRepository.ts');
+      const original=assetRepository.listPresets;
+      const gate=new Promise(resolve=>setTimeout(resolve,180));
+      assetRepository.listPresets=async function(...args) { await gate; return original.apply(this,args) };
+      const frames=[],start=performance.now();
+      try {
+        document.querySelector('a.nav-add').click();
+        await new Promise(resolve=>{
+          function sample(time) {
+            const panel=document.querySelector('dialog[aria-label="新增物品"] .modal-sheet-panel');
+            if(panel) {
+              const rect=panel.getBoundingClientRect();
+              frames.push({time:time-start,top:rect.top,height:rect.height,scroll:panel.closest('dialog').scrollTop,
+                visible:getComputedStyle(panel).opacity==='1' && rect.top<innerHeight && rect.bottom>0,
+                pending:panel.textContent.includes('正在载入表单'),form:!!panel.querySelector('input[placeholder="比如：AirPods Pro"]')});
+            }
+            if(time-start<1400) requestAnimationFrame(sample); else resolve();
+          }
+          requestAnimationFrame(sample);
+        });
+        return frames;
+      } finally { assetRepository.listPresets=original }
+    })()`)
+    await page.send('Emulation.setCPUThrottlingRate', { rate: 1 })
+    await writeFile(`${OUT}/creation-entry-frames-${rate}x.json`, JSON.stringify(entryFrames, null, 2))
+    const visibleFrames = entryFrames.filter(frame => frame.visible)
+    assert.ok(entryFrames.length > 8 && visibleFrames.length > 8, 'Entry samples span the pending and visible phases')
+    assert.ok(entryFrames.every(frame => frame.scroll === 0), 'Autofocus must never scroll the outer dialog during entry')
+    assert.ok(visibleFrames.every(frame => frame.form && !frame.pending), 'The loading placeholder must never slide into view')
+    assert.ok(Math.max(...visibleFrames.map(frame => frame.height)) - Math.min(...visibleFrames.map(frame => frame.height)) < 1, 'The visible sheet height must stay constant during entry')
+    assert.ok(entryFrames[0].top >= 843 && visibleFrames.some(frame => frame.top > 20 && frame.top < 800) && visibleFrames.at(-1).top < 20, 'The sheet must travel continuously from the bottom to its resting position')
+    assert.ok(visibleFrames.every((frame, index) => !index || frame.top <= visibleFrames[index - 1].top + 1), 'Entry must not reverse or jump back down')
+    results.push(`Creation entry at ${rate}x CPU waits for the form and never scrolls or changes height`)
+    console.log(`PASS Creation entry at ${rate}x CPU waits for the form and never scrolls or changes height`)
+    await page.escape()
+    await page.until(`!document.querySelector('dialog[open]')`)
+  }
+  await page.ev(`(async()=>{
+    const {assetRepository}=await import('/src/db/repositories/assetRepository.ts');
+    const original=assetRepository.listPresets;
+    const gate=new Promise(resolve=>{window.releaseFormRead=()=>{assetRepository.listPresets=original;resolve()}});
+    assetRepository.listPresets=async function(...args){await gate;return original.apply(this,args)};
+  })()`)
+  await page.click('a[aria-label="新增物品"]')
+  await page.until(`!!document.querySelector('[data-state="pending"] .modal-sheet-panel[inert]')`)
+  await page.escape()
+  await page.ev('releaseFormRead()')
+  await page.until(`!document.querySelector('dialog[open]')`)
+  await page.check('Cancelling before form readiness releases the dialog, focus and scroll lock', `location.pathname==='/items' && document.body.style.overflow==='' && document.activeElement===document.querySelector('a.nav-add')`)
+  await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
+  await page.click('a[aria-label="新增物品"]')
+  await page.until(`!!document.querySelector('[data-sheet="detail"][data-state="open"]')`)
+  await page.check('Reduced motion opens the ready form without a transition or outer scroll', `(() => {
+    const panel=document.querySelector('.modal-sheet-panel');return panel.getBoundingClientRect().top<20 && panel.closest('dialog').scrollTop===0 && panel.getAnimations().length===0 && document.activeElement.classList.contains('item-panel-content') && !panel.inert;
+  })()`)
+  await page.escape()
+  await page.until(`!document.querySelector('dialog[open]')`)
+  await page.send('Emulation.setEmulatedMedia', { features: [] })
   await page.click('a[aria-label="新增物品"]')
   await page.until(`!!document.querySelector('dialog[aria-label="新增物品"] input[placeholder="比如：AirPods Pro"]')`)
   await sleep(550)
