@@ -118,10 +118,15 @@ try {
     }) && getComputedStyle(document.querySelector('.nav-links'), '::before').pointerEvents === 'none'
   `))
   check('Compact mobile bar uses smaller labels without shrinking icons or touch targets', await evaluate(`
-    document.querySelector('.nav-links').getBoundingClientRect().height <= 52
-      && document.querySelector('.nav-add').getBoundingClientRect().height === 52
+    document.querySelector('.nav-links').getBoundingClientRect().height === 56
+      && document.querySelector('.nav-add').getBoundingClientRect().height === 56
       && [...document.querySelectorAll('.nav-label')].every(label => getComputedStyle(label).fontSize === '10px')
       && [...document.querySelectorAll('.nav-link-inner > svg')].every(icon => icon.getBoundingClientRect().height === 22)
+  `))
+  check('Mobile Dock sits lower and slightly wider while keeping the system inset', await evaluate(`
+    innerHeight - document.querySelector('.nav-add').getBoundingClientRect().bottom === 2
+      && document.querySelector('.nav-links').getBoundingClientRect().left === 12
+      && innerWidth - document.querySelector('.nav-add').getBoundingClientRect().right === 12
   `))
   const pressNavigation = async () => {
     const point = await evaluate(`(() => { const box = document.querySelector('.nav-link[aria-current="page"]').getBoundingClientRect(); return { x: box.x + box.width / 2, y: box.y + box.height / 2 }; })()`)
@@ -293,9 +298,9 @@ try {
           if (innerWidth >= 1024) return getComputedStyle(document.querySelector('.nav-label')).fontSize === '14px' && add.getBoundingClientRect().height === 46;
           const buttons = [...document.querySelectorAll('.nav-link, .nav-add')];
           const targetsFit = buttons.every(button => { const r = button.getBoundingClientRect(); return r.width >= 44 && r.height >= 44 && r.left >= 0 && r.right <= innerWidth; });
-          const compact = bar.getBoundingClientRect().height <= 52 && add.getBoundingClientRect().height === 52;
+          const compact = bar.getBoundingClientRect().height === 56 && add.getBoundingClientRect().height === 56;
           const indicator = document.querySelector('.nav-indicator').getBoundingClientRect(), active = document.querySelector('.nav-link[aria-current="page"]').getBoundingClientRect();
-          const aligned = Math.abs(indicator.x + indicator.width / 2 - active.x - active.width / 2) < 1 && indicator.height <= 44;
+          const aligned = Math.abs(indicator.x + indicator.width / 2 - active.x - active.width / 2) < 1 && indicator.height === 48;
           const reserved = parseFloat(getComputedStyle(main).paddingBottom) - document.querySelector('.app-nav').getBoundingClientRect().height >= 20;
           window.scrollTo(0, document.documentElement.scrollHeight);
           const lastCard = Math.max(...[...document.querySelectorAll('[data-item-card]')].map(card => card.getBoundingClientRect().bottom));
