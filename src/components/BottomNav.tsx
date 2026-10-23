@@ -95,7 +95,7 @@ export default function BottomNav() {
           to="/items/new"
           state={{ itemBackground: location }}
           aria-label="新增物品"
-          className="nav-add chrome flex shrink-0 items-center justify-center gap-2 text-ink-primary shadow-card transition-transform duration-150 ease-out-quint active:scale-[0.96]"
+          className="nav-add chrome flex shrink-0 items-center justify-center gap-2 text-ink-primary shadow-card motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-quint motion-safe:active:scale-[0.94]"
         >
           <svg
             width="22"

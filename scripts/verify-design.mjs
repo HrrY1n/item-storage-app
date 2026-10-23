@@ -112,6 +112,32 @@ try {
 
   await nav('/items')
   check('All fourteen owned items are visible', await evaluate(`document.querySelectorAll('main .item-card').length === 14`))
+  check('Glass navigation preserves 44px targets and non-interactive highlights', await evaluate(`
+    [...document.querySelectorAll('.nav-link, .nav-add')].every(link => {
+      const box = link.getBoundingClientRect(); return box.width >= 44 && box.height >= 44;
+    }) && getComputedStyle(document.querySelector('.nav-links'), '::before').pointerEvents === 'none'
+  `))
+  const pressNavigation = async () => {
+    const point = await evaluate(`(() => { const box = document.querySelector('.nav-link[aria-current="page"]').getBoundingClientRect(); return { x: box.x + box.width / 2, y: box.y + box.height / 2 }; })()`)
+    await page.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...point })
+    await pause(160)
+    return point
+  }
+  const navPoint = await pressNavigation()
+  check('Pressing a glass tab deforms its contents without moving its hit target', await evaluate(`
+    new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.nav-link[aria-current="page"] .nav-link-inner')).transform).a < 1 && document.querySelector('.nav-link[aria-current="page"]').getBoundingClientRect().height >= 44
+  `))
+  await shot('mobile-glass-pressed')
+  await page.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...navPoint })
+  await pause(350)
+  check('Releasing a glass tab restores its shape and keeps the selected route', await evaluate(`location.pathname === '/items' && getComputedStyle(document.querySelector('.nav-link[aria-current="page"] .nav-link-inner')).transform === 'none'`))
+  await evaluate(`document.querySelector('.nav-link[href="/categories"]').focus()`)
+  await key('Tab', 9)
+  check('Glass tabs retain a visible keyboard focus indicator', await evaluate(`document.activeElement.matches('.nav-link[href="/search"]:focus-visible') && getComputedStyle(document.activeElement).outlineStyle !== 'none'`))
+  await key('Enter', 13)
+  await pause(300)
+  check('Keyboard activation updates the selected glass tab', await evaluate(`location.pathname === '/search' && document.querySelector('.nav-link[href="/search"]').getAttribute('aria-current') === 'page'`))
+  await nav('/items')
   check('Detailed cards initially show metrics with an independent accessible collapse control', await evaluate(`
     [...document.querySelectorAll('[data-item-card]')].every(card => {
       const button = card.querySelector('.item-card-toggle');
@@ -156,7 +182,7 @@ try {
   check('Keyboard End selects disposed items', await evaluate(`document.querySelector('main h1').textContent === '已处置物品'`))
   await evaluate(`[...document.querySelectorAll('[data-item-card]')].find(card => card.textContent.includes('AirPods Max')).querySelector('.item-card-toggle').click()`)
   await pause(300)
-  check('Expanded sold results keep loss direction and readable amounts without a warranty strip', await evaluate(`[...document.querySelectorAll('[data-item-card]')].some(card => card.innerText.includes('AirPods Max') && card.innerText.includes('亏损 ¥1,649') && !card.querySelector('[data-warranty-strip]'))`))
+  check('Expanded sold results keep loss direction and compact amounts without a warranty strip', await evaluate(`[...document.querySelectorAll('[data-item-card]')].some(card => card.innerText.includes('AirPods Max') && card.innerText.includes('亏损 ¥1.6k') && !card.querySelector('[data-warranty-strip]'))`))
   await evaluate(`document.querySelector('[aria-label="处置方式"] [role="radio"]').focus()`)
   await key('End', 35)
   check('Keyboard skips empty disabled disposal options', await evaluate(`document.activeElement.textContent.includes('已丢弃') && document.activeElement.getAttribute('aria-checked') === 'true'`))
@@ -219,6 +245,14 @@ try {
         if (route === '/items') {
           await evaluate(`const button=document.querySelector('.item-card-toggle');if(button.getAttribute('aria-expanded')==='false')button.click()`)
           await pause(250)
+          if (device === 'mobile') {
+            check(`${theme} mobile glass has live blur and themed highlights`, await evaluate(`
+              [...document.querySelectorAll('.nav-links, .nav-add')].every(element => {
+                const style = getComputedStyle(element);
+                return style.backdropFilter.includes('blur(') && style.backgroundImage.includes('gradient') && getComputedStyle(element, '::before').content !== 'none';
+              })
+            `))
+          }
         }
         await shot(`${device}-${label}-${theme}`)
         captures.push({ width, theme, route })
@@ -252,8 +286,22 @@ try {
       check(`${width}px ${route} has no horizontal overflow`, await evaluate('document.documentElement.scrollWidth <= innerWidth'))
     }
   }
+  await viewport(390)
+  for (const [name, value] of [['prefers-reduced-transparency', 'reduce'], ['prefers-contrast', 'more'], ['forced-colors', 'active']]) {
+    await page.send('Emulation.setEmulatedMedia', { features: [{ name, value }] })
+    await nav('/items')
+    check(`${name} replaces glass with an opaque surface and keeps navigation visible`, await evaluate(`
+      [...document.querySelectorAll('.nav-links, .nav-add')].every(element => {
+        const style = getComputedStyle(element);
+        return style.backdropFilter === 'none' && style.backgroundImage === 'none' && getComputedStyle(element, '::before').display === 'none' && element.getBoundingClientRect().height >= 44;
+      }) && getComputedStyle(document.querySelector('.nav-indicator')).opacity === '1'
+    `))
+  }
   await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
   await nav('/items')
+  const reducedPoint = await pressNavigation()
+  check('Reduced motion disables glass deformation while keeping tab activation', await evaluate(`getComputedStyle(document.querySelector('.nav-link[aria-current="page"] .nav-link-inner')).transform === 'none' && getComputedStyle(document.querySelector('.nav-indicator')).scale === 'none'`))
+  await page.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...reducedPoint })
   check('Reduced-motion keeps cards visible without animations', await evaluate(`document.getAnimations().length === 0 && document.querySelectorAll('.item-card').length === 14`))
   await evaluate(`document.querySelector('.item-card-toggle').click()`)
   await pause(100)
