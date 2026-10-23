@@ -88,7 +88,8 @@ try {
     counts.includes(`${label}，${icons.filter(icon => icon.category === key).length} 个图标`),
   ))
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, modifiers: 8 })
-  check('反向 Tab 保持焦点在弹层内', await ev(`document.activeElement===[...document.querySelectorAll('[role="dialog"] button, [role="dialog"] input')].at(-1)`))
+  // 原生 dialog 允许焦点进入浏览器工具栏，但不能进入底层页面。
+  check('反向 Tab 不会进入底层页面', await ev(`!document.hasFocus() || document.querySelector('dialog[open]')?.contains(document.activeElement)`))
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 })
   check('正向 Tab 回到关闭按钮', await ev(`document.activeElement?.getAttribute('aria-label')==='关闭'`))
   check('分类主页为三列', await ev(`getComputedStyle(document.querySelector('[aria-label="图标分类"]')).gridTemplateColumns.split(' ').length === 3`))
@@ -119,7 +120,7 @@ try {
   check('清空后重新搜索不会恢复旧结果滚动位置', await ev(`document.querySelector('[data-icon-scroll]').scrollTop===0`))
   await click('button[aria-label="清空搜索"]')
   await query('iPad')
-  check('搜索隐藏分类并显示全局匹配数', await ev(`!document.querySelector('button[aria-label="返回图标分类"]') && !!document.querySelector('[role="status"]') && !!document.querySelector('img[alt="平板电脑"]')`))
+  check('搜索隐藏分类并显示全局匹配数', await ev(`!document.querySelector('button[aria-label="返回图标分类"]') && !!document.querySelector('[data-icon-browser] [role="status"]') && !!document.querySelector('img[alt="平板电脑"]')`))
   await shot('03-search-light')
   await click('button[aria-label="清空搜索"]')
   await sleep(150)
@@ -162,6 +163,9 @@ try {
     ['drone', '无人机', '航拍机'],
     ['gimbal', '手持稳定器', '三轴云台'],
     ['phonecooler', '手机散热器', '磁吸散热器'],
+    ['thermometer', '电子体温计', '体温计'],
+    ['massagegun', '筋膜枪', '按摩枪'],
+    ['glassescase', '眼镜盒', '眼镜收纳盒'],
   ]) {
     await query(alias)
     check(`${label}按别名找到独立图标`, await ev(`!!document.querySelector('img[alt="${label}"][src="/icons/items/${key}.webp"]')`))
@@ -174,11 +178,12 @@ try {
     await query(alias)
     check(`${label}重新打开后保持选中`, await ev(`!!document.querySelector('button[aria-pressed="true"] img[alt="${label}"]')`))
   }
-  await shot('11-phonecooler-selected-light')
+  await shot('13-glassescase-selected-light')
   await query('zzzz-not-an-icon')
-  check('无匹配有简洁空状态和零匹配数', await ev(`document.querySelector('[data-icon-browser]').textContent.includes('没有找到') && document.querySelector('[role="status"]').textContent.includes('0')`))
+  check('无匹配有简洁空状态和零匹配数', await ev(`document.querySelector('[data-icon-browser]').textContent.includes('没有找到') && document.querySelector('[data-icon-browser] [role="status"]').textContent.includes('0')`))
   await shot('05-empty-light')
   await click('button[aria-label="关闭"]')
+  await poll(`!document.querySelector('[role="dialog"]')`)
   check('关闭后焦点回到原图标按钮', await ev(`document.activeElement?.tagName==='BUTTON' && document.activeElement.textContent.includes('点击本行更换图标')`))
   await ev(`localStorage.setItem('pil.theme','dark')`)
   await navigate('/items/new')
@@ -188,6 +193,7 @@ try {
   await click('button[aria-label^="护理，"]')
   await shot('07-care-dark')
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 })
+  await poll(`!document.querySelector('[role="dialog"]')`)
   check('Escape 关闭弹层', await ev(`!document.querySelector('[role="dialog"]')`))
   await navigate('/settings/icons')
   check('设置图标库复用九类浏览', await ev(`document.querySelectorAll('[aria-label="图标分类"] button').length===9`))

@@ -26,6 +26,9 @@ describe('默认物品分类', () => {
     expect(groups.find((child) => child.iconKeys.includes('phonecooler'))?.name).toBe('手机与平板')
     expect(groups.find((child) => child.iconKeys.includes('dockingstation'))?.name).toBe('配件与线材')
     expect(groups.find((child) => child.iconKeys.includes('tabletkeyboard'))?.name).toBe('键鼠与输入设备')
+    expect(groups.find((child) => child.iconKeys.includes('thermometer'))?.name).toBe('健康与用药')
+    expect(groups.find((child) => child.iconKeys.includes('massagegun'))?.name).toBe('健康与用药')
+    expect(groups.find((child) => child.iconKeys.includes('glassescase'))?.name).toBe('配饰')
     for (const key of ['airfryer', 'cleanser', 'dumbbell', 'bed', 'puzzle']) {
       expect(groups.some((child) => child.iconKeys.includes(key)), key).toBe(true)
     }

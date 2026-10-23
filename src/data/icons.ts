@@ -107,6 +107,7 @@ export const PRESET_ICONS: PresetIcon[] = [
   icon('sneakers', '运动鞋', 'apparel', ['球鞋', '跑鞋', '运动鞋', 'Sneakers']),
   icon('hat', '帽子', 'apparel', ['帽', '棒球帽', '帽子', 'Hat', 'Cap']),
   icon('glasses', '眼镜', 'apparel', ['眼镜', '墨镜', '太阳镜', 'Glasses']),
+  icon('glassescase', '眼镜盒', 'apparel', ['眼镜盒', '眼镜收纳盒', '眼镜保护盒', '眼镜包', '墨镜盒', 'Glasses Case', 'Eyeglass Case', 'Spectacle Case']),
   icon('watch', '手表', 'apparel', ['手表', '腕表', '机械表', 'Watch']),
   icon('backpack', '双肩包', 'apparel', ['背包', '书包', '双肩包', '包', 'Backpack']),
   icon('handbag', '手提包', 'apparel', ['包', '手提包', '单肩包', '托特包', 'Bag']),
@@ -178,6 +179,8 @@ export const PRESET_ICONS: PresetIcon[] = [
   icon('comb', '梳子', 'care', ['梳子', '发梳', '按摩梳', 'Comb']),
   icon('nailclipper', '指甲剪', 'care', ['指甲剪', '指甲刀', '修甲', 'Nail Clipper']),
   icon('scale', '体重秤', 'care', ['体重秤', '电子秤', '秤', '体重', 'Scale']),
+  icon('thermometer', '电子体温计', 'care', ['体温计', '电子体温计', '温度计', '腋下体温计', '测温', 'Digital Thermometer', 'Thermometer']),
+  icon('massagegun', '筋膜枪', 'care', ['筋膜枪', '按摩枪', '按摩仪', '肌肉按摩器', '筋膜放松', 'Massage Gun', 'Percussion Massager']),
 
   // ---------------------------------------------------- Phase 2G 新增：厨房
   icon('pot', '锅', 'kitchen', ['锅', '汤锅', '炖锅', '炒锅', '煮锅']),

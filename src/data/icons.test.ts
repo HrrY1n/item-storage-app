@@ -25,8 +25,8 @@ const webpBasenames = new Set(
 )
 
 describe('PRESET_ICONS 元数据', () => {
-  it('图标库包含 217 个独立物品', () => {
-    expect(PRESET_ICONS.length).toBe(217)
+  it('图标库包含 220 个独立物品', () => {
+    expect(PRESET_ICONS.length).toBe(220)
   })
 
   it('key 唯一，且 path 与 key 一一对应', () => {
@@ -206,6 +206,17 @@ describe('图标检索', () => {
     expect(new Set(paths).size).toBe(3)
     expect(paths).not.toContain(getIconPath('djipocket'))
     expect(paths).not.toContain(getIconPath('phone'))
+  })
+
+  it.each([
+    ['thermometer', '电子体温计', 'care', ['体温计', '温度计', '腋下体温计', 'Digital Thermometer']],
+    ['massagegun', '筋膜枪', 'care', ['按摩枪', '肌肉按摩器', 'Massage Gun']],
+    ['glassescase', '眼镜盒', 'apparel', ['眼镜收纳盒', '墨镜盒', 'Eyeglass Case']],
+  ] as const)('%s 有独立图标，名称和日常别名优先命中', (key, label, category, queries) => {
+    const preset = presetIconOfAssetId(`preset-${key}`)
+    expect(preset?.label).toBe(label)
+    expect(preset?.category).toBe(category)
+    for (const query of [label, ...queries]) expect(searchIcons(query)[0]?.key, query).toBe(key)
   })
 
   it('六种不记录的数码附件不再出现在图标库或搜索中', () => {
