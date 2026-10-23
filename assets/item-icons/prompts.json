@@ -47,9 +47,35 @@
       "key": "smartwatch",
       "label": "智能手表",
       "category": "digital",
-      "subject": "one square-faced smart watch with a soft blue silicone band, luminous minimal clock face without numbers",
-      "prompt": "Use case: stylized-concept. Asset type: one production item-library icon for a personal belongings organizer app. Render a beautiful premium miniature 3D product illustration of the specified subject. Style: refined industrial-design product render, softly rounded edges where appropriate, realistic satin materials and fine tactile texture, exquisite gentle highlights, restrained elegant detail; no thick drawn outlines and no cartoon faces. Framing: whole object visible, centered square canvas, subtle three-quarter front view with a little top visible; longest object dimension approximately 78 percent of canvas, even generous transparent margins. Studio lighting from upper left, soft natural contact shadow, crisp clean edges and a strong readable silhouette at 40px. Genuine transparent alpha background including corners and around shadow. No environment, floor, backdrop, colored tile, pedestal, border, labels, legible text, brand logos, watermark or unrelated props. A single finished icon only, never a sheet, grid, collage or comparison.\nSubject: one square-faced smart watch with a soft blue silicone band, luminous minimal clock face without numbers. The Chinese product name is 智能手表.",
-      "sourceImage": "exec-12b9a42f-3bf2-49af-8490-7f35223eeca5.png"
+      "subject": "one rounded rectangular smart watch with a pale warm starlight metal case, clean white sport band and minimal warm-white analog face",
+      "sourceImage": "exec-9acf16a2-9ddc-44b6-9a7b-367f7e25a9c1.png",
+      "sourceLocalFile": ".tmp/apple-watch-starlight/original.png",
+      "generationBatch": "smartwatch-starlight-2026-10-23",
+      "method": "Codex built-in image_gen.imagegen edit",
+      "actualModelId": null,
+      "modelVersionExposed": false,
+      "transparentBackground": true,
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "sourceSha256": "493aca938eff663daeec4436a5fb886d9e059efaf3c8904d16ebc427cdf41a17",
+      "output": "/icons/items/smartwatch.webp",
+      "outputSize": [
+        768,
+        768
+      ],
+      "outputBytes": 52552,
+      "outputSha256": "792f7f16d3b27b688b81105c94330e6b0244a4cbdfcaa855f9ab27816637392a",
+      "transparentFraction": 0.5728522406684028,
+      "referenceImages": [
+        {
+          "path": "public/icons/items/smartwatch.webp",
+          "sha256": "3d5ee13f720983b949ade283f209c25b04fcdcfd8b2d4dcfd877af602c7777c8",
+          "referenceCommit": "8cb74d4608761b9eeed7ea2ff5a1e273742382c8"
+        }
+      ],
+      "prompt": "Use case: precise-object-edit. Asset type: one production item-library icon for a personal belongings organizer app. Input image 1 is the existing smartwatch icon and the edit target. Redraw this same Apple Watch style smartwatch in a beautiful starlight case with a clean white sport band. Change the cool silver/blue case to very pale warm champagne starlight aluminum, close to warm silver or soft ivory metallic, NOT yellow gold, rose gold, bronze or beige plastic. Match the digital crown, side button and fastening pin to that subtle starlight metal. Change the entire blue silicone band to clean soft white fluoroelastomer, including the inner loop, visible strap tip and perforated lower strap; gentle neutral-gray shadows may show its three-dimensional shape, with no blue color cast. Preserve the same elegant rounded rectangular black glass display, very simple analog hands and sparse tick marks without numbers, using restrained warm-white luminous details. Preserve the reference's three-quarter front camera angle, silhouette, proportions, band loop anatomy, right-side crown and side button, and the app's refined miniature realistic 3D product illustration style. Realistic satin metal, soft matte silicone, smooth polished glass, subtle high-quality highlights, soft upper-left studio lighting, crisp silhouette readable at 40px. One complete watch only, centered on a square canvas with generous transparent margins; no cropped edges. GENUINE TRANSPARENT ALPHA BACKGROUND including the band-loop opening and all corners. No checkerboard pattern, background color, floor, tile, pedestal, outlines, labels, legible text, logos, watermark, comparison sheet or additional objects. The intended palette is quiet, luminous, premium starlight metal and a WHITE band."
     },
     {
       "key": "band",
@@ -3738,6 +3764,24 @@
       "referenceCommit": "8e3ae438ce51abb0925118dd00e26c593dd5f180",
       "normalization": "Trim transparent margins, fit longest dimension to 600px, center on transparent 768x768; WebP quality=90 alphaQuality=100.",
       "review": "Accepted distinct unfolded drone, empty-mount handheld gimbal and white magnetic RGB phone cooler without clamp arms; checked true alpha and light/dark 40px/140px thumbnails. Drone cleanup edit rejected; original generation selected after normalization."
+    },
+    {
+      "id": "smartwatch-starlight-2026-10-23",
+      "count": 1,
+      "generationCalls": 0,
+      "editCalls": 1,
+      "method": "Codex built-in image_gen.imagegen edit",
+      "actualModelId": null,
+      "modelVersionExposed": false,
+      "originals": ".tmp/apple-watch-starlight/",
+      "referenceCommit": "8cb74d4608761b9eeed7ea2ff5a1e273742382c8",
+      "previousArtwork": {
+        "key": "smartwatch",
+        "sourceImage": "exec-12b9a42f-3bf2-49af-8490-7f35223eeca5.png",
+        "prompt": "Use case: stylized-concept. Asset type: one production item-library icon for a personal belongings organizer app. Render a beautiful premium miniature 3D product illustration of the specified subject. Style: refined industrial-design product render, softly rounded edges where appropriate, realistic satin materials and fine tactile texture, exquisite gentle highlights, restrained elegant detail; no thick drawn outlines and no cartoon faces. Framing: whole object visible, centered square canvas, subtle three-quarter front view with a little top visible; longest object dimension approximately 78 percent of canvas, even generous transparent margins. Studio lighting from upper left, soft natural contact shadow, crisp clean edges and a strong readable silhouette at 40px. Genuine transparent alpha background including corners and around shadow. No environment, floor, backdrop, colored tile, pedestal, border, labels, legible text, brand logos, watermark or unrelated props. A single finished icon only, never a sheet, grid, collage or comparison.\nSubject: one square-faced smart watch with a soft blue silicone band, luminous minimal clock face without numbers. The Chinese product name is 智能手表.",
+        "outputSha256": "3d5ee13f720983b949ade283f209c25b04fcdcfd8b2d4dcfd877af602c7777c8"
+      },
+      "normalization": "Trim transparent margins, fit longest dimension to 600px, center on transparent 768x768; WebP quality=90 alphaQuality=100."
     }
   ]
 }
