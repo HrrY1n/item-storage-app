@@ -117,6 +117,12 @@ try {
       const box = link.getBoundingClientRect(); return box.width >= 44 && box.height >= 44;
     }) && getComputedStyle(document.querySelector('.nav-links'), '::before').pointerEvents === 'none'
   `))
+  check('Compact mobile bar uses smaller labels without shrinking icons or touch targets', await evaluate(`
+    document.querySelector('.nav-links').getBoundingClientRect().height <= 52
+      && document.querySelector('.nav-add').getBoundingClientRect().height === 52
+      && [...document.querySelectorAll('.nav-label')].every(label => getComputedStyle(label).fontSize === '10px')
+      && [...document.querySelectorAll('.nav-link-inner > svg')].every(icon => icon.getBoundingClientRect().height === 22)
+  `))
   const pressNavigation = async () => {
     const point = await evaluate(`(() => { const box = document.querySelector('.nav-link[aria-current="page"]').getBoundingClientRect(); return { x: box.x + box.width / 2, y: box.y + box.height / 2 }; })()`)
     await page.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...point })
@@ -272,7 +278,7 @@ try {
   console.log(JSON.stringify({ typography }))
   check('Desktop heading typography scales with viewport', parseFloat(typography.heading) >= 32)
 
-  for (const width of [375, 430, 768, 1024]) {
+  for (const width of [320, 375, 430, 768, 1024]) {
     await viewport(width)
     for (const route of ['/', '/items', '/categories', detail, '/items/new', '/settings', '/search', '/settings/icons']) {
       await nav(route)
@@ -282,6 +288,21 @@ try {
         check(`${width}px expanded metrics remain readable`, await evaluate(`
           [...document.querySelector('.item-card-details').querySelectorAll('p')].every(p => p.getBoundingClientRect().height > 0 && p.scrollWidth <= p.clientWidth + 1)
         `))
+        check(`${width}px navigation stays compact and leaves the last card reachable`, await evaluate(`(() => {
+          const main = document.querySelector('main'), bar = document.querySelector('.nav-links'), add = document.querySelector('.nav-add');
+          if (innerWidth >= 1024) return getComputedStyle(document.querySelector('.nav-label')).fontSize === '14px' && add.getBoundingClientRect().height === 46;
+          const buttons = [...document.querySelectorAll('.nav-link, .nav-add')];
+          const targetsFit = buttons.every(button => { const r = button.getBoundingClientRect(); return r.width >= 44 && r.height >= 44 && r.left >= 0 && r.right <= innerWidth; });
+          const compact = bar.getBoundingClientRect().height <= 52 && add.getBoundingClientRect().height === 52;
+          const indicator = document.querySelector('.nav-indicator').getBoundingClientRect(), active = document.querySelector('.nav-link[aria-current="page"]').getBoundingClientRect();
+          const aligned = Math.abs(indicator.x + indicator.width / 2 - active.x - active.width / 2) < 1 && indicator.height <= 44;
+          const reserved = parseFloat(getComputedStyle(main).paddingBottom) - document.querySelector('.app-nav').getBoundingClientRect().height >= 20;
+          window.scrollTo(0, document.documentElement.scrollHeight);
+          const lastCard = Math.max(...[...document.querySelectorAll('[data-item-card]')].map(card => card.getBoundingClientRect().bottom));
+          const reachable = lastCard < bar.getBoundingClientRect().top;
+          window.scrollTo(0, 0);
+          return targetsFit && compact && aligned && reserved && reachable;
+        })()`))
       }
       check(`${width}px ${route} has no horizontal overflow`, await evaluate('document.documentElement.scrollWidth <= innerWidth'))
     }

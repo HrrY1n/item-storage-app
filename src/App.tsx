@@ -59,7 +59,7 @@ function Layout() {
         id="main-content"
         tabIndex={-1}
         className={`app-main relative ${widePage ? '' : 'app-main-reading'} ${
-          showBottomNav ? 'pb-[calc(96px+env(safe-area-inset-bottom))]' : 'pb-6'
+          showBottomNav ? 'pb-[calc(84px+env(safe-area-inset-bottom))]' : 'pb-6'
         }`}
       >
         <div key={pathname} className="route-content" data-direction={route.current.direction}><Outlet /></div>
