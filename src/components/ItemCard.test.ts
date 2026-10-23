@@ -46,7 +46,8 @@ describe('dotted warranty strip', () => {
 
   it.each([
     [TODAY, '今天到期', 'expiring'],
-    ['2026-06-05', '已过保', 'expired'],
+    ['2026-06-05', '已过保 1 天', 'expired'],
+    ['2024-06-06', '已过保 730 天', 'expired'],
   ])('handles expiry %s without negative remaining progress', (expiry, label, state) => {
     const html = strip({ warrantyExpiresAt: expiry })
     expect(html).toContain(label)
