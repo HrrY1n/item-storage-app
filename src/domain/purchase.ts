@@ -32,13 +32,6 @@ export function todayString(date: Date = new Date()): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-/** dayNumber → YYYY-MM-DD */
-export function dayNumberToString(dayNumber: number): string {
-  const d = new Date(dayNumber * 86_400_000)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
-}
-
 /** 切换年月时把日期限制在目标月内，例如 1 月 31 日切到 2 月 → 2 月末。 */
 export function clampCalendarDate(year: number, month: number, day: number): string | null {
   if (![year, month, day].every(Number.isInteger) || year < 100 || year > 9999 || month < 1 || month > 12 || day < 1) return null

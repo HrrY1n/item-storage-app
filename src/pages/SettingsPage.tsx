@@ -7,12 +7,6 @@ import { useTheme } from '../theme/ThemeProvider'
 import { useToast } from '../components/Toast'
 import { APP_VERSION } from '../appInfo'
 import { PRESET_ICONS } from '../data/icons'
-import {
-  downloadBlob,
-  exportBackup,
-  readAndValidateBackup,
-  restoreFromPayload,
-} from '../services/backupService'
 import { isStandalone } from '../services/pwa'
 import { usePwaUpdate } from '../features/pwa/PwaUpdateContext'
 import { useSync } from '../features/sync/SyncContext'
@@ -129,6 +123,7 @@ export default function SettingsPage() {
     if (busy) return
     setBusy('export')
     try {
+      const { downloadBlob, exportBackup } = await import('../services/backupService')
       const { blob, fileName, summary } = await exportBackup()
       downloadBlob(blob, fileName)
       show(`已导出 ${summary.itemCount} 件物品的备份`)
@@ -147,6 +142,7 @@ export default function SettingsPage() {
 
     setBusy('restore')
     try {
+      const { readAndValidateBackup } = await import('../services/backupService')
       const result = await readAndValidateBackup(file)
       if (!result.ok) {
         show(result.error)
@@ -165,6 +161,7 @@ export default function SettingsPage() {
     if (!pending) return
     setBusy('restore')
     try {
+      const { restoreFromPayload } = await import('../services/backupService')
       await restoreFromPayload(pending.payload)
       setPending(null)
       show('已从备份恢复全部数据')

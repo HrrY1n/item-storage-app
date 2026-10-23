@@ -49,20 +49,16 @@ export function ObjectPlate({
   src,
   alt,
   className = '',
-  plateStyle,
   bare = false,
 }: {
   src: string
   alt: string
   className?: string
-  /** 供 View Transitions 设置 view-transition-name（仅过渡期间存在） */
-  plateStyle?: React.CSSProperties
   bare?: boolean
 }) {
   return (
     <div
       className={`overflow-hidden ${bare ? '' : 'plate-surface'} ${className}`}
-      style={plateStyle}
       data-object-plate=""
     >
       <img src={src} alt={alt} className="h-full w-full object-contain" draggable={false} />

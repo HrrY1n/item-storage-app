@@ -58,6 +58,8 @@ React page
 
 Local-first invariant：保存、编辑和删除先提交 IndexedDB；网络失败只保留 outbox 与游标，不回滚用户本地 CRUD。push 只有服务端明确确认的 queue ID 才能出队；ignored/dedup 是明确终态，损坏响应、未确认条目和协议不兼容都保留。分类成环被服务端标记为 `category-cycle`，客户端记录可读冲突并应用权威分类快照。
 
+Worker 的认证限流只拦错误凭据；正确恢复码始终可用，不因其他请求的失败计数被锁住。兜底日志只记录通用错误标签，避免 JSON 解析异常把请求原文带入日志。
+
 本地写入经 2.5 秒 debounce 聚合，引擎串行执行。`visible` 前台恢复触发受 60 秒节流；`boot`、`manual`、`online` 和 `local-change` 不受该节流限制，避免已保存的改动因节流而滞留。判定与覆盖用例见 `src/features/sync/syncPolicy.ts` 及对应测试。
 
 ## 4. 会话、恢复和关闭边界
@@ -90,6 +92,8 @@ Local-first invariant：保存、编辑和删除先提交 IndexedDB；网络失�
 ### 备份字段
 
 更新 `src/domain/backup.ts` 的 schema 常量、manifest/data 校验、旧版本迁移和 `backup*.test.ts`；只有在导入校验成功且用户确认后才调用 restore 写库。循环分类必须在校验阶段拒绝，不能让 restore 先清空再失败。
+
+备份编排模块与 JSZip 都按用户操作加载；设置页先显示忙碌状态再加载模块，原有失败提示和确认步骤不变。构建的离线预缓存包含这些动态模块。常用页面和物品面板继续直接加载，保留首次动画和更新后的位置恢复。
 
 ### 同步字段
 

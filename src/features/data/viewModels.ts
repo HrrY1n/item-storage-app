@@ -1,19 +1,7 @@
 import type { Category, Item, ItemStatus, ItemTag, Tag } from '../../domain/types'
-import {
-  calculateTotalCostCents,
-  formatCentsCard,
-  formatCentsCompact,
-  todayString,
-} from '../../domain/purchase'
+import { todayString } from '../../domain/purchase'
 import { collectSubtreeIds } from '../../domain/categoryTree'
-import {
-  dailyCostOf,
-  effectiveCostCents,
-  isDisposed,
-  isOwned,
-  ownershipDaysOf,
-  statusOf,
-} from '../../domain/lifecycle'
+import { dailyCostOf, effectiveCostCents, statusOf } from '../../domain/lifecycle'
 
 /**
  * 视图模型辅助：把多张表 join 成页面需要的形状。
@@ -63,107 +51,6 @@ export function frequentTags(items: Item[], links: ItemTag[], tags: Tag[], n: nu
 export function itemsWithTag(items: Item[], links: ItemTag[], tagId: string): Item[] {
   const ids = new Set(links.filter((l) => l.tagId === tagId).map((l) => l.itemId))
   return items.filter((i) => ids.has(i.id))
-}
-
-// ---------------------------------------------------------------- 指标
-
-/**
- * 一条物品的成本指标（用于卡片与详情的数字层级）。
- *
- * 全部委托给 domain/lifecycle，因此卡片与详情页**用的是同一套口径**：
- * - 已处置物品的持有天数冻结在处置日
- * - 已出售物品的「总投入」是**净成本**（总投入 − 出售金额，可为负）
- */
-export interface ItemMetric {
-  /** 持有天数（已处置则冻结在处置日） */
-  days: number | null
-  /** 总投入；已出售时为净成本（总投入 − 出售金额，可为负） */
-  totalCents: number | null
-  /** 日均成本（可为负） */
-  dailyCents: number | null
-  daysText: string | null
-  totalText: string | null
-  dailyText: string | null
-}
-
-/**
- * 计算一条物品的成本指标。
- *
- * 心愿物品、或四项数据全空时返回 null —— 卡片据此决定是否渲染指标行，
- * 没有数据就不占位，更不会显示一排 ¥0.00。
- */
-export function itemMetric(item: Item, today?: string): ItemMetric | null {
-  if (!isOwned(item) && !isDisposed(item)) return null
-
-  const hasAny =
-    item.purchaseDate !== null ||
-    item.purchasePriceCents !== null ||
-    item.additionalCostCents !== null
-  if (!hasAny) return null
-
-  const totalCents = effectiveCostCents(item)
-  const days = ownershipDaysOf(item, today)
-  const dailyCents = dailyCostOf(item, today)
-
-  return {
-    days,
-    totalCents,
-    dailyCents,
-    daysText: days !== null ? `${days} 天` : null,
-    totalText: totalCents !== null ? formatCentsCard(totalCents) : null,
-    dailyText: dailyCents !== null ? formatCentsCompact(dailyCents) : null,
-  }
-}
-
-/** 毛投入（购买价格 + 附加花费），不受出售回收影响 —— 明细表用这个 */
-export function grossCostCents(item: Item): number | null {
-  return calculateTotalCostCents(item.purchasePriceCents, item.additionalCostCents)
-}
-
-/** 物品库概览：全部由真实数据推导，无数据时对应字段为 null（UI 不渲染该块） */
-export interface LibraryOverview {
-  itemCount: number
-  categoryCount: number
-  tagCount: number
-  /** 已记录价格的持有中物品数 */
-  pricedCount: number
-  /** 总投入（仅统计有价格/附加花费的持有中物品） */
-  totalCents: number | null
-  /** 日均总价（仅统计能算出日均成本的持有中物品之和） */
-  dailyCents: number | null
-  totalText: string | null
-  dailyText: string | null
-}
-
-export function libraryOverview(
-  items: Item[],
-  categories: Category[],
-  tags: Tag[],
-  today?: string,
-): LibraryOverview {
-  let totalCents = 0
-  let dailySum = 0
-  let pricedCount = 0
-
-  for (const item of items) {
-    if (!isOwned(item)) continue
-    const m = itemMetric(item, today)
-    if (!m || m.totalCents === null) continue
-    pricedCount++
-    totalCents += m.totalCents
-    if (m.dailyCents !== null) dailySum += m.dailyCents
-  }
-
-  return {
-    itemCount: items.length,
-    categoryCount: categories.length,
-    tagCount: tags.length,
-    pricedCount,
-    totalCents: pricedCount > 0 ? totalCents : null,
-    dailyCents: pricedCount > 0 ? dailySum : null,
-    totalText: pricedCount > 0 ? formatCentsCard(totalCents) : null,
-    dailyText: pricedCount > 0 ? formatCentsCompact(dailySum) : null,
-  }
 }
 
 // ---------------------------------------------------------------- 列表筛选与排序

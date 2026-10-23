@@ -112,10 +112,9 @@ async function authenticate(request: Request, env: Env): Promise<Response | null
   if (row === null) return fail(401, 'unauthorized')
 
   const now = Date.now()
-  if (tooManyFailures(row.key_id, now)) return fail(429, 'too-many-attempts')
-
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token))
   if (!timingSafeEqualHex(bytesToHex(digest), row.secret_hash)) {
+    if (tooManyFailures(row.key_id, now)) return fail(429, 'too-many-attempts')
     noteFailure(row.key_id, now)
     return fail(401, 'unauthorized')
   }
@@ -271,9 +270,9 @@ export default {
       if (path === '/api/sync/push' && request.method === 'POST') return await handlePush(request, env)
       if (path === '/api/sync/pull' && request.method === 'GET') return await handlePull(request, env, url)
       return fail(405, 'method-not-allowed')
-    } catch (err) {
-      // 不把内部错误细节透给客户端（可能泄露 schema 信息）
-      console.error('sync api error:', err instanceof Error ? err.message : String(err))
+    } catch {
+      // 解析异常可能含有请求原文，日志和响应都不能带出凭据或物品内容。
+      console.error('sync api error')
       return fail(500, 'internal-error')
     }
   },

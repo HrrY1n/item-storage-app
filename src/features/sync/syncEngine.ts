@@ -64,7 +64,6 @@ export class SyncEngine {
   private readonly options: SyncEngineOptions
   private inFlight = false
   private lastAttemptAt: number | null = null
-  private retryCount = 0
   private trailingLocalChange = false
   private trailingWaiters: Array<(outcome: SyncOutcome | null) => void> = []
   private listeners = new Set<() => void>()
@@ -259,9 +258,6 @@ export class SyncEngine {
         return { ok: false, pushed, pulled, conflicts, errorKind: null }
       }
 
-      if (errorKind === null) {
-        this.retryCount = 0
-      }
       return { ok: errorKind === null, pushed, pulled, conflicts, errorKind }
     } catch {
       // 兜底：任何意外都不得影响App 使用
@@ -269,15 +265,12 @@ export class SyncEngine {
       return { ok: false, pushed, pulled, conflicts, errorKind: 'unknown' }
     } finally {
       if (errorKind !== null && session !== null) {
-        this.retryCount += 1
         try {
           // 先把错误写入状态，再 emit/return，避免 UI refresh 读到旧状态。
           await syncRepository.markErrorForSession(session, errorKind)
         } catch {
           // 错误记录不能反过来让同步调用抛出，也不能影响本地业务数据。
         }
-      } else {
-        this.retryCount = 0
       }
       const runTrailing = this.trailingLocalChange
       this.trailingLocalChange = false

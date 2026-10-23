@@ -357,7 +357,6 @@ function ItemDetailContent({ onBack }: { onBack: () => void }) {
                 alt={item.name}
                 className="aspect-square animate-pop-in lg:mx-auto lg:max-w-[248px]"
                 bare
-                plateStyle={{ viewTransitionName: 'item-hero' }}
               />
             </div>
           </div>

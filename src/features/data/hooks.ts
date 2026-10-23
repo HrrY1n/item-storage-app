@@ -14,20 +14,12 @@ export function useItems(): Item[] | undefined {
   return useLiveQuery(() => itemRepository.listActive(), [])
 }
 
-export function useRecentItems(n: number): Item[] | undefined {
-  return useLiveQuery(() => itemRepository.recent(n), [n])
-}
-
 export function useItem(id: string | undefined): Item | undefined {
   return useLiveQuery(() => (id ? itemRepository.getActive(id) : undefined), [id])
 }
 
 export function useCategories(): Category[] | undefined {
   return useLiveQuery(() => categoryRepository.listActive(), [])
-}
-
-export function useCategory(id: string | undefined): Category | undefined {
-  return useLiveQuery(() => (id ? categoryRepository.getActive(id) : undefined), [id])
 }
 
 export function useTags(): Tag[] | undefined {

@@ -56,21 +56,6 @@ export const itemRepository = {
     return item && notDeleted(item) ? item : undefined
   },
 
-  async recent(n: number): Promise<Item[]> {
-    const list = await this.listActive()
-    return list.slice(0, n)
-  },
-
-  async countActive(): Promise<number> {
-    return db.items.filter(notDeleted).count()
-  },
-
-  /** 某分类（含子分类 id 集合，由调用方提供）下的活跃物品 */
-  async listByCategoryIds(categoryIds: ReadonlySet<string>): Promise<Item[]> {
-    const all = await db.items.where('categoryId').anyOf([...categoryIds]).toArray()
-    return all.filter(notDeleted).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  },
-
   async countByCategoryId(categoryId: string): Promise<number> {
     return db.items.where('categoryId').equals(categoryId).filter(notDeleted).count()
   },
