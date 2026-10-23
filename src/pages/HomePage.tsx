@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { childrenOf } from '../domain/categoryTree'
 import { formatCents, formatCentsCompact, todayString } from '../domain/purchase'
-import { categoryDistribution, dashboardStats, expiringWarranties, isOwned } from '../domain/lifecycle'
+import { categoryDistribution, dashboardStats, expiringWarranties, isOwned, WARRANTY_WARN_DAYS } from '../domain/lifecycle'
 import { useCategories, useItemTagLinks, useItems, usePresetAssetMap, useTags } from '../features/data/hooks'
 import { categoryNameOf, computeCategoryCounts, tagNamesOf } from '../features/data/viewModels'
 import ItemCard from '../components/ItemCard'
@@ -13,6 +13,7 @@ import ModalSheet from '../components/ModalSheet'
 import { useToast } from '../components/Toast'
 import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
 import { OVERVIEW_ITEMS_MAX, overviewDisplayItems, readOverviewItemIds, writeOverviewItemIds } from '../features/ui/overviewItems'
+import { readDismissedWarranties, writeDismissedWarranties } from '../features/ui/warrantyReminders'
 
 function StatCell({ label, value, money }: { label: string; value: string; money?: boolean }) {
   return (
@@ -44,6 +45,7 @@ export default function HomePage() {
   const links = useItemTagLinks()
   const assetMap = usePresetAssetMap()
   const [chosenIds, setChosenIds] = useState(readOverviewItemIds)
+  const [dismissedWarranties, setDismissedWarranties] = useState(readDismissedWarranties)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [draftIds, setDraftIds] = useState<string[]>([])
   const { toast, show } = useToast()
@@ -56,7 +58,8 @@ export default function HomePage() {
   const today = todayString()
   const stats = dashboardStats(items, categories, today)
   const distribution = categoryDistribution(items, categories)
-  const expiring = expiringWarranties(items, today)
+  const reminders = expiringWarranties(items, today)
+  const expiring = reminders.filter(({ item, info }) => dismissedWarranties[item.id] !== info.expiresAt)
   const recent = items.slice(0, 6)
   const roots = childrenOf(categories, null)
   const owned = items.filter(isOwned)
@@ -75,6 +78,11 @@ export default function HomePage() {
     setChosenIds(ids)
     setPickerOpen(false)
     if (!persisted) show('已应用，但未能记住选择；刷新后可能恢复默认', 3500)
+  }
+  const dismissWarrantyReminders = () => {
+    const dismissed = Object.fromEntries(reminders.map(({ item, info }) => [item.id, info.expiresAt]))
+    setDismissedWarranties(dismissed)
+    if (!writeDismissedWarranties(dismissed)) show('已关闭提醒，但未能记住；刷新后可能再次显示', 3500)
   }
 
   return (
@@ -136,16 +144,21 @@ export default function HomePage() {
           </section>
 
           {expiring.length > 0 && (
-            <section aria-label="保修提醒" className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-line bg-danger-soft px-4 py-3">
-              <p className="shrink-0 text-caption text-danger"><span className="num">{expiring.length}</span> 件物品将在 30 天内过保</p>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                {expiring.slice(0, 4).map(({ item, info }) => (
-                  <Link key={item.id} to={`/items/${item.id}`} state={{ itemBackground: location }} className="inline-flex min-h-6 items-center gap-1.5 text-caption text-ink-secondary underline decoration-line-strong underline-offset-4 hover:text-danger">
-                    <span className="max-w-[120px] truncate">{item.name}</span><span className="num text-ink-tertiary">{info.detail}</span>
-                  </Link>
-                ))}
-                {expiring.length > 4 && <span className="num text-caption text-danger">+{expiring.length - 4}</span>}
+            <section aria-label="保修提醒" className="mt-3 flex items-start gap-2 rounded-card border border-line bg-danger-soft py-1 pl-4 pr-1">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 py-2">
+                <p className="text-caption text-danger"><span className="num">{expiring.length}</span> 件物品将在 {WARRANTY_WARN_DAYS} 天内过保</p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {expiring.slice(0, 4).map(({ item, info }) => (
+                    <Link key={item.id} to={`/items/${item.id}`} state={{ itemBackground: location }} className="inline-flex min-h-11 items-center gap-1.5 text-caption text-ink-secondary underline decoration-line-strong underline-offset-4 hover:text-danger">
+                      <span className="max-w-[120px] truncate">{item.name}</span><span className="num text-ink-tertiary">{info.detail}</span>
+                    </Link>
+                  ))}
+                  {expiring.length > 4 && <span className="num text-caption text-danger">+{expiring.length - 4}</span>}
+                </div>
               </div>
+              <button type="button" aria-label="关闭保修提醒" title="关闭这批提醒" onClick={dismissWarrantyReminders} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-pill text-ink-secondary transition-colors hover:text-ink-primary active:bg-surface-sunken">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden><path d="M18 6 6 18M6 6l12 12" /></svg>
+              </button>
             </section>
           )}
 

@@ -356,10 +356,26 @@ describe('保修状态', () => {
       makeItem({ id: 'expired', warrantyExpiresAt: '2026-09-01' }),
     ]
     expect(expiringWarranties(items, TODAY).map((x) => x.item.id)).toEqual([
-      'expired',
       'sooner',
       'later',
     ])
+  })
+
+  it('提醒包含今天和第 30 天，排除昨天、长期过保、第 31 天和无效日期', () => {
+    const items = [
+      makeItem({ id: 'old-expired', warrantyExpiresAt: '2024-01-01' }),
+      makeItem({ id: 'yesterday', warrantyExpiresAt: '2026-10-04' }),
+      makeItem({ id: 'last-day', warrantyExpiresAt: '2026-11-04' }),
+      makeItem({ id: 'outside', warrantyExpiresAt: '2026-11-05' }),
+      makeItem({ id: 'today', warrantyExpiresAt: TODAY }),
+      makeItem({ id: 'invalid', warrantyExpiresAt: '2026-02-30' }),
+      makeItem({ id: 'missing', warrantyExpiresAt: null }),
+    ]
+    const reminders = expiringWarranties(items, TODAY)
+    expect(reminders.map(({ item, info }) => [item.id, info.daysLeft])).toEqual([
+      ['today', 0], ['last-day', 30],
+    ])
+    expect(reminders.every(({ info }) => info.state === 'expiring')).toBe(true)
   })
 })
 

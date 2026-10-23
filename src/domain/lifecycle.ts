@@ -409,7 +409,7 @@ export interface ExpiringWarranty {
 }
 
 /**
- * 保修到期提醒：**只统计持有中**的物品（心愿与已处置不参与）。
+ * 保修到期提醒：只统计持有中且今天起 warnDays 天内到期的物品；已过保不再提醒。
  * 按剩余天数升序 —— 最紧急的排最前。
  */
 export function expiringWarranties(
@@ -421,8 +421,7 @@ export function expiringWarranties(
   for (const item of items) {
     if (!isOwned(item)) continue
     const info = warrantyInfo(item.warrantyExpiresAt, today, warnDays)
-    if (info === null) continue
-    if (info.state === 'active') continue
+    if (info === null || info.state !== 'expiring') continue
     out.push({ item, info })
   }
   return out.sort((a, b) => a.info.daysLeft - b.info.daysLeft)
