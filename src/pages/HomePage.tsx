@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { childrenOf } from '../domain/categoryTree'
 import { formatCents, formatCentsCompact, todayString } from '../domain/purchase'
@@ -8,6 +9,10 @@ import ItemCard from '../components/ItemCard'
 import SectionHeader from '../components/SectionHeader'
 import CategoryCard from '../components/CategoryCard'
 import TagChip from '../components/TagChip'
+import ModalSheet from '../components/ModalSheet'
+import { useToast } from '../components/Toast'
+import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
+import { OVERVIEW_ITEMS_MAX, overviewDisplayItems, readOverviewItemIds, writeOverviewItemIds } from '../features/ui/overviewItems'
 
 function StatCell({ label, value, money }: { label: string; value: string; money?: boolean }) {
   return (
@@ -38,6 +43,11 @@ export default function HomePage() {
   const tags = useTags()
   const links = useItemTagLinks()
   const assetMap = usePresetAssetMap()
+  const [chosenIds, setChosenIds] = useState(readOverviewItemIds)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [draftIds, setDraftIds] = useState<string[]>([])
+  const { toast, show } = useToast()
+  useUpdateGuard(pickerOpen, 'overview-items')
 
   if (!items || !categories || !tags || !links || !assetMap) {
     return <div className="pt-[calc(24px+env(safe-area-inset-top))]" />
@@ -50,10 +60,22 @@ export default function HomePage() {
   const recent = items.slice(0, 6)
   const roots = childrenOf(categories, null)
   const owned = items.filter(isOwned)
-  const displayItems = owned.slice(0, 3)
+  const displayItems = overviewDisplayItems(items, chosenIds)
+  const validDraft = draftIds.filter(id => owned.some(item => item.id === id))
   const categoryCounts = computeCategoryCounts(owned, categories)
   const totalText = stats.totalInvestmentCents !== null ? formatCentsCompact(stats.totalInvestmentCents) : null
   const dailyText = stats.dailyTotalCents !== null ? formatCentsCompact(stats.dailyTotalCents) : null
+
+  const chooseDisplayItems = () => {
+    setDraftIds(displayItems.map(item => item.id))
+    setPickerOpen(true)
+  }
+  const saveDisplayItems = (ids: string[] | null) => {
+    const persisted = writeOverviewItemIds(ids)
+    setChosenIds(ids)
+    setPickerOpen(false)
+    if (!persisted) show('已应用，但未能记住选择；刷新后可能恢复默认', 3500)
+  }
 
   return (
     <div className="page-content">
@@ -98,9 +120,12 @@ export default function HomePage() {
                 )}
               </div>
               {displayItems.length > 0 && (
-                <div className="overview-objects" aria-hidden>
+                <button type="button" className="overview-objects w-full rounded-control transition-transform active:scale-[0.98]" aria-label="选择概览展示物品" title="选择展示物品" onClick={chooseDisplayItems}>
                   {displayItems.map(item => <img key={item.id} src={assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'} alt="" className="overview-object" draggable={false} />)}
-                </div>
+                  <span className="absolute bottom-0 right-0 z-[2] flex h-8 w-8 items-center justify-center rounded-pill border border-hero-line bg-white/10 text-ink-primary" aria-hidden>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m16 3 5 5M4 15 16 3l5 5L9 20l-6 1Z" /></svg>
+                  </span>
+                </button>
               )}
             </div>
             <div className="flex divide-x divide-hero-line border-t border-hero-line">
@@ -182,6 +207,37 @@ export default function HomePage() {
           )}
         </>
       )}
+      <ModalSheet open={pickerOpen} label="选择概览展示物品" variant="picker" size="content" onClose={() => setPickerOpen(false)}>
+        <header className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-line px-4">
+          <button type="button" onClick={() => setPickerOpen(false)} className="min-h-11 px-1 text-secondary text-ink-secondary">取消</button>
+          <h2 tabIndex={-1} data-modal-autofocus className="text-section text-ink-primary outline-none">展示物品</h2>
+          <button type="button" disabled={validDraft.length === 0} onClick={() => saveDisplayItems(validDraft)} className="min-h-11 px-1 text-secondary font-medium text-accent disabled:text-ink-faint">完成</button>
+        </header>
+        <div className="flex shrink-0 items-center justify-between gap-3 px-5 py-4 text-caption text-ink-tertiary">
+          <p>{validDraft.length >= OVERVIEW_ITEMS_MAX ? '已选两件，可先取消一件' : '最多选两件，按选择顺序展示'}</p>
+          <span className="num" role="status">{validDraft.length}/{OVERVIEW_ITEMS_MAX}</span>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2" role="group" aria-label="持有中的物品">
+          {owned.map(item => {
+            const selected = validDraft.indexOf(item.id)
+            return <button key={item.id} type="button" aria-pressed={selected >= 0} disabled={selected < 0 && validDraft.length >= OVERVIEW_ITEMS_MAX} className={`mb-2 flex min-h-20 w-full items-center gap-3 rounded-card border p-3 text-left transition-colors disabled:opacity-40 ${selected >= 0 ? 'border-accent-line bg-accent-soft' : 'border-line bg-surface'}`}
+              onClick={() => setDraftIds(ids => {
+                const valid = ids.filter(id => owned.some(item => item.id === id))
+                return valid.includes(item.id) ? valid.filter(id => id !== item.id) : valid.length < OVERVIEW_ITEMS_MAX ? [...valid, item.id] : valid
+              })}>
+              <img src={assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'} alt="" className="h-12 w-12 shrink-0 rounded-control object-contain" draggable={false} />
+              <span className="min-w-0 flex-1"><span className="block truncate text-item text-ink-primary">{item.name}</span><span className="mt-1 block truncate text-caption text-ink-tertiary">{categoryNameOf(categories, item.categoryId)}</span></span>
+              <span aria-hidden className={`num flex h-6 w-6 shrink-0 items-center justify-center rounded-pill border text-caption ${selected >= 0 ? 'border-accent bg-accent text-ink-inverse' : 'border-line-strong text-ink-faint'}`}>{selected >= 0 ? selected + 1 : ''}</span>
+            </button>
+          })}
+          {owned.length === 0 && <p className="px-2 py-8 text-center text-secondary text-ink-tertiary">暂无持有中的物品</p>}
+        </div>
+        <footer className="shrink-0 border-t border-line px-5 pb-[calc(12px+env(safe-area-inset-bottom))] pt-2 text-center">
+          <button type="button" onClick={() => saveDisplayItems(null)} className="min-h-11 px-4 text-secondary text-accent">恢复自动选择</button>
+          <p className="text-caption text-ink-tertiary">选择仅在当前设备保存</p>
+        </footer>
+      </ModalSheet>
+      {toast}
     </div>
   )
 }
