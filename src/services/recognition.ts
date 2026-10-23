@@ -2,26 +2,29 @@ import { syncRepository } from '../db/repositories/syncRepository'
 import { isRecognitionImage, validateRecognitionCandidate, type RecognitionMode } from '../domain/recognition'
 
 /** 浏览器缩图并重新编码，上传内容不保留原图的 EXIF 元数据。 */
-export async function prepareRecognitionImage(file: File): Promise<string> {
+export async function prepareRecognitionImage(file: File, crop = { top: 0, bottom: 100 }): Promise<{ image: string; width: number; height: number }> {
   if (!file.type.startsWith('image/') || file.size > 15 * 1024 * 1024) throw new Error('请选择小于 15 MB 的图片。')
+  if (!Number.isFinite(crop.top) || !Number.isFinite(crop.bottom) || crop.top < 0 || crop.bottom > 100 || crop.top >= crop.bottom) throw new Error('请选择有效的裁剪区域。')
   const url = URL.createObjectURL(file)
   try {
     const image = new Image()
     image.src = url
     try { await image.decode() } catch { throw new Error('无法读取这张图片，请改用 JPEG、PNG 或 WebP。') }
-    const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight))
     if (!image.naturalWidth || !image.naturalHeight) throw new Error('图片没有有效尺寸。')
+    const top = Math.floor(image.naturalHeight * crop.top / 100)
+    const height = Math.max(1, Math.ceil(image.naturalHeight * crop.bottom / 100) - top)
+    const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, height))
     const canvas = document.createElement('canvas')
     canvas.width = Math.max(1, Math.round(image.naturalWidth * scale))
-    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
+    canvas.height = Math.max(1, Math.round(height * scale))
     const context = canvas.getContext('2d')
     if (!context) throw new Error('当前浏览器无法处理图片。')
     for (const quality of [0.85, 0.7, 0.5]) {
       context.fillStyle = '#fff'
       context.fillRect(0, 0, canvas.width, canvas.height)
-      context.drawImage(image, 0, 0, canvas.width, canvas.height)
+      context.drawImage(image, 0, top, image.naturalWidth, height, 0, 0, canvas.width, canvas.height)
       const data = canvas.toDataURL('image/jpeg', quality)
-      if (isRecognitionImage(data)) return data
+      if (isRecognitionImage(data)) return { image: data, width: canvas.width, height: canvas.height }
     }
     throw new Error('图片内容较大，请先裁剪到物品或订单商品区域后重试。')
   } finally { URL.revokeObjectURL(url) }

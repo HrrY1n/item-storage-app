@@ -10,15 +10,28 @@ describe('recognition trust boundary', () => {
   })
   it('never accepts purchase information from a physical photo', () => {
     expect(validateRecognitionCandidate(candidate, 'photo')).toMatchObject({ priceText: null, purchaseDate: null, purchasePlatform: null })
+    expect(validateRecognitionCandidate({ ...candidate, priceText: '¥199', purchaseDate: 'invalid', purchasePlatform: {} }, 'photo'))
+      .toMatchObject({ name: '耳机', priceText: null, purchaseDate: null, purchasePlatform: null, warnings: [] })
     expect(() => validateRecognitionCandidate({ priceText: '199.90' }, 'photo')).toThrow('empty-recognition-result')
   })
-  it.each([
-    null, [], {}, { ...candidate, name: 'x'.repeat(101) }, { ...candidate, note: 20 },
-    { ...candidate, priceText: '-1' }, { ...candidate, priceText: '99元' }, { ...candidate, priceText: '0.001' },
-    { ...candidate, purchaseDate: '2026-02-30' }, { ...candidate, purchasePlatform: 'untrusted' },
-    { ...candidate, warnings: ['x'.repeat(201)] }, { ...candidate, warnings: Array(6).fill('x') },
-  ])('rejects malformed model fields: %j', value => {
+  it.each([null, [], {}, { purchaseDate: '2026-02-30' }, { name: 20, priceText: '-1' }])('rejects unusable model results: %j', value => {
     expect(() => validateRecognitionCandidate(value, 'order')).toThrow()
+  })
+  it.each([
+    ['name', 'x'.repeat(101)], ['note', 20], ['priceText', '-1'], ['priceText', '99元'],
+    ['priceText', '0.001'], ['purchaseDate', '2026-02-30'], ['purchasePlatform', 'untrusted'],
+  ])('drops only the malformed %s field and preserves other usable fields', (field, value) => {
+    const result = validateRecognitionCandidate({ ...candidate, [field]: value }, 'order')
+    expect(result[field as keyof typeof result]).toBeNull()
+    expect(result.categoryName).toBe('音频设备')
+    expect(result.warnings).toHaveLength(1)
+    expect(result.warnings[0]).toContain('已忽略')
+    expect(validateRecognitionCandidate(result, 'order')).toEqual(result)
+  })
+  it('bounds optional warnings without losing valid results', () => {
+    expect(validateRecognitionCandidate({ ...candidate, warnings: ['x'.repeat(201), {}, ...Array(6).fill('核对')] }, 'order').warnings).toEqual(['核对', '核对', '核对'])
+    expect(validateRecognitionCandidate({ ...candidate, warnings: 'invalid' }, 'order')).toEqual(candidate)
+    expect(validateRecognitionCandidate({ ...candidate, warnings: Array(6).fill('提示') }, 'order').warnings).toHaveLength(5)
   })
   it('parses supported Cloudflare response envelopes without executing text', () => {
     expect(parseRecognitionOutput({ response: '```json\n' + JSON.stringify(candidate) + '\n```' }, 'order')).toEqual(candidate)

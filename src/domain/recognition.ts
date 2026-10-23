@@ -6,6 +6,9 @@ export const RECOGNITION_IMAGE_BYTES = 400 * 1024
 export const RECOGNITION_BODY_BYTES = 560 * 1024
 export const RECOGNITION_FIELDS = ['name', 'categoryName', 'note', 'priceText', 'purchaseDate', 'purchasePlatform'] as const
 export type RecognitionField = typeof RECOGNITION_FIELDS[number]
+export const RECOGNITION_LABELS: Record<RecognitionField, string> = {
+  name: '名称', categoryName: '分类', note: '备注', priceText: '购买价格', purchaseDate: '购买日期', purchasePlatform: '购买平台',
+}
 export interface RecognitionCandidate {
   name: string | null
   categoryName: string | null
@@ -26,26 +29,36 @@ const text = (value: unknown, max: number): string | null => {
 /** 模型与网络结果都经过同一校验；照片模式不接受推测的购买信息。 */
 export function validateRecognitionCandidate(value: unknown, mode: RecognitionMode): RecognitionCandidate {
   if (!record(value)) throw new Error('invalid-recognition-result')
-  const name = text(value.name, 100)
-  const categoryName = text(value.categoryName, 100)
-  const note = text(value.note, 1000)
-  const priceText = text(value.priceText, 14)
-  const purchaseDate = text(value.purchaseDate, 10)
-  if (priceText !== null) {
-    const cents = parsePriceInput(priceText)
-    if (cents === null || !Number.isSafeInteger(cents)) throw new Error('invalid-recognition-result')
+  const warnings: string[] = []
+  const read = (field: RecognitionField, max: number, valid: (value: string) => boolean = () => true) => {
+    try {
+      const result = text(value[field], max)
+      if (result !== null && !valid(result)) throw new Error('invalid-recognition-result')
+      return result
+    } catch {
+      warnings.push(`${RECOGNITION_LABELS[field]}格式有误，已忽略，请手动填写。`)
+      return null
+    }
   }
-  if (purchaseDate !== null && parseDateToDayNumber(purchaseDate) === null) throw new Error('invalid-recognition-result')
-  if (value.purchasePlatform != null && !isPurchasePlatform(value.purchasePlatform)) throw new Error('invalid-recognition-result')
-  if (value.warnings !== undefined && (!Array.isArray(value.warnings) || value.warnings.length > 5)) throw new Error('invalid-recognition-result')
-  const warnings = ((value.warnings ?? []) as unknown[]).map(value => text(value, 200)).filter((value): value is string => value !== null)
-  if (!name && !categoryName && !note && !(mode === 'order' && (priceText || purchaseDate || value.purchasePlatform))) throw new Error('empty-recognition-result')
+  const name = read('name', 100)
+  const categoryName = read('categoryName', 100)
+  const note = read('note', 1000)
+  const priceText = mode === 'order' ? read('priceText', 14, price => {
+    const cents = parsePriceInput(price)
+    return cents !== null && Number.isSafeInteger(cents)
+  }) : null
+  const purchaseDate = mode === 'order' ? read('purchaseDate', 10, date => parseDateToDayNumber(date) !== null) : null
+  const platform = mode === 'order' ? read('purchasePlatform', 30, isPurchasePlatform) : null
+  const purchasePlatform = isPurchasePlatform(platform) ? platform : null
+  if (!name && !categoryName && !note && !priceText && !purchaseDate && !purchasePlatform) throw new Error('empty-recognition-result')
+  if (Array.isArray(value.warnings)) {
+    for (const warning of value.warnings.slice(0, 5)) {
+      try { const message = text(warning, 200); if (message) warnings.push(message) } catch { /* 无效提示不影响已校验的字段。 */ }
+    }
+  }
   return {
-    name, categoryName, note,
-    priceText: mode === 'order' ? priceText : null,
-    purchaseDate: mode === 'order' ? purchaseDate : null,
-    purchasePlatform: mode === 'order' && isPurchasePlatform(value.purchasePlatform) ? value.purchasePlatform : null,
-    warnings,
+    name, categoryName, note, priceText, purchaseDate, purchasePlatform,
+    warnings: warnings.slice(0, 5),
   }
 }
 

@@ -58,9 +58,19 @@ describe('authenticated free-tier recognition endpoint', () => {
     expect(run).toHaveBeenCalledTimes(1)
   })
   it('does not return model-inferred purchase information for physical photos', async () => {
-    const { call } = await fixture()
+    const { call, run } = await fixture()
+    run.mockResolvedValueOnce({ choices: [{ message: { content: JSON.stringify({ ...candidate, priceText: '¥199', purchaseDate: 'invalid', purchasePlatform: 'invalid' }) } }] })
     const response = await call({ mode: 'photo', image, categoryNames: ['音频设备'] })
-    expect(await payload(response)).toMatchObject({ candidate: { priceText: null, purchaseDate: null, purchasePlatform: null } })
+    expect(response.status).toBe(200)
+    expect(await payload(response)).toMatchObject({ candidate: { name: '耳机', priceText: null, purchaseDate: null, purchasePlatform: null, warnings: [] } })
+  })
+  it('returns reliable fields even if one optional model field is malformed', async () => {
+    const { call, run, db } = await fixture()
+    run.mockResolvedValueOnce({ choices: [{ message: { content: JSON.stringify({ ...candidate, purchaseDate: '2026-02-30' }) } }] })
+    const response = await call()
+    expect(response.status).toBe(200)
+    expect(await payload(response)).toMatchObject({ candidate: { name: '耳机', priceText: '199.90', purchaseDate: null, warnings: [expect.stringContaining('购买日期')] } })
+    expect(db.raw.prepare('SELECT COUNT(*) AS n FROM sync_records').get()).toMatchObject({ n: 0 })
   })
   it('never retries or switches providers when quota is exhausted', async () => {
     const { call, run } = await fixture()
