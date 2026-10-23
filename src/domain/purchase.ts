@@ -127,30 +127,24 @@ export function formatCents(cents: number): string {
 
 /**
  * 分 → 紧凑金额：用于卡片与概览这类空间受限的地方。
- * ¥1000 以上省掉两位小数（¥8,000），以下保留（¥57.14）—— 日均成本几乎总在小额区间，
- * 因此这条规则在"价格要短"和"日均要精确"之间取了平衡。
+ * 满千元用小写 k，最多一位小数并省略尾零（¥1.6k）；小额保留两位（¥57.14）。
+ * 只缩写展示文本，详情与所有计算继续使用原始金额。
  */
 export function formatCentsCompact(cents: number): string {
   const yuan = cents / 100
   const abs = Math.abs(yuan)
-  const useDecimals = abs < 1000
-  const body = abs.toLocaleString('zh-CN', {
-    minimumFractionDigits: useDecimals ? 2 : 0,
-    maximumFractionDigits: useDecimals ? 2 : 0,
-  })
-  return `${cents < 0 ? '-' : ''}¥${body}`
+  if (abs < 1000) return formatCents(cents)
+  const body = (abs / 1000).toLocaleString('zh-CN', { maximumFractionDigits: 1, useGrouping: false })
+  return `${cents < 0 ? '-' : ''}¥${body}k`
 }
 
 /**
- * 卡片用金额：整元省略两位小数，非整元照旧保留。
- *
- * 网格卡一栏只有 ~40px 宽，`¥399.00` 会被截成 `¥399....`（数字被截断比模糊更糟）。
- * 这里**只省略本来就存在的零**，绝不做四舍五入 —— `¥57.14` 仍然显示 `¥57.14`，
- * 精确值始终能在详情页看到。负数（卖得比买得多）照常带负号。
+ * 卡片用金额：满千元复用 k 缩写，小额整元省略小数，非整元保留两位。
+ * 精确值始终能在详情页看到；出售盈利的负成本照常带负号。
  */
 export function formatCentsCard(cents: number): string {
   const yuan = cents / 100
-  if (Number.isInteger(yuan)) {
+  if (Math.abs(yuan) < 1000 && Number.isInteger(yuan)) {
     return `${cents < 0 ? '-' : ''}¥${Math.abs(yuan).toLocaleString('zh-CN')}`
   }
   return formatCentsCompact(cents)

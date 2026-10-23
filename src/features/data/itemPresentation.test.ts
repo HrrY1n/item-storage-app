@@ -125,7 +125,7 @@ describe('A. 已售出卡片的三栏指标', () => {
 describe('B. 总投入用毛投入，不是净成本', () => {
   it('总投入 = 购买价 + 附加花费（不受出售回收影响）', () => {
     const p = itemPresentation(SOLD_LOSS, CTX)
-    expect(p.grossText).toBe('¥2,042')
+    expect(p.grossText).toBe('¥2k')
   })
 
   it('⚠️ 同一件物品：grossText ≠ effectiveCostCents（这正是旧 bug 的根源）', () => {
@@ -133,8 +133,8 @@ describe('B. 总投入用毛投入，不是净成本', () => {
     const p = itemPresentation(SOLD_LOSS, CTX)
     // 净成本是 1474（= 2042 − 568），总投入必须是 2042
     expect(net).toBe(147_400)
-    expect(p.grossText).toBe('¥2,042')
-    expect(p.grossText).not.toBe('¥1,474')
+    expect(p.grossText).toBe('¥2k')
+    expect(p.grossText).not.toBe('¥1.5k')
   })
 
   it('持有物品的总投入也在指标里显示', () => {
@@ -159,7 +159,7 @@ describe('C. 盈亏方向（FIX-A）', () => {
 
   it('sale < gross → 亏损，且显示绝对值', () => {
     const p = itemPresentation(SOLD_LOSS, CTX)
-    expect(p.finance!.value).toBe('亏损 ¥1,474')
+    expect(p.finance!.value).toBe('亏损 ¥1.5k')
     expect(p.finance!.tone).toBe('negative')
   })
 
@@ -214,7 +214,7 @@ describe('D. 负值纪律', () => {
 
   it('亏损时显示绝对值、不带负号（语义由"亏损"这个词承担）', () => {
     const p = itemPresentation(SOLD_LOSS, CTX)
-    expect(p.finance!.value).toBe('亏损 ¥1,474')
+    expect(p.finance!.value).toBe('亏损 ¥1.5k')
     expect(p.finance!.value).not.toContain('-¥')
   })
 })
@@ -355,14 +355,14 @@ describe('I. 同一物品在任意调用点得到完全相同的结果', () => {
  * ============================================================ */
 
 describe('J. 金额完整可读', () => {
-  it('总投入：常见金额在卡片模式下完整显示（无省略号 / 无 compact 记法）', () => {
+  it('总投入：大额缩写为 k，小额仍精确显示（不用省略号）', () => {
     // 总投入 =购买价 + 附加花费，按domain 口径**恒非负**，
     // 所以负数情形要靠"日均成本为负"（卖出赚了的物品）来覆盖。
     const cases: Array<[number, string]> = [
       [47_600, '¥476'],
-      [147_400, '¥1,474'],
-      [1_299_900, '¥12,999'],
-      [12_345_700, '¥123,457'],
+      [147_400, '¥1.5k'],
+      [1_299_900, '¥13k'],
+      [12_345_700, '¥123.5k'],
     ]
     for (const [cents, expected] of cases) {
       const item = makeItem({ purchaseDate: '2026-01-01', purchasePriceCents: cents })
@@ -379,21 +379,21 @@ describe('J. 金额完整可读', () => {
     expect(daily).not.toContain('…')
   })
 
-  it('设计要求覆盖的 6 个金额都能被现有 formatter 完整表达（FIX-C：不改 formatter）', () => {
-    // 直接锁住 formatter 契约：卡片用 formatCentsCard，禁止 compact 记法与省略号
+  it('六个金额缩写后仍有完整单位和正确符号', () => {
+    // 卡片共用同一缩写规则，精确金额由详情承担。
     expect(formatCentsCard(47_600)).toBe('¥476')
-    expect(formatCentsCard(147_400)).toBe('¥1,474')
-    expect(formatCentsCard(1_299_900)).toBe('¥12,999')
-    expect(formatCentsCard(12_345_700)).toBe('¥123,457')
-    expect(formatCentsCard(-147_400)).toBe('-¥1,474')
-    expect(formatCentsCard(-1_234_600)).toBe('-¥12,346')
+    expect(formatCentsCard(147_400)).toBe('¥1.5k')
+    expect(formatCentsCard(1_299_900)).toBe('¥13k')
+    expect(formatCentsCard(12_345_700)).toBe('¥123.5k')
+    expect(formatCentsCard(-147_400)).toBe('-¥1.5k')
+    expect(formatCentsCard(-1_234_600)).toBe('-¥12.3k')
     for (const v of [
       formatCentsCard(47_600),
       formatCentsCard(12_345_700),
       formatCentsCard(-1_234_600),
     ]) {
       expect(v).not.toContain('…')
-      expect(v).not.toMatch(/[kK]/)
+      expect(v).toMatch(/^-?¥[0-9]+(?:[.][0-9]+)?k?$/)
       expect(v).not.toContain('万')
     }
   })

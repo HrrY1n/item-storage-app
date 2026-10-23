@@ -6,7 +6,6 @@ import { categoryPath } from '../domain/categoryTree'
 import {
   calculateTotalCostCents,
   formatCents,
-  formatCentsCompact,
   formatPurchaseDate,
   platformLabel,
   todayString,
@@ -245,7 +244,7 @@ function ItemDetailContent({ onBack }: { onBack: () => void }) {
           ? { label: frozen ? '实际持有天数' : '持有天数', value: `${days} 天` }
           : null,
         net !== null
-          ? { label: sold ? '实际持有成本' : '总投入', value: formatCentsCompact(net) }
+          ? { label: sold ? '实际持有成本' : '总投入', value: formatCents(net) }
           : null,
         daily !== null
           ? { label: sold ? '实际日均成本' : '日均成本', value: formatCents(daily), money: true }

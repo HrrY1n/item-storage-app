@@ -33,7 +33,7 @@ describe('itemMetric', () => {
   })
 
   it('有价格与日期时给出天数、总投入与日均', () => {
-    // ¥5000 买入，持有 1 天 → 日均 ¥5000。紧凑格式：≥¥1000 省小数
+    // ¥5000 买入，持有 1 天 → 日均 ¥5000；只有展示文本缩写。
     const m = itemMetric(
       makeItem({ purchaseDate: TODAY, purchasePriceCents: 500_000 }),
       TODAY,
@@ -43,8 +43,8 @@ describe('itemMetric', () => {
     expect(m!.totalCents).toBe(500_000)
     expect(m!.dailyCents).toBe(500_000)
     expect(m!.daysText).toBe('1 天')
-    expect(m!.totalText).toBe('¥5,000')
-    expect(m!.dailyText).toBe('¥5,000')
+    expect(m!.totalText).toBe('¥5k')
+    expect(m!.dailyText).toBe('¥5k')
   })
 
   it('附加花费计入总投入', () => {
@@ -102,7 +102,7 @@ describe('libraryOverview', () => {
     expect(overview.totalCents).toBe(300_000)
     // 两件都是 2 天：1000/天 + 500/天
     expect(overview.dailyCents).toBe(150_000)
-    expect(overview.totalText).toBe('¥3,000')
+    expect(overview.totalText).toBe('¥3k')
   })
 })
 // ---------------------------------------------------------------- 列表筛选与排序

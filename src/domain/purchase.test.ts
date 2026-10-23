@@ -162,10 +162,10 @@ describe('格式化与平台映射', () => {
     expect(formatCents(0)).toBe('¥0.00')
   })
 
-  it('formatCentsCompact：大额省小数，小额保留两位', () => {
+  it('formatCentsCompact：满千使用 k，小额保留两位', () => {
     // 卡片与概览这类空间受限的场景用
-    expect(formatCentsCompact(800_000)).toBe('¥8,000')
-    expect(formatCentsCompact(100_000)).toBe('¥1,000')
+    expect(formatCentsCompact(800_000)).toBe('¥8k')
+    expect(formatCentsCompact(100_000)).toBe('¥1k')
     expect(formatCentsCompact(99_999)).toBe('¥999.99')
     expect(formatCentsCompact(5_714)).toBe('¥57.14')
     expect(formatCentsCompact(0)).toBe('¥0.00')
@@ -200,9 +200,14 @@ describe('formatCentsCard', () => {
     expect(formatCentsCard(0)).toBe('¥0')
   })
 
-  it('千分位保留，够短不截断（¥14,999）', () => {
-    expect(formatCentsCard(1499900)).toBe('¥14,999')
-    expect(formatCentsCard(189900)).toBe('¥1,899')
+  it.each([
+    [99_999, '¥999.99'], [100_000, '¥1k'], [161_900, '¥1.6k'],
+    [164_999, '¥1.6k'], [165_000, '¥1.7k'], [199_999, '¥2k'],
+    [1_280_000, '¥12.8k'], [1_499_900, '¥15k'], [12_345_700, '¥123.5k'],
+    [-161_900, '-¥1.6k'], [-165_000, '-¥1.7k'],
+  ])('大额缩写 %s 分为 %s，保留一位小数并去掉尾零', (cents, expected) => {
+    expect(formatCentsCard(cents)).toBe(expected)
+    if (Math.abs(cents) >= 100_000) expect(formatCentsCompact(cents)).toBe(expected)
   })
 
   it('非整元绝不做四舍五入，仍显示两位小数', () => {
@@ -210,7 +215,13 @@ describe('formatCentsCard', () => {
   })
 
   it('负数（卖得比买得多）保留负号', () => {
-    expect(formatCentsCard(-150000)).toBe('-¥1,500')
+    expect(formatCentsCard(-150000)).toBe('-¥1.5k')
     expect(formatCentsCard(-5714)).toBe('-¥57.14')
+  })
+
+  it('缩写不会改变详情与编辑的精确金额', () => {
+    expect(formatCentsCard(161_949)).toBe('¥1.6k')
+    expect(formatCents(161_949)).toBe('¥1,619.49')
+    expect(centsToPriceInput(161_949)).toBe('1619.49')
   })
 })

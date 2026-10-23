@@ -68,6 +68,14 @@ describe('dotted warranty strip', () => {
 })
 
 describe('per-card disclosure', () => {
+  it.each([
+    [161_900, '¥1.6k'], [1_280_000, '¥12.8k'], [99_999, '¥999.99'],
+  ])('renders %s cents with readable card amount %s', (cents, expected) => {
+    const html = renderCard({ purchasePriceCents: cents })
+    expect(html).toContain(`>${expected}</p>`)
+    expect(html).not.toContain('…')
+  })
+
   it('starts expanded while keeping the dotted warranty and navigation available', () => {
     const html = renderCard()
     expect(html).toContain('aria-expanded="true"')
