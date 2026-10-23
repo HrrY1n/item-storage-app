@@ -33,6 +33,9 @@ export const UPDATE_CHECK_THROTTLE_MS = 60_000
  */
 export const UPDATE_RELOAD_GUARD_MS = 15_000
 
+/** 给更新提示留出可见时间；真正刷新前仍须复查编辑与前后台状态。 */
+export const UPDATE_TRANSITION_MS = 650
+
 /** sessionStorage 键：最近一次由更新触发的 reload 时间戳 */
 export const UPDATE_RELOAD_AT_KEY = 'pil.pwa.update-reload-at'
 

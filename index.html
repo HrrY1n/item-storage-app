@@ -56,9 +56,46 @@
     <meta name="apple-mobile-web-app-title" content="物品库" />
 
     <title>我的物品库</title>
+    <style>
+      html { background: #EEEDF5; }
+      html[data-theme='dark'] { background: #101013; }
+      .pwa-update-cover { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; background: #EEEDF5; color: #24242a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; text-align: center; touch-action: none; }
+      .pwa-update-cover[hidden] { display: none; }
+      html[data-theme='dark'] .pwa-update-cover { background: #101013; color: #f2f2f7; }
+      .pwa-update-cover strong { margin-top: 10px; font-size: 18px; font-weight: 600; }
+      .pwa-update-cover p { margin: 0; font-size: 13px; opacity: .62; }
+      .pwa-update-spinner { width: 28px; height: 28px; border: 3px solid currentColor; border-right-color: transparent; border-radius: 50%; opacity: .65; }
+      .pwa-update-cover[data-phase='complete'] { opacity: 0; pointer-events: none; }
+      @media (prefers-reduced-motion: no-preference) {
+        .pwa-update-cover { transition: opacity 180ms ease; }
+        .pwa-update-cover[data-phase='updating'] { animation: pwa-update-in 160ms ease-out; }
+        .pwa-update-spinner { animation: pwa-update-spin 800ms linear infinite; }
+      }
+      @keyframes pwa-update-in { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes pwa-update-spin { to { transform: rotate(360deg); } }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="pwa-update-cover" class="pwa-update-cover" data-phase="restoring" role="status" aria-live="polite" hidden>
+      <span class="pwa-update-spinner" aria-hidden="true"></span>
+      <strong id="pwa-update-title">正在恢复页面</strong>
+      <p>正在应用更新，请稍候</p>
+    </div>
+    <script id="pwa-update-bootstrap">
+      (function () {
+        try {
+          var saved = JSON.parse(sessionStorage.getItem('pil.pwa.update-resume') || 'null')
+          var age = saved && Date.now() - saved.at
+          var path = location.pathname + location.search + location.hash
+          if (!saved || typeof saved.at !== 'number' || !Number.isFinite(saved.at) || age < 0 || age > 120000 || saved.path !== path ||
+            ![saved.x, saved.y].every(function (n) { return typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 10000000 })) return
+          document.getElementById('pwa-update-cover').hidden = false
+          document.getElementById('root').inert = true
+          history.scrollRestoration = 'manual'
+        } catch (e) { /* 临时存储不可用时正常打开页面 */ }
+      })()
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

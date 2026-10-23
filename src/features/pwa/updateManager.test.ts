@@ -12,6 +12,7 @@ function makeHarness(opts: { online?: boolean; visible?: boolean } = {}) {
     visible: opts.visible ?? true,
     now: 1_000_000,
     reloads: 0,
+    transitions: [] as boolean[],
     updateCalls: 0,
     reloadAt: null as number | null,
     timers: new Map<number, () => void>(),
@@ -26,6 +27,7 @@ function makeHarness(opts: { online?: boolean; visible?: boolean } = {}) {
     reload: () => {
       state.reloads++
     },
+    setTransitionActive: active => { state.transitions.push(active) },
     updateSw: async () => {
       state.updateCalls++
       if (state.updateShouldThrow) throw new Error('network down')
@@ -66,6 +68,10 @@ describe('update manager', () => {
     h.manager.markUpdateAvailable()
     h.manager.tryApply()
     h.manager.tryApply()
+    expect(h.state.reloads).toBe(0)
+    expect(h.state.transitions).toEqual([true])
+    expect(h.manager.getSnapshot().applying).toBe(true)
+    h.flushTimers()
     expect(h.state.reloads).toBe(1)
   })
 
@@ -78,6 +84,7 @@ describe('update manager', () => {
 
     h.manager.setBlocked('form', false)
     await Promise.resolve()
+    h.flushTimers()
     expect(h.state.reloads).toBe(1)
   })
 
@@ -93,6 +100,7 @@ describe('update manager', () => {
 
     h.manager.setBlocked('form', false)
     await Promise.resolve()
+    h.flushTimers()
     expect(h.state.reloads).toBe(1)
   })
 
@@ -105,6 +113,7 @@ describe('update manager', () => {
     h.state.visible = true
     h.manager.setVisible(true)
     await Promise.resolve()
+    h.flushTimers()
     expect(h.state.reloads).toBe(1)
   })
 
@@ -118,7 +127,51 @@ describe('update manager', () => {
     h.state.now += UPDATE_RELOAD_GUARD_MS + 100
     h.flushTimers()
     await Promise.resolve()
+    expect(h.state.reloads).toBe(0)
+    h.flushTimers()
     expect(h.state.reloads).toBe(1)
+  })
+
+  it('过渡期间进入编辑会取消刷新，完成编辑后重新过渡', () => {
+    h.manager.markUpdateAvailable()
+    h.manager.setBlocked('form', true)
+    h.flushTimers()
+    expect(h.state.reloads).toBe(0)
+    expect(h.state.transitions).toEqual([true, false])
+    expect(h.manager.getSnapshot().applying).toBe(false)
+    h.manager.setBlocked('form', false)
+    expect(h.state.transitions).toEqual([true, false, true])
+    h.flushTimers()
+    expect(h.state.reloads).toBe(1)
+  })
+
+  it('过渡期间转入后台会取消，恢复前台后重新过渡', () => {
+    h.manager.markUpdateAvailable()
+    h.state.visible = false
+    h.manager.setVisible(false)
+    h.flushTimers()
+    expect(h.state.reloads).toBe(0)
+    expect(h.state.transitions).toEqual([true, false])
+    h.state.visible = true
+    h.manager.setVisible(true)
+    h.flushTimers()
+    expect(h.state.reloads).toBe(1)
+  })
+
+  it('即使漏掉后台事件，真正刷新前也会复查可见性', () => {
+    h.manager.markUpdateAvailable()
+    h.state.visible = false
+    h.flushTimers()
+    expect(h.state.reloads).toBe(0)
+    expect(h.state.transitions).toEqual([true, false])
+    expect(h.manager.getSnapshot().applying).toBe(false)
+  })
+
+  it('没有新版本的手动检查不显示过渡或刷新', async () => {
+    await h.manager.requestCheck('manual')
+    h.flushTimers()
+    expect(h.state.transitions).toEqual([])
+    expect(h.state.reloads).toBe(0)
   })
 
   it('12. registration.update 抛错不影响 App（静默降级）', async () => {

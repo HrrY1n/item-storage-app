@@ -2,6 +2,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { createUpdateManager, type PwaUpdateHost, type UpdateManager } from '../features/pwa/updateManager'
 import { UPDATE_RELOAD_AT_KEY } from '../features/pwa/updatePolicy'
 import { checkServiceWorkerUpdate } from './checkServiceWorkerUpdate'
+import { reloadForUpdate, setUpdateTransition } from './pwaUpdateTransition'
 
 /**
  * PWA 更新的**浏览器侧**唯一装配点（Phase 2H.1）。
@@ -25,7 +26,8 @@ function createHost(): PwaUpdateHost {
     isVisible: () =>
       typeof document === 'undefined' ? true : document.visibilityState !== 'hidden',
     now: () => Date.now(),
-    reload: () => window.location.reload(),
+    reload: reloadForUpdate,
+    setTransitionActive: setUpdateTransition,
 
     async updateSw() {
       await checkServiceWorkerUpdate(registration)

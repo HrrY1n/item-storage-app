@@ -22,7 +22,7 @@
   {
     "name": "Build A：取到当前 bundle 指纹",
     "ok": true,
-    "detail": "index-CWA_1LtE.js"
+    "detail": "index-CjYAjRCf.js"
   },
   {
     "name": "Build A：显示版本 v0.6.0",
@@ -52,17 +52,17 @@
   {
     "name": "更新前：Tag 已落库",
     "ok": true,
-    "detail": "更新测试标签-1792095867389"
+    "detail": "更新测试标签-1792731217253"
   },
   {
     "name": "节流：刚检查过就恢复前台 → 不重复检查（bundle 未变）",
     "ok": true,
-    "detail": "index-CWA_1LtE.js"
+    "detail": "index-CjYAjRCf.js"
   },
   {
     "name": "前台恢复：主动发现新版本并切换到 Build B",
     "ok": true,
-    "detail": "index-CWA_1LtE.js → index-3-kgleBB.js"
+    "detail": "index-CjYAjRCf.js → index-DsN6gXKj.js"
   },
   {
     "name": "Build B：相同 URL 的 WebP 字节已替换",
@@ -117,7 +117,7 @@
   {
     "name": "更新后：Tag 仍然存在",
     "ok": true,
-    "detail": "更新测试标签-1792095867389"
+    "detail": "更新测试标签-1792731217253"
   },
   {
     "name": "更新后：应用仍能读到该物品（UI 渲染）",
@@ -130,6 +130,96 @@
     "detail": ""
   },
   {
+    "name": "mobile-light：刷新前可见更新提示且阻止背景误触",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "mobile-light：新 bundle 已启用且仍在原设置页面",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "mobile-light：恢复原滚动位置",
+    "ok": true,
+    "detail": "488"
+  },
+  {
+    "name": "mobile-light：提示至少保留半秒再刷新",
+    "ok": true,
+    "detail": "{\"leftAt\":7887.5,\"frames\":[{\"phase\":\"none\",\"at\":2462.0999999996275,\"empty\":false,\"background\":\"rgb(238, 237, 245)\",\"animation\":\"pwa-update-spin\"},{\"phase\":\"updating\",\"at\":7227.199999999255,\"empty\":false,\"background\":\"rgb(238, 237, 245)\",\"animation\":\"pwa-update-spin\"}]}"
+  },
+  {
+    "name": "mobile-light：新文档首帧遮住空 root 且主题一致",
+    "ok": true,
+    "detail": "[{\"phase\":\"restoring\",\"at\":43.20000000111759,\"empty\":true,\"background\":\"rgb(238, 237, 245)\",\"animation\":\"pwa-update-spin\"},{\"phase\":\"complete\",\"at\":120.90000000037253,\"empty\":false,\"background\":\"rgb(238, 237, 245)\",\"animation\":\"pwa-update-spin\"}]"
+  },
+  {
+    "name": "mobile-light：恢复记录已消费",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "mobile-light：遮层已退出且主内容获得焦点",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "mobile-light：再次打开不重复提示更新完成",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop-dark-reduced：刷新前可见更新提示且阻止背景误触",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop-dark-reduced：新 bundle 已启用且仍在原设置页面",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop-dark-reduced：恢复原滚动位置",
+    "ok": true,
+    "detail": "412"
+  },
+  {
+    "name": "desktop-dark-reduced：提示至少保留半秒再刷新",
+    "ok": true,
+    "detail": "{\"leftAt\":15197.800000000745,\"frames\":[{\"phase\":\"none\",\"at\":2021.4000000003725,\"empty\":false,\"background\":\"rgb(16, 16, 19)\",\"animation\":\"none\"},{\"phase\":\"updating\",\"at\":14563.599999999627,\"empty\":false,\"background\":\"rgb(16, 16, 19)\",\"animation\":\"none\"}]}"
+  },
+  {
+    "name": "desktop-dark-reduced：新文档首帧遮住空 root 且主题一致",
+    "ok": true,
+    "detail": "[{\"phase\":\"restoring\",\"at\":117.20000000111759,\"empty\":true,\"background\":\"rgb(16, 16, 19)\",\"animation\":\"none\"},{\"phase\":\"complete\",\"at\":407.6000000014901,\"empty\":false,\"background\":\"rgb(16, 16, 19)\",\"animation\":\"none\"}]"
+  },
+  {
+    "name": "desktop-dark-reduced：减少动效时没有旋转动画",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop-dark-reduced：恢复记录已消费",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop-dark-reduced：遮层已退出且主内容获得焦点",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop-dark-reduced：再次打开不重复提示更新完成",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "过渡更新不改变已有物品和 outbox",
+    "ok": true,
+    "detail": ""
+  },
+  {
     "name": "表单保护：输入内容未丢失",
     "ok": true,
     "detail": "未保存输入"
@@ -137,7 +227,7 @@
   {
     "name": "表单保护：编辑中不 reload（bundle 未变）",
     "ok": true,
-    "detail": "index-3-kgleBB.js"
+    "detail": "index-DsN6gXKj.js"
   },
   {
     "name": "表单保护：显示「新版本已就绪」提示",
@@ -147,7 +237,7 @@
   {
     "name": "离开编辑态后自动应用更新（切到 Build A）",
     "ok": true,
-    "detail": "index-3-kgleBB.js → index-CWA_1LtE.js"
+    "detail": "index-DsN6gXKj.js → index-CjYAjRCf.js"
   },
   {
     "name": "手动检查：无新版本时提示「当前已是线上最新版本」",

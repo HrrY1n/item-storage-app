@@ -106,6 +106,21 @@ function check(name, ok, detail = '') {
 await send('Page.enable')
 await send('Runtime.enable')
 await send('Network.enable')
+await send('Page.addScriptToEvaluateOnNewDocument', { source: `
+  window.__pwaFrames = [];
+  let until = 0;
+  let frameId = 0;
+  function sample() {
+    const c = document.getElementById('pwa-update-cover');
+    const phase = c && !c.hidden ? c.dataset.phase : 'none';
+    const last = window.__pwaFrames.at(-1);
+    if (!last || last.phase !== phase) window.__pwaFrames.push({phase, at:performance.now(), empty:!document.getElementById('root')?.childElementCount, background:c?getComputedStyle(c).backgroundColor:null, animation:c?getComputedStyle(c.querySelector('span')).animationName:null});
+    if (performance.now() < until) frameId = requestAnimationFrame(sample);
+  }
+  window.__startPwaFrames = () => { cancelAnimationFrame(frameId); window.__pwaFrames=[]; until=performance.now()+30000; frameId=requestAnimationFrame(sample); };
+  window.__startPwaFrames();
+  addEventListener('beforeunload', () => sessionStorage.setItem('pwa.test.previous-frames', JSON.stringify({leftAt:performance.now(),frames:window.__pwaFrames})));
+` })
 await send('Emulation.setDeviceMetricsOverride', {
   width: 390,
   height: 844,
@@ -316,6 +331,56 @@ check('更新后：Tag 仍然存在', Boolean(after?.tags?.find((t) => t.name ==
 await go('/items')
 check('更新后：应用仍能读到该物品（UI 渲染）', (await ev(`document.body.textContent.includes('更新测试物品')`)) === true)
 check('更新后：旧物品卡片使用 WebP 路径',await ev(`!!document.querySelector('img[src="/icons/items/phone.webp"]')`))
+
+// 实际 SW 更新的跨文档视觉恢复：保留编辑/数据用例，并覆盖窄屏与桌面减少动效。
+async function untilPage(expression, timeoutMs = 20000) {
+  const end = Date.now() + timeoutMs
+  while (Date.now() < end) {
+    if (await ev(expression)) return
+    await sleep(40)
+  }
+  throw new Error('Timed out: ' + expression)
+}
+async function transitionTo(target, label, width, dark, reduced) {
+  await send('Emulation.setDeviceMetricsOverride', { width, height:844, deviceScaleFactor:1, mobile:width<640 })
+  await send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion',value:reduced?'reduce':'no-preference'}]})
+  await send('Emulation.setCPUThrottlingRate', {rate:reduced?4:1})
+  await ev(`localStorage.setItem('pil.theme',${JSON.stringify(dark?'dark':'light')});document.documentElement.dataset.theme=${JSON.stringify(dark?'dark':'light')};window.scrollTo(0,550);window.__startPwaFrames()`)
+  const y = await ev('window.scrollY')
+  const previous = await bundle()
+  await setActive(target)
+  await ev(`document.querySelectorAll('button').forEach(b=>{if(b.textContent.includes('检查更新'))b.click()})`)
+  await untilPage(`!!document.querySelector('#pwa-update-cover[data-phase="updating"]:not([hidden])')`)
+  check(label+'：刷新前可见更新提示且阻止背景误触', await ev(`document.getElementById('root').inert && document.getElementById('pwa-update-title').textContent==='发现新版本'`))
+  const {data}=await send('Page.captureScreenshot',{format:'png'})
+  await writeFile(join(SWAP,label+'-updating.png'),Buffer.from(data,'base64'))
+  await untilPage(`document.body.textContent.includes('已更新到最新版本') && !document.getElementById('root').inert`,10000)
+  check(label+'：新 bundle 已启用且仍在原设置页面', await bundle()!==previous && await ev(`location.pathname==='/settings'`))
+  check(label+'：恢复原滚动位置', await ev(`Math.abs(window.scrollY-${y})<=2`),String(await ev('window.scrollY')))
+  const trace = await ev(`({before:JSON.parse(sessionStorage.getItem('pwa.test.previous-frames')),after:window.__pwaFrames})`)
+  const discovery=trace.before.frames.find(f=>f.phase==='updating')
+  check(label+'：提示至少保留半秒再刷新',!!discovery && trace.before.leftAt-discovery.at>=500,JSON.stringify(trace.before))
+  check(label+'：新文档首帧遮住空 root 且主题一致',trace.after.some(f=>f.phase==='restoring'&&f.empty&&f.background===(dark?'rgb(16, 16, 19)':'rgb(238, 237, 245)')),JSON.stringify(trace.after))
+  if(reduced) check(label+'：减少动效时没有旋转动画',trace.after.some(f=>f.phase==='restoring'&&f.animation==='none'))
+  check(label+'：恢复记录已消费',await ev(`sessionStorage.getItem('pil.pwa.update-resume')===null`))
+  await sleep(220)
+  check(label+'：遮层已退出且主内容获得焦点',await ev(`document.getElementById('pwa-update-cover').hidden&&document.activeElement?.id==='main-content'`))
+  const shot=await send('Page.captureScreenshot',{format:'png'})
+  await writeFile(join(SWAP,label+'-complete.png'),Buffer.from(shot.data,'base64'))
+  await writeFile(join(SWAP,label+'-frames.json'),JSON.stringify(trace,null,2))
+  await send('Page.reload')
+  await sleep(1800)
+  check(label+'：再次打开不重复提示更新完成',await ev(`!document.body.textContent.includes('已更新到最新版本')&&document.getElementById('pwa-update-cover').hidden`))
+}
+await go('/settings')
+await transitionTo('a','mobile-light',390,false,false)
+await transitionTo('b','desktop-dark-reduced',1280,true,true)
+const afterTransitions=await readDb()
+check('过渡更新不改变已有物品和 outbox',JSON.stringify(afterTransitions.items)===JSON.stringify(after.items)&&JSON.stringify(afterTransitions.syncQueue)===JSON.stringify(after.syncQueue))
+await send('Emulation.setCPUThrottlingRate',{rate:1})
+await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]})
+await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true})
+await ev(`localStorage.setItem('pil.theme','light');document.documentElement.dataset.theme='light'`)
 
 // ============================================================ 5. 表单保护
 await setActive('a')

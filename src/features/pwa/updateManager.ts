@@ -1,4 +1,4 @@
-import { UPDATE_RELOAD_GUARD_MS } from './updatePolicy'
+import { UPDATE_RELOAD_GUARD_MS, UPDATE_TRANSITION_MS } from './updatePolicy'
 import {
   decideApply,
   guardRetryDelay,
@@ -26,6 +26,7 @@ export interface PwaUpdateHost {
   now(): number
   /** 唯一允许的刷新出口 */
   reload(): void
+  setTransitionActive(active: boolean): void
   /** 检查脚本并等待新 SW 安装/激活，失败时抛出 */
   updateSw(): Promise<void>
   /** 读取/写入"最近一次更新触发的 reload 时间"（sessionStorage） */
@@ -86,6 +87,7 @@ export function createUpdateManager(host: PwaUpdateHost): UpdateManager {
 
   let inFlight: Promise<boolean> | null = null
   let retryTimer: number | null = null
+  let applyTimer: number | null = null
 
   const emit = () => {
     for (const l of listeners) l()
@@ -101,6 +103,14 @@ export function createUpdateManager(host: PwaUpdateHost): UpdateManager {
       host.clearTimeout(retryTimer)
       retryTimer = null
     }
+  }
+
+  const cancelApply = () => {
+    if (applyTimer === null) return
+    host.clearTimeout(applyTimer)
+    applyTimer = null
+    host.setTransitionActive(false)
+    patch({ applying: false })
   }
 
   /** 唯一出口：判定可以做才 reload，且整段只可能执行一次（applying 关门） */
@@ -132,9 +142,26 @@ export function createUpdateManager(host: PwaUpdateHost): UpdateManager {
     }
 
     clearRetry()
+    applyTimer = host.setTimeout(() => {
+      applyTimer = null
+      const allowed = decideApply({
+        pending: snapshot.updatePending,
+        blocked: snapshot.blocked,
+        visible: host.isVisible(),
+        now: host.now(),
+        lastAutoReloadAt: host.readReloadAt(),
+      })
+      if (allowed !== 'apply') {
+        host.setTransitionActive(false)
+        patch({ applying: false })
+        apply()
+        return
+      }
+      host.writeReloadAt(host.now())
+      host.reload()
+    }, UPDATE_TRANSITION_MS)
+    host.setTransitionActive(true)
     patch({ applying: true })
-    host.writeReloadAt(host.now())
-    host.reload()
   }
 
   function requestCheck(reason: UpdateCheckReason): Promise<boolean> {
@@ -189,6 +216,7 @@ export function createUpdateManager(host: PwaUpdateHost): UpdateManager {
       else blockedKeys.delete(key)
       const next = blockedKeys.size > 0
       if (next !== snapshot.blocked) patch({ blocked: next })
+      if (next) cancelApply()
       // 从"被阻止"恢复 = 保存成功 / 离开表单的时刻，自动补上这次更新
       if (!next && snapshot.updatePending) apply()
     },
@@ -199,7 +227,10 @@ export function createUpdateManager(host: PwaUpdateHost): UpdateManager {
     },
 
     setVisible(visible) {
-      if (!visible) return
+      if (!visible) {
+        cancelApply()
+        return
+      }
       void requestCheck('visible')
       if (snapshot.updatePending) apply()
     },

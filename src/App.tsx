@@ -21,6 +21,8 @@ import TagManagePage from './pages/TagManagePage'
 import IconLibraryPage from './pages/IconLibraryPage'
 import ItemPanel from './components/ItemPanel'
 import { tabMotionDirection } from './features/ui/navigationMotion'
+import { dismissUpdateTransition, finishUpdateTransition } from './services/pwaUpdateTransition'
+import { useToast } from './components/Toast'
 
 /** 路由切换时回到顶部 */
 function ScrollToTop() {
@@ -63,7 +65,7 @@ function Layout() {
         <div key={pathname} className="route-content" data-direction={route.current.direction}><Outlet /></div>
       </main>
       {showBottomNav && <BottomNav />}
-      {/* 更新提示只在"不能立刻刷新"时出现；安全状态下后台静默完成更新 */}
+      {/* 编辑期间提示等待；安全状态下交给跨页面的更新过渡。 */}
       <UpdateBanner />
     </div>
   )
@@ -77,6 +79,12 @@ function Boot() {
   const panelLocation = background ? location : exitingPanel
   const [ready, setReady] = useState(false)
   const [failed, setFailed] = useState(false)
+  const { toast, show } = useToast()
+
+  useEffect(() => {
+    if (failed) dismissUpdateTransition()
+    else if (ready) return finishUpdateTransition(() => show('已更新到最新版本', 2400))
+  }, [failed, ready, show])
 
   useLayoutEffect(() => {
     if (background && ready) setExitingPanel(location)
@@ -105,6 +113,7 @@ function Boot() {
 
   return (
     <>
+    {toast}
     <Routes location={background ?? location}>
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
