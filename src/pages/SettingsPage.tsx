@@ -202,13 +202,18 @@ export default function SettingsPage() {
     let cancelled = false
     void (async () => {
       const exists = await hasSyncSpace()
+      const code = exists ? await currentPairingCode() : null
       if (cancelled) return
-      setPairingCode(exists ? await currentPairingCode() : null)
+      setPairingCode(code)
+      if (!exists) {
+        setRecoveryVisible(false)
+        setJustCreatedRecovery(false)
+      }
     })()
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [syncEnabled])
 
 
   const handleSyncNow = async () => {

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { BrowserRouter, Outlet, Route, Routes, useLocation, type Location } from 'react-router'
+import { createBrowserRouter, Outlet, Route, Routes, useLocation, type Location } from 'react-router'
+import { RouterProvider } from 'react-router/dom'
 import { itemPanelBackground } from './features/ui/itemPanelRouting'
 import { seedIfEmpty, syncPresetAssets, upgradeSchemaVersionMeta } from './db/seed'
 import { upgradeDefaultCategories } from './db/repositories/categoryRepository'
@@ -142,16 +143,20 @@ function Boot() {
   )
 }
 
+// 现有页面/面板路由保持不变；data router 提供统一的历史导航拦截。
+const router = createBrowserRouter([{
+  path: '*',
+  element: (
+    <PwaUpdateProvider>
+      {/* 同步引擎在 provider 内部惰性获取；未启用同步时
+          所有同步调用都会直接空转，不发任何网络请求。 */}
+      <SyncProvider>
+        <Boot />
+      </SyncProvider>
+    </PwaUpdateProvider>
+  ),
+}])
+
 export default function App() {
-  return (
-    <BrowserRouter>
-      <PwaUpdateProvider>
-        {/* 同步引擎在 provider 内部惰性获取；未启用同步时
-            所有同步调用都会直接空转，不发任何网络请求。 */}
-        <SyncProvider>
-          <Boot />
-        </SyncProvider>
-      </PwaUpdateProvider>
-    </BrowserRouter>
-  )
+  return <RouterProvider router={router} />
 }

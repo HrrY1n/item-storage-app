@@ -40,6 +40,8 @@ docs/                             当前架构与历史设计/审计说明
 
 依赖方向：`pages → features/services → repositories/domain`；页面不 import `db`，domain 不做 IO，repository 才直接 import Dexie。同步是有意的跨层例外：Worker 复用协议/domain 纯代码，但不得把浏览器数据库或 React 引入 Worker。`worker/` 只通过 SQL/JSON 与 D1 交互。
 
+外层使用 React Router 的 `createBrowserRouter` / `RouterProvider`，现有页面与背景面板继续由内部 `Routes` 呈现。物品表单通过 `useBlocker` 统一处理站内导航和浏览器历史返回；“继续编辑”保留组件与输入，“放弃修改”才放行。整页刷新和跨文档离开由 `beforeunload` 请求浏览器原生确认；保存成功后不再拦截。物品查询 hook 用 `undefined` 表示待加载、`null` 表示已查无活跃记录，详情和编辑页分别呈现明确的空状态。
+
 ## 3. 本地数据与云同步调用链
 
 ```text
@@ -78,6 +80,7 @@ Worker 的认证限流只拦错误凭据；正确恢复码始终可用，不因�
 - 以本机数据加入新空间时，游标和上次同步时间从新空间起算；本地业务数据保留，outbox 会重建但物理删除 tombstone 也必须保留。
 - 使用云端恢复或 ZIP 恢复时，业务表替换、outbox 清理/重建和禁用旧同步会话在同一个本地事务边界内完成。
 - 关闭同步不删除业务数据；恢复码/secret 不进入 ZIP 备份。
+- React 同步摘要监听本地 `sessionEpoch`；关闭、备份恢复或重新配对后自动刷新，不依赖额外的引擎事件或整页刷新。
 - F01 已发送到 Worker 的旧写入无法被本地 session epoch 撤销，这是已知残余风险。
 
 ## 5. 如何改动数据字段
@@ -110,6 +113,7 @@ npm run build
 # 浏览器只能使用项目隔离 Edge profile
 npm run browser:start -- --port=9222
 node scripts/verify.mjs
+node scripts/verify-form-state.mjs
 npm run browser:stop -- --port=9222
 ```
 

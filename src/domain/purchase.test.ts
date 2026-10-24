@@ -10,6 +10,7 @@ import {
   formatPurchaseDate,
   parseDateToDayNumber,
   parsePriceInput,
+  validatePriceInput,
   platformLabel,
   todayString,
 } from './purchase'
@@ -146,6 +147,19 @@ describe('parsePriceInput / centsToPriceInput', () => {
     expect(parsePriceInput('12.999')).toBeNull()
     expect(parsePriceInput('-5')).toBeNull()
     expect(parsePriceInput('1.2.3')).toBeNull()
+    expect(parsePriceInput('.5')).toBeNull()
+    expect(parsePriceInput('12.')).toBeNull()
+    expect(parsePriceInput('90071992547410')).toBeNull()
+  })
+
+  it('提交允许留空和真实零金额，但不能把不完整的非空输入当作未填写', () => {
+    for (const raw of ['', '  ', '0', '0.50', '12.34']) {
+      expect(validatePriceInput(raw, '购买价格')).toBeNull()
+    }
+    for (const raw of ['.5', '12.', '.', '-1', '12.345', '90071992547410']) {
+      expect(validatePriceInput(raw, '购买价格')).toContain('购买价格格式不正确')
+    }
+    expect(validatePriceInput('.5', '出售金额')).toContain('出售金额格式不正确')
   })
 
   it('回填：分 → 输入文本', () => {

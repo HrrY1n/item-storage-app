@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { syncRepository } from '../../db/repositories/syncRepository'
 import type { SyncConflict } from '../../domain/types'
 import type { SyncReason, SyncStatusSummary } from './syncPolicy'
@@ -44,6 +45,7 @@ export function SyncProvider({ children }: SyncProviderProps) {
   const online = typeof navigator === 'undefined' ? true : navigator.onLine !== false
   const [summary, setSummary] = useState<SyncStatusSummary | null>(null)
   const [conflicts, setConflicts] = useState<SyncConflict[]>([])
+  const sessionEpoch = useLiveQuery(async () => (await syncRepository.getState())?.sessionEpoch ?? 0, [])
 
   const refresh = useCallback(async () => {
     const e = getSyncEngine()
@@ -59,13 +61,13 @@ export function SyncProvider({ children }: SyncProviderProps) {
     return outcome
   }, [refresh])
 
-  // 引擎状态变化时刷新 UI（订阅只注册一次）
+  // 关闭同步和备份恢复也会切换会话，但不一定触发引擎事件。
   useEffect(() => {
     void refresh()
     return getSyncEngine().subscribe(() => {
       void refresh()
     })
-  }, [refresh])
+  }, [refresh, sessionEpoch])
 
   // 网络恢复时自动追赶一次（不靠定时器）
   useEffect(() => {

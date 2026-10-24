@@ -156,8 +156,15 @@ export function parsePriceInput(text: string): number | null {
   if (t === '') return null
   if (!/^\d+(\.\d{1,2})?$/.test(t)) return null
   const cents = Math.round(Number(t) * 100)
-  if (!Number.isFinite(cents) || cents < 0) return null
+  if (!Number.isSafeInteger(cents) || cents < 0) return null
   return cents
+}
+
+/** 输入过程允许暂时不完整，提交时必须区分留空和非法金额。 */
+export function validatePriceInput(text: string, label: string): string | null {
+  return text.trim() !== '' && parsePriceInput(text) === null
+    ? `${label}格式不正确，请填写非负金额，最多两位小数`
+    : null
 }
 
 /** 整数分 → 输入框回填文本（149900 → "1499"，149990 → "1499.9"，149999 → "1499.99"） */

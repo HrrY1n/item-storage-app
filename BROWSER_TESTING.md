@@ -26,6 +26,8 @@ npm run browser:stop -- --port=9223
 
 `verify.mjs` 和 `verify-design.mjs` 每次创建临时浏览器上下文，分别验证完整 CRUD 和演示数据界面；关闭连接后自动丢弃该上下文，不清空既有 Profile 的 IndexedDB、同步队列或缓存。
 
+`node scripts/verify-form-state.mjs` 使用相同的 Vite :5173 / Edge :9222 入口，在九个一次性上下文中回归金额提交、转为持有、出售、同步关闭、备份恢复、缺失/删除物品、站内返回草稿确认，以及整页刷新/返回的原生离开提示。API 全部拦截，不连接生产数据或调用模型；结果与截图写入 `.tmp/form-state-verification/`。
+
 `verify-2c.mjs`、`verify-purchase.mjs`、`verify-additional-cost.mjs` 和 `verify-deploy.mjs` 的临时截图写入 `.tmp/browser-verification/` 下对应子目录。`docs/screenshots/` 保留 README 与正式验收文档使用的预览和证据。
 
 ## 物品分类与旧库补齐
@@ -90,12 +92,12 @@ npm run build                          # 恢复正式版本 dist
 2. 起一个本地静态服务（含 SPA fallback，`sw.js` 用 `no-store`），通过指针文件切换当前生效的构建 —— **同一 origin 换内容**
 3. 切换内容后**不做整页导航**（否则浏览器直接拉新 HTML，会绕过 Service Worker，测的就不是 SW 更新）
 4. 用「已加载 bundle 的文件名 hash」判定当前页面跑的是哪一套，而不是靠页面文案
-5. 覆盖：启动检查 / 节流 / 前台恢复自动升级 / IndexedDB 数据保留 / 表单期间绝不 reload / 离开表单自动应用 / 设置页手动检查（最新 + 离线）
+5. 覆盖：启动检查 / 节流 / 前台恢复自动升级 / IndexedDB 数据保留 / 表单期间绝不 reload / 浏览器返回的放弃确认 / 离开表单自动应用 / 设置页手动检查（最新 + 离线）
 
 注意事项：
 
 - 全程只用项目隔离 profile（`.tmp/edge-test-profile-*`），不碰日常 Edge
-- 测试会在该 profile 的 IndexedDB 里写入临时数据（`update-test-item`、`user-cat-test` 等），**不会**接触任何真实用户数据
+- 测试在启动器会话下另建一次性浏览器上下文，写入合成数据（`update-test-item`、`user-cat-test` 等），结束后丢弃该上下文；既有 profile 的 IndexedDB、outbox 和 SW 缓存保留，不会影响本次首次安装判定
 - 脚本内含两次约 61 秒的节流等待，完整运行约 3 分钟
 - iOS 挂起无法在无头浏览器中真实模拟：`visibilitychange` 是脚本派发的合成事件，真机仍需人工确认
 

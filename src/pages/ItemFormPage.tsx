@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router'
+import { useBlocker, useLocation, useNavigate, useParams } from 'react-router'
 import { useItemPanel } from '../components/ItemPanel'
 import { childrenOf } from '../domain/categoryTree'
 import { presetIconOfAssetId } from '../data/icons'
@@ -16,6 +16,7 @@ import {
   parsePriceInput,
   platformLabel,
   todayString,
+  validatePriceInput,
 } from '../domain/purchase'
 import {
   useCategories,
@@ -27,6 +28,7 @@ import {
 import { itemRepository } from '../db/repositories/itemRepository'
 import { tagRepository } from '../db/repositories/tagRepository'
 import PageHeader from '../components/PageHeader'
+import EmptyState from '../components/EmptyState'
 import ModalSheet from '../components/ModalSheet'
 import { CategoryIconTile } from '../components/CategoryCard'
 import TagChip from '../components/TagChip'
@@ -141,14 +143,14 @@ export default function ItemFormPage() {
   const [warrantyExpanded, setWarrantyExpanded] = useState(false)
   const warrantyPanelId = useId()
   const warrantyExpiresAt = warrantyDate(purchaseDate, warranty)
-  const [confirmDiscard, setConfirmDiscard] = useState(false)
   const [saving, setSaving] = useState(false)
+  const missing = isEdit && existingItem === null
 
   /**
    * 编辑态不允许自动刷新到新版本：用户正在输入，reload 会丢掉未保存内容。
    * 发现新版本时改为"新版本已就绪"，保存/离开后自动应用。
    */
-  useUpdateGuard(true, 'item-form')
+  useUpdateGuard(!missing, 'item-form')
 
   // 编辑模式：数据就绪后初始化一次表单
   const initialized = useRef(false)
@@ -177,7 +179,7 @@ export default function ItemFormPage() {
     setWarrantyExpanded(existingItem.warrantyExpiresAt !== null)
   }, [isEdit, existingItem, categories, links])
 
-  const loading = !categories || !tags || !links || !assetMap || (isEdit && !initialized.current)
+  const loading = !categories || !tags || !links || !assetMap || (isEdit && !missing && !initialized.current)
 
   /** dirty 判定用的表单快照：任何参与保存的字段都必须在此 */
   const formSnapshot = () =>
@@ -189,8 +191,8 @@ export default function ItemFormPage() {
       note: note.trim(),
       status,
       purchaseDate,
-      purchasePriceCents: parsePriceInput(priceText),
-      additionalCostCents: parsePriceInput(additionalCostText),
+      priceText,
+      additionalCostText,
       purchasePlatform,
       warrantyExpiresAt,
       warranty,
@@ -222,17 +224,34 @@ export default function ItemFormPage() {
     warranty,
   ])
 
+  const protectDraft = dirty && !saving && !missing
+  const blocker = useBlocker(protectDraft)
+  // 整页刷新/离开不经过 SPA 路由，交给浏览器原生离开确认。
+  useEffect(() => {
+    if (!protectDraft) return
+    const confirmLeave = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', confirmLeave)
+    return () => window.removeEventListener('beforeunload', confirmLeave)
+  }, [protectDraft])
   const handleBack = () => {
-    if (dirty) setConfirmDiscard(true)
-    else navigate(-1)
+    if (window.history.state?.idx > 0) navigate(-1)
+    else navigate('/items', { replace: true })
   }
   useItemPanel(handleBack, !loading)
 
   if (loading) {
-    const pending = <div><PageHeader title={isEdit ? '编辑物品' : '新增物品'} onBack={() => navigate(-1)} />
+    const pending = <div><PageHeader title={isEdit ? '编辑物品' : '新增物品'} onBack={handleBack} />
       <p className="px-5 py-10 text-secondary text-ink-tertiary" role="status">正在载入表单…</p></div>
     return pending
   }
+
+  if (missing) return <div>
+    <PageHeader title="编辑物品" onBack={handleBack} />
+    <EmptyState title="物品不存在" subtitle="它可能已经被删除，无法继续编辑" />
+  </div>
 
   const roots = childrenOf(categories, null)
   const childCategories = rootId ? childrenOf(categories, rootId) : []
@@ -252,7 +271,7 @@ export default function ItemFormPage() {
   const previewDays = purchaseDate ? calculateOwnershipDays(purchaseDate) : null
   const today = todayString()
 
-  /** 金额输入只接受「整数 / 最多两位小数」（禁止负数），输入过程不产生非法中间态 */
+  /** 输入过程中允许暂时省略小数点两侧的数字，提交时再校验完整格式。 */
   const handleAmountChange = (raw: string, set: (v: string) => void) => {
     if (raw === '' || /^\d*(\.\d{0,2})?$/.test(raw)) set(raw)
   }
@@ -275,7 +294,9 @@ export default function ItemFormPage() {
 
   const handleSave = async () => {
     if (!canSave) return
-    const error = status === 'wishlist' ? null : validateWarranty(purchaseDate, warranty)
+    const error = status === 'wishlist' ? null : validatePriceInput(priceText, '购买价格')
+      ?? validatePriceInput(additionalCostText, '附加花费')
+      ?? validateWarranty(purchaseDate, warranty)
     if (error) { show(error); return }
     setSaving(true)
     // 心愿物品不携带购买/保修信息（可以之后再转为持有时补齐）
@@ -635,16 +656,15 @@ export default function ItemFormPage() {
         }} />
 
       <ConfirmDialog
-        open={confirmDiscard}
+        open={blocker.state === 'blocked'}
         title="放弃此次修改？"
         confirmLabel="放弃修改"
         cancelLabel="继续编辑"
         danger
         onConfirm={() => {
-          setConfirmDiscard(false)
-          navigate(-1)
+          if (blocker.state === 'blocked') blocker.proceed()
         }}
-        onCancel={() => setConfirmDiscard(false)}
+        onCancel={() => { if (blocker.state === 'blocked') blocker.reset() }}
       />
       {toast}
     </div>

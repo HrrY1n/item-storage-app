@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import ModalLayer from './ModalLayer'
 import type { Item, PurchasePlatform } from '../domain/types'
-import { PURCHASE_PLATFORMS, parsePriceInput, platformLabel, todayString } from '../domain/purchase'
+import { PURCHASE_PLATFORMS, parsePriceInput, platformLabel, todayString, validatePriceInput } from '../domain/purchase'
 import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
 import DateField from './DateField'
 import WarrantyInput from './WarrantyInput'
@@ -61,7 +61,9 @@ export default function ConvertToOwnedSheet({
   }
 
   const handleSubmit = async () => {
-    const validationError = validateWarranty(purchaseDate, warranty)
+    const validationError = validatePriceInput(priceText, '购买价格')
+      ?? validatePriceInput(extraText, '附加花费')
+      ?? validateWarranty(purchaseDate, warranty)
     if (validationError) {
       setError(validationError)
       return

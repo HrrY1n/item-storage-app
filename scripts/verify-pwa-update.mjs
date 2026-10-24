@@ -70,28 +70,38 @@ const server = createServer(async (req, res) => {
 })
 await new Promise((r) => server.listen(PORT, '127.0.0.1', r))
 
-const target = await (await fetch(`${CDP}/json/new?about:blank`, { method: 'PUT' })).json()
-const ws = new WebSocket(target.webSocketDebuggerUrl)
-await new Promise((r) => ws.addEventListener('open', r, { once: true }))
-let id = 0
-const pending = new Map()
-ws.addEventListener('message', (e) => {
-  const m = JSON.parse(e.data)
-  if (m.id && pending.has(m.id)) {
-    pending.get(m.id)(m)
-    pending.delete(m.id)
-  }
-})
-const send = (method, params = {}) => {
-  const i = ++id
-  return new Promise((res) => {
-    pending.set(i, res)
-    ws.send(JSON.stringify({ id: i, method, params }))
-  }).then((m) => {
-    if (m.error) throw new Error(method + ': ' + JSON.stringify(m.error))
-    return m.result
+async function connect(url) {
+  const ws = new WebSocket(url)
+  await new Promise((resolve, reject) => {
+    ws.addEventListener('open', resolve, { once: true })
+    ws.addEventListener('error', reject, { once: true })
   })
+  let id = 0
+  const pending = new Map()
+  ws.addEventListener('message', (event) => {
+    const message = JSON.parse(event.data)
+    pending.get(message.id)?.(message)
+    pending.delete(message.id)
+  })
+  const send = (method, params = {}) => {
+    const requestId = ++id
+    return new Promise(resolve => {
+      pending.set(requestId, resolve)
+      ws.send(JSON.stringify({ id: requestId, method, params }))
+    }).then(message => {
+      if (message.error) throw new Error(method + ': ' + JSON.stringify(message.error))
+      return message.result
+    })
+  }
+  return { ws, send }
 }
+const version = await (await fetch(`${CDP}/json/version`)).json()
+const browser = await connect(version.webSocketDebuggerUrl)
+// 启动器复用 profile；测试另建上下文，避免上次的 SW/缓存影响首次安装判定。
+const { browserContextId } = await browser.send('Target.createBrowserContext', { disposeOnDetach: true })
+const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank', browserContextId })
+const target = (await (await fetch(`${CDP}/json/list`)).json()).find(target => target.id === targetId)
+const { ws, send } = await connect(target.webSocketDebuggerUrl)
 const ev = (expr) =>
   send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }).then(
     (r) => r?.result?.value,
@@ -384,15 +394,15 @@ await ev(`localStorage.setItem('pil.theme','light');document.documentElement.dat
 
 // ============================================================ 5. 表单保护
 await setActive('a')
-await go('/items/new')
+await ev(`document.querySelector('a[aria-label="新增物品"]').click()`)
+await untilPage(`location.pathname === '/items/new' && !!document.querySelector('input[placeholder^="比如"]')`)
 await sleep(1200)
 const bundleOnForm = await bundle()
 await ev(`(() => {
   const input = document.querySelector('input[placeholder^="比如"]')
-  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set
-  setter.call(input, '未保存输入')
-  input.dispatchEvent(new Event('input', { bubbles: true }))
+  input.focus()
 })()`)
+await send('Input.insertText', { text: '未保存输入' })
 console.log('   …等待节流窗口（61s）后恢复前台')
 await sleep(61_000)
 await ev(`document.dispatchEvent(new Event('visibilitychange'))`)
@@ -405,6 +415,9 @@ const banner = await ev(`(() => { const b = document.querySelector('[data-update
 check('表单保护：显示「新版本已就绪」提示', banner === 'blocked', String(banner))
 
 await ev(`history.back()`)
+await untilPage(`document.body.textContent.includes('放弃此次修改')`)
+check('浏览器返回先确认放弃，确认前仍保留输入和旧版本', (await bundle()) === bundleOnForm && await ev(`document.querySelector('input[placeholder^="比如"]')?.value === '未保存输入'`))
+await ev(`([...document.querySelectorAll('dialog button')].find(button => button.textContent.trim() === '放弃修改')).click()`)
 await sleep(4000)
 const bundleAfterLeave = await bundle()
 check('离开编辑态后自动应用更新（切到 Build A）', bundleAfterLeave !== bundleOnForm, `${bundleOnForm} → ${bundleAfterLeave}`)
@@ -448,8 +461,8 @@ console.log(`通过 ${results.length - failed.length}/${results.length}`)
 for (const f of failed) console.log(`  - ${f.name} ${f.detail ?? ''}`)
 await mkdir('docs/screenshots/icon-library-v2',{recursive:true})
 await writeFile('docs/screenshots/icon-library-v2/pwa-results.json',JSON.stringify(results,null,2)+'\n')
-const closed = new Promise(resolve=>ws.addEventListener('close',resolve,{once:true}))
+await browser.send('Target.disposeBrowserContext', { browserContextId })
 ws.close()
-await closed
+browser.ws.close()
 await new Promise(resolve=>server.close(resolve))
 process.exitCode=failed.length ? 1 : 0

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import ModalLayer from './ModalLayer'
 import { DISPOSAL_METHOD_LABELS, validateDisposal } from '../domain/lifecycle'
 import type { DisposalMethod, Item } from '../domain/types'
-import { parsePriceInput, todayString } from '../domain/purchase'
+import { parsePriceInput, todayString, validatePriceInput } from '../domain/purchase'
 import { useUpdateGuard } from '../features/pwa/PwaUpdateContext'
 
 export interface DisposalResult {
@@ -61,6 +61,8 @@ export default function DisposalSheet({
   }
 
   const handleSubmit = async () => {
+    const amountError = method === 'sold' ? validatePriceInput(saleText, '出售金额') : null
+    if (amountError) { setError(amountError); return }
     const salePriceCents = method === 'sold' ? parsePriceInput(saleText) : null
     const check = validateDisposal({
       disposedAt,

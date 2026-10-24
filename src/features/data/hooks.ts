@@ -14,8 +14,8 @@ export function useItems(): Item[] | undefined {
   return useLiveQuery(() => itemRepository.listActive(), [])
 }
 
-export function useItem(id: string | undefined): Item | undefined {
-  return useLiveQuery(() => (id ? itemRepository.getActive(id) : undefined), [id])
+export function useItem(id: string | undefined): Item | null | undefined {
+  return useLiveQuery(async () => id ? (await itemRepository.getActive(id)) ?? null : null, [id])
 }
 
 export function useCategories(): Category[] | undefined {
