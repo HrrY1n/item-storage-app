@@ -203,8 +203,8 @@ function ItemDetailContent({ onBack }: { onBack: () => void }) {
   const assetMap = usePresetAssetMap()
 
   const loading = !categories || !tags || !links || !assetMap || item === undefined
-  const panel = useItemPanel(onBack, !loading)
-  if (loading) return <p className="px-5 py-10 text-secondary text-ink-tertiary" role="status">正在载入物品…</p>
+  const { panel, entering } = useItemPanel(onBack, !loading)
+  if (loading || entering) return <p className="px-5 py-10 text-secondary text-ink-tertiary" role="status">正在载入物品…</p>
 
   if (!item) {
     return (

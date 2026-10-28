@@ -240,9 +240,9 @@ export default function ItemFormPage() {
     if (window.history.state?.idx > 0) navigate(-1)
     else navigate('/items', { replace: true })
   }
-  useItemPanel(handleBack, !loading)
+  const { entering } = useItemPanel(handleBack, !loading)
 
-  if (loading) {
+  if (loading || entering) {
     const pending = <div><PageHeader title={isEdit ? '编辑物品' : '新增物品'} onBack={handleBack} />
       <p className="px-5 py-10 text-secondary text-ink-tertiary" role="status">正在载入表单…</p></div>
     return pending

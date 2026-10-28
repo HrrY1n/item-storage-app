@@ -226,6 +226,8 @@
   min-height: min(720px, calc(100dvh - max(12px, env(safe-area-inset-top))));
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* 上滑交给合成器推进：入场瞬间数据渲染占用主线程时，位移不被同步阻塞。 */
+  will-change: transform;
   border: 1px solid var(--color-line);
   border-radius: 38px 38px 0 0;
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
@@ -256,9 +258,12 @@
 .search-control { display: flex; min-width: 0; align-items: center; }
 .search-cancel { width: 0; opacity: 0; overflow: hidden; flex-shrink: 0; }
 .search-control[data-focused='true'] .search-cancel { width: 56px; opacity: 1; }
-.modal-sheet[data-state='closing'] .modal-sheet-panel { transform: translateY(100%); }
+  /* pending/closing 的离屏偏移同样用视口高度：pending 是真实入场过渡的起点
+     （showModal 的强制样式重算会让面板先以 pending 态获得首样式），
+     固定视口偏移保证起点与内容高度变化解耦，桌面端也不会残留可见缝隙。 */
+  .modal-sheet[data-state='closing'] .modal-sheet-panel { transform: translateY(100dvh); }
 .modal-sheet[data-state='closing'] .modal-sheet-backdrop { opacity: 0; }
-.modal-sheet[data-state='pending'] .modal-sheet-panel { transform: translateY(100%); }
+  .modal-sheet[data-state='pending'] .modal-sheet-panel { transform: translateY(100dvh); }
 .modal-sheet[data-state='pending'] .modal-sheet-backdrop { opacity: 0; }
 .modal-sheet[data-ready='false'] .modal-sheet-panel { opacity: 0; }
 .warranty-disclosure, .category-disclosure, .filter-disclosure { display: grid; grid-template-rows: 0fr; opacity: 0; }
@@ -285,7 +290,9 @@
   .route-content[data-direction='forward'] { animation: route-forward 180ms ease-out; }
   .route-content[data-direction='back'] { animation: route-back 180ms ease-out; }
   @starting-style {
-    .modal-sheet[data-state='open'] .modal-sheet-panel { transform: translateY(100%); }
+    /* 入场起点用视口高度而不是面板高度的 100%：异步内容到达改变面板高度时，
+       百分比起点会被重新解析并干扰进行中的上滑；固定视口偏移与内容时序完全解耦。 */
+    .modal-sheet[data-state='open'] .modal-sheet-panel { transform: translateY(100dvh); }
     .modal-sheet[data-state='open'] .modal-sheet-backdrop { opacity: 0; }
   }
 }

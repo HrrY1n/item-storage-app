@@ -198,8 +198,16 @@ export default function ModalSheet({ open, ready = true, label, onClose, onExite
       finishExit()
       return
     }
-    // 动画被取消或暂停时也要释放弹层和滚动锁。
-    const timer = window.setTimeout(finishExit, 460)
+    // 只等待被外部冻结的退出位移；取消或无关动画不能阻止释放弹层。
+    let timer = 0
+    const check = () => {
+      if (panelRef.current?.getAnimations().some(animation => animation.playState === 'paused' && 'transitionProperty' in animation && animation.transitionProperty === 'transform')) {
+        timer = window.setTimeout(check, 120)
+        return
+      }
+      finishExit()
+    }
+    timer = window.setTimeout(check, 460)
     return () => window.clearTimeout(timer)
   }, [open, present])
 
