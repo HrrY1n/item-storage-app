@@ -1,0 +1,5 @@
+# Preserve recorded bytes and SHA256 across Windows checkouts.
+* -text whitespace=cr-at-eol
+# Patch context and captured terminal output retain their original whitespace.
+app-motion.patch -whitespace
+evidence/** -whitespace

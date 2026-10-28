@@ -1,0 +1,5861 @@
+{
+  "scenario": {
+    "id": "item-detail-close",
+    "title": "详情面板 → 返回物品列表"
+  },
+  "runIndex": 1,
+  "startedAt": "2026-10-28T19:06:41.562Z",
+  "summary": {
+    "scenarioId": "item-detail-close",
+    "frames": 55,
+    "totalMs": 933.4,
+    "triggerAt": 42.7,
+    "settledBy": "stable",
+    "reducedMotion": false,
+    "colorScheme": "light",
+    "appThemeBefore": "light",
+    "appThemeAfter": "light",
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 2
+    },
+    "primary": {
+      "label": "panel",
+      "signal": "ty",
+      "declaredMs": 300,
+      "expectedMs": 300,
+      "actualDeclaredMs": [
+        300
+      ],
+      "easing": [
+        "cubic-bezier(0.22, 1, 0.36, 1)"
+      ],
+      "interval": {
+        "firstChange": 167.3,
+        "lastChange": 398.8,
+        "activeMs": 231.5,
+        "from": 0,
+        "to": 832,
+        "net": 832,
+        "min": 0,
+        "max": 832,
+        "amplitude": 832,
+        "moved": true,
+        "changes": 15,
+        "internalGaps": 0,
+        "instances": [
+          "el-1"
+        ],
+        "leadingNulls": 0,
+        "seriesLength": 27
+      },
+      "eventDuration": {
+        "id": "instance-4",
+        "elementId": "el-1",
+        "animationId": "anim-2",
+        "start": 147.8,
+        "end": 466,
+        "elapsedStart": 0,
+        "elapsedEnd": 300,
+        "outcome": "ended",
+        "ambiguous": false,
+        "durationMs": 318.2,
+        "engineElapsedMs": 300,
+        "segments": [
+          {
+            "id": "instance-4",
+            "elementId": "el-1",
+            "animationId": "anim-2",
+            "start": 147.8,
+            "end": 466,
+            "elapsedStart": 0,
+            "elapsedEnd": 300,
+            "outcome": "ended",
+            "ambiguous": false,
+            "durationMs": 318.2,
+            "engineElapsedMs": 300
+          }
+        ]
+      },
+      "latencyMs": 124.60000000000001,
+      "shape": [
+        0.338,
+        0.658,
+        0.836,
+        0.925,
+        0.961,
+        0.98,
+        0.994,
+        0.999
+      ],
+      "shapeMethod": "median of observed samples in 8 time bins; no interpolation",
+      "requireMotion": true
+    },
+    "secondary": {
+      "backdrop": {
+        "label": "backdrop",
+        "signal": "o",
+        "declaredMs": null,
+        "expectedMs": null,
+        "actualDeclaredMs": [
+          300
+        ],
+        "easing": [
+          "ease-out"
+        ],
+        "interval": {
+          "firstChange": 167.3,
+          "lastChange": 415.7,
+          "activeMs": 248.39999999999998,
+          "from": 1,
+          "to": 0,
+          "net": -1,
+          "min": 0,
+          "max": 1,
+          "amplitude": 1,
+          "moved": true,
+          "changes": 16,
+          "internalGaps": 0,
+          "instances": [
+            "el-2"
+          ],
+          "leadingNulls": 0,
+          "seriesLength": 27
+        },
+        "eventDuration": {
+          "id": "instance-3",
+          "elementId": "el-2",
+          "animationId": "anim-1",
+          "start": 147.8,
+          "end": 466,
+          "elapsedStart": 0,
+          "elapsedEnd": 300,
+          "outcome": "ended",
+          "ambiguous": false,
+          "durationMs": 318.2,
+          "engineElapsedMs": 300,
+          "segments": [
+            {
+              "id": "instance-3",
+              "elementId": "el-2",
+              "animationId": "anim-1",
+              "start": 147.8,
+              "end": 466,
+              "elapsedStart": 0,
+              "elapsedEnd": 300,
+              "outcome": "ended",
+              "ambiguous": false,
+              "durationMs": 318.2,
+              "engineElapsedMs": 300
+            }
+          ]
+        },
+        "latencyMs": 124.60000000000001,
+        "shape": [
+          0.865,
+          0.7,
+          0.545,
+          0.41,
+          0.29,
+          0.18,
+          0.095,
+          0.03
+        ],
+        "shapeMethod": "median of observed samples in 8 time bins; no interpolation",
+        "requireMotion": false
+      },
+      "listCard": {
+        "label": "listCard",
+        "signal": "y",
+        "declaredMs": null,
+        "expectedMs": null,
+        "actualDeclaredMs": [],
+        "easing": [],
+        "interval": {
+          "firstChange": null,
+          "lastChange": null,
+          "activeMs": 0,
+          "from": 293.13,
+          "to": 293.13,
+          "net": 0,
+          "min": 293.13,
+          "max": 293.13,
+          "amplitude": 0,
+          "moved": false,
+          "changes": 0,
+          "internalGaps": 0,
+          "instances": [
+            "el-3"
+          ],
+          "leadingNulls": 0,
+          "seriesLength": 55
+        },
+        "eventDuration": null,
+        "latencyMs": null,
+        "shape": [],
+        "shapeMethod": "median of observed samples in 8 time bins; no interpolation",
+        "requireMotion": false
+      }
+    },
+    "series": {
+      "panel": [
+        [
+          14.5,
+          0
+        ],
+        [
+          31.6,
+          0
+        ],
+        [
+          48.8,
+          0
+        ],
+        [
+          65.9,
+          0
+        ],
+        [
+          83.2,
+          0
+        ],
+        [
+          98.3,
+          0
+        ],
+        [
+          147.8,
+          0
+        ],
+        [
+          151.5,
+          0
+        ],
+        [
+          167.3,
+          197.13
+        ],
+        [
+          181.5,
+          364.51
+        ],
+        [
+          198.4,
+          497.44
+        ],
+        [
+          215.5,
+          596.96
+        ],
+        [
+          231.9,
+          669.64
+        ],
+        [
+          248.2,
+          720.96
+        ],
+        [
+          264.8,
+          757.41
+        ],
+        [
+          281.4,
+          782.47
+        ],
+        [
+          299.4,
+          799.82
+        ],
+        [
+          315.2,
+          811.76
+        ],
+        [
+          332.2,
+          819.77
+        ],
+        [
+          349.2,
+          824.99
+        ],
+        [
+          365.8,
+          828.3
+        ],
+        [
+          382.2,
+          830.26
+        ],
+        [
+          398.8,
+          831.32
+        ],
+        [
+          415.7,
+          831.81
+        ],
+        [
+          432.2,
+          831.98
+        ],
+        [
+          449.2,
+          832
+        ],
+        [
+          466.4,
+          832
+        ],
+        [
+          498.4,
+          null
+        ],
+        [
+          501.4,
+          null
+        ],
+        [
+          514.4,
+          null
+        ],
+        [
+          531.6,
+          null
+        ],
+        [
+          548.4,
+          null
+        ],
+        [
+          565.2,
+          null
+        ],
+        [
+          581.5,
+          null
+        ],
+        [
+          598.3,
+          null
+        ],
+        [
+          615.3,
+          null
+        ],
+        [
+          631.9,
+          null
+        ],
+        [
+          649.3,
+          null
+        ],
+        [
+          666.3,
+          null
+        ],
+        [
+          681.9,
+          null
+        ],
+        [
+          699.9,
+          null
+        ],
+        [
+          715,
+          null
+        ],
+        [
+          732.1,
+          null
+        ],
+        [
+          748.7,
+          null
+        ],
+        [
+          764.8,
+          null
+        ],
+        [
+          782.4,
+          null
+        ],
+        [
+          798.3,
+          null
+        ],
+        [
+          814.9,
+          null
+        ],
+        [
+          831.3,
+          null
+        ],
+        [
+          848.1,
+          null
+        ],
+        [
+          864.4,
+          null
+        ],
+        [
+          881.1,
+          null
+        ],
+        [
+          898.2,
+          null
+        ],
+        [
+          914.4,
+          null
+        ],
+        [
+          933.1,
+          null
+        ]
+      ],
+      "backdrop": [
+        [
+          14.5,
+          1
+        ],
+        [
+          31.6,
+          1
+        ],
+        [
+          48.8,
+          1
+        ],
+        [
+          65.9,
+          1
+        ],
+        [
+          83.2,
+          1
+        ],
+        [
+          98.3,
+          1
+        ],
+        [
+          147.8,
+          1
+        ],
+        [
+          151.5,
+          1
+        ],
+        [
+          167.3,
+          0.91
+        ],
+        [
+          181.5,
+          0.82
+        ],
+        [
+          198.4,
+          0.74
+        ],
+        [
+          215.5,
+          0.66
+        ],
+        [
+          231.9,
+          0.58
+        ],
+        [
+          248.2,
+          0.51
+        ],
+        [
+          264.8,
+          0.44
+        ],
+        [
+          281.4,
+          0.38
+        ],
+        [
+          299.4,
+          0.32
+        ],
+        [
+          315.2,
+          0.26
+        ],
+        [
+          332.2,
+          0.2
+        ],
+        [
+          349.2,
+          0.16
+        ],
+        [
+          365.8,
+          0.11
+        ],
+        [
+          382.2,
+          0.08
+        ],
+        [
+          398.8,
+          0.04
+        ],
+        [
+          415.7,
+          0.02
+        ],
+        [
+          432.2,
+          0.01
+        ],
+        [
+          449.2,
+          0
+        ],
+        [
+          466.4,
+          0
+        ],
+        [
+          498.4,
+          null
+        ],
+        [
+          501.4,
+          null
+        ],
+        [
+          514.4,
+          null
+        ],
+        [
+          531.6,
+          null
+        ],
+        [
+          548.4,
+          null
+        ],
+        [
+          565.2,
+          null
+        ],
+        [
+          581.5,
+          null
+        ],
+        [
+          598.3,
+          null
+        ],
+        [
+          615.3,
+          null
+        ],
+        [
+          631.9,
+          null
+        ],
+        [
+          649.3,
+          null
+        ],
+        [
+          666.3,
+          null
+        ],
+        [
+          681.9,
+          null
+        ],
+        [
+          699.9,
+          null
+        ],
+        [
+          715,
+          null
+        ],
+        [
+          732.1,
+          null
+        ],
+        [
+          748.7,
+          null
+        ],
+        [
+          764.8,
+          null
+        ],
+        [
+          782.4,
+          null
+        ],
+        [
+          798.3,
+          null
+        ],
+        [
+          814.9,
+          null
+        ],
+        [
+          831.3,
+          null
+        ],
+        [
+          848.1,
+          null
+        ],
+        [
+          864.4,
+          null
+        ],
+        [
+          881.1,
+          null
+        ],
+        [
+          898.2,
+          null
+        ],
+        [
+          914.4,
+          null
+        ],
+        [
+          933.1,
+          null
+        ]
+      ],
+      "listCard": [
+        [
+          14.5,
+          293.13
+        ],
+        [
+          31.6,
+          293.13
+        ],
+        [
+          48.8,
+          293.13
+        ],
+        [
+          65.9,
+          293.13
+        ],
+        [
+          83.2,
+          293.13
+        ],
+        [
+          98.3,
+          293.13
+        ],
+        [
+          147.8,
+          293.13
+        ],
+        [
+          151.5,
+          293.13
+        ],
+        [
+          167.3,
+          293.13
+        ],
+        [
+          181.5,
+          293.13
+        ],
+        [
+          198.4,
+          293.13
+        ],
+        [
+          215.5,
+          293.13
+        ],
+        [
+          231.9,
+          293.13
+        ],
+        [
+          248.2,
+          293.13
+        ],
+        [
+          264.8,
+          293.13
+        ],
+        [
+          281.4,
+          293.13
+        ],
+        [
+          299.4,
+          293.13
+        ],
+        [
+          315.2,
+          293.13
+        ],
+        [
+          332.2,
+          293.13
+        ],
+        [
+          349.2,
+          293.13
+        ],
+        [
+          365.8,
+          293.13
+        ],
+        [
+          382.2,
+          293.13
+        ],
+        [
+          398.8,
+          293.13
+        ],
+        [
+          415.7,
+          293.13
+        ],
+        [
+          432.2,
+          293.13
+        ],
+        [
+          449.2,
+          293.13
+        ],
+        [
+          466.4,
+          293.13
+        ],
+        [
+          498.4,
+          293.13
+        ],
+        [
+          501.4,
+          293.13
+        ],
+        [
+          514.4,
+          293.13
+        ],
+        [
+          531.6,
+          293.13
+        ],
+        [
+          548.4,
+          293.13
+        ],
+        [
+          565.2,
+          293.13
+        ],
+        [
+          581.5,
+          293.13
+        ],
+        [
+          598.3,
+          293.13
+        ],
+        [
+          615.3,
+          293.13
+        ],
+        [
+          631.9,
+          293.13
+        ],
+        [
+          649.3,
+          293.13
+        ],
+        [
+          666.3,
+          293.13
+        ],
+        [
+          681.9,
+          293.13
+        ],
+        [
+          699.9,
+          293.13
+        ],
+        [
+          715,
+          293.13
+        ],
+        [
+          732.1,
+          293.13
+        ],
+        [
+          748.7,
+          293.13
+        ],
+        [
+          764.8,
+          293.13
+        ],
+        [
+          782.4,
+          293.13
+        ],
+        [
+          798.3,
+          293.13
+        ],
+        [
+          814.9,
+          293.13
+        ],
+        [
+          831.3,
+          293.13
+        ],
+        [
+          848.1,
+          293.13
+        ],
+        [
+          864.4,
+          293.13
+        ],
+        [
+          881.1,
+          293.13
+        ],
+        [
+          898.2,
+          293.13
+        ],
+        [
+          914.4,
+          293.13
+        ],
+        [
+          933.1,
+          293.13
+        ]
+      ]
+    },
+    "gaps": {
+      "count": 54,
+      "median": 16.8,
+      "p95": 18,
+      "max": 49.500000000000014,
+      "over2xMedian": 1
+    },
+    "timings": [
+      {
+        "id": "anim-1",
+        "elementId": "el-2",
+        "target": "backdrop",
+        "kind": "transition",
+        "property": "opacity",
+        "durationMs": 300,
+        "endTimeMs": 300,
+        "easing": "ease-out",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 147.8,
+        "lastSeenAt": 449.2,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          0,
+          16.64,
+          33.34,
+          50.04,
+          66.64,
+          83.34,
+          99.94,
+          116.74,
+          133.34,
+          149.94,
+          166.64,
+          183.34,
+          199.94,
+          216.64,
+          233.34,
+          249.94,
+          266.64,
+          283.24,
+          299.94
+        ]
+      },
+      {
+        "id": "anim-2",
+        "elementId": "el-1",
+        "target": "panel",
+        "kind": "transition",
+        "property": "transform",
+        "durationMs": 300,
+        "endTimeMs": 300,
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 147.8,
+        "lastSeenAt": 449.2,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          0,
+          16.64,
+          33.34,
+          50.04,
+          66.64,
+          83.34,
+          99.94,
+          116.74,
+          133.34,
+          149.94,
+          166.64,
+          183.34,
+          199.94,
+          216.64,
+          233.34,
+          249.94,
+          266.64,
+          283.24,
+          299.94
+        ]
+      }
+    ],
+    "anomalies": [],
+    "latencyChain": {
+      "triggerAt": 42.7,
+      "inputReceivedAt": 49.6,
+      "clickAt": 105.4,
+      "dialogAddedAt": null,
+      "panelAddedAt": null,
+      "statePendingAt": null,
+      "stateOpenAt": null,
+      "readyAt": null,
+      "firstChangeAt": 167.3
+    },
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "dialog 已卸载（无任何打开弹层）",
+        "pass": true
+      },
+      {
+        "name": "路由回到 /items",
+        "pass": true
+      },
+      {
+        "name": "列表仍渲染 12 张卡片且滚动锁已解除",
+        "pass": true
+      },
+      {
+        "name": "详情关闭后焦点恢复到原卡片",
+        "pass": true
+      },
+      {
+        "name": "详情关闭后窗口滚动位置恢复",
+        "pass": true
+      }
+    ],
+    "exceptions": [],
+    "shots": [
+      {
+        "name": "before",
+        "file": "shots/item-detail-close-r1-before.png",
+        "still": null
+      },
+      {
+        "name": "after",
+        "file": "shots/item-detail-close-r1-after.png",
+        "still": null
+      },
+      {
+        "name": "mid-25",
+        "file": "shots/item-detail-close-r1-mid-25.png",
+        "still": {
+          "replay": true,
+          "requestedFraction": 0.25,
+          "fraction": 0.25,
+          "atMs": 116.4,
+          "status": "PASS",
+          "paused": 1,
+          "elementId": "el-5",
+          "method": "independent replay; pause target animations and seek actual animation timeline",
+          "seekTime": 75,
+          "settledLayoutAnimations": [],
+          "pausedAnimations": [
+            {
+              "id": "anim-3",
+              "elementId": "el-5",
+              "target": "frozen",
+              "pseudo": "",
+              "k": "transition",
+              "p": "transform",
+              "s": "paused",
+              "pending": false,
+              "d": 300,
+              "e": 300,
+              "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+              "delay": 0,
+              "iterations": 1,
+              "rate": 1,
+              "currentTime": 75,
+              "startTime": null,
+              "progress": 0.7648647190589527
+            }
+          ],
+          "currentTime": 75,
+          "durationMs": 300,
+          "actualProgress": 0.7648647190589527,
+          "frozen": {
+            "id": "el-5",
+            "x": 0,
+            "y": 648.37,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 636.37,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "screenshotWallMs": 234,
+          "afterScreenshot": {
+            "id": "el-5",
+            "x": 0,
+            "y": 648.37,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 636.37,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        }
+      },
+      {
+        "name": "mid-50",
+        "file": "shots/item-detail-close-r1-mid-50.png",
+        "still": {
+          "replay": true,
+          "requestedFraction": 0.5,
+          "fraction": 0.5,
+          "atMs": 124.3,
+          "status": "PASS",
+          "paused": 1,
+          "elementId": "el-6",
+          "method": "independent replay; pause target animations and seek actual animation timeline",
+          "seekTime": 150,
+          "settledLayoutAnimations": [],
+          "pausedAnimations": [
+            {
+              "id": "anim-4",
+              "elementId": "el-6",
+              "target": "frozen",
+              "pseudo": "",
+              "k": "transition",
+              "p": "transform",
+              "s": "paused",
+              "pending": false,
+              "d": 300,
+              "e": 300,
+              "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+              "delay": 0,
+              "iterations": 1,
+              "rate": 1,
+              "currentTime": 150,
+              "startTime": null,
+              "progress": 0.9613825478071126
+            }
+          ],
+          "currentTime": 150,
+          "durationMs": 300,
+          "actualProgress": 0.9613825478071126,
+          "frozen": {
+            "id": "el-6",
+            "x": 0,
+            "y": 811.87,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 799.87,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "screenshotWallMs": 215,
+          "afterScreenshot": {
+            "id": "el-6",
+            "x": 0,
+            "y": 811.87,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 799.87,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        }
+      },
+      {
+        "name": "mid-75",
+        "file": "shots/item-detail-close-r1-mid-75.png",
+        "still": {
+          "replay": true,
+          "requestedFraction": 0.75,
+          "fraction": 0.75,
+          "atMs": 116.5,
+          "status": "PASS",
+          "paused": 1,
+          "elementId": "el-7",
+          "method": "independent replay; pause target animations and seek actual animation timeline",
+          "seekTime": 225,
+          "settledLayoutAnimations": [],
+          "pausedAnimations": [
+            {
+              "id": "anim-5",
+              "elementId": "el-7",
+              "target": "frozen",
+              "pseudo": "",
+              "k": "transition",
+              "p": "transform",
+              "s": "paused",
+              "pending": false,
+              "d": 300,
+              "e": 300,
+              "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+              "delay": 0,
+              "iterations": 1,
+              "rate": 1,
+              "currentTime": 225,
+              "startTime": null,
+              "progress": 0.9968942173257588
+            }
+          ],
+          "currentTime": 225,
+          "durationMs": 300,
+          "actualProgress": 0.9968942173257588,
+          "frozen": {
+            "id": "el-7",
+            "x": 0,
+            "y": 841.42,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 829.42,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "screenshotWallMs": 241,
+          "afterScreenshot": {
+            "id": "el-7",
+            "x": 0,
+            "y": 841.42,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 829.42,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        }
+      }
+    ],
+    "functionalFailure": false,
+    "runIndex": 1,
+    "notes": [],
+    "contextCleanup": {
+      "status": "PASS",
+      "results": [
+        "context disposed"
+      ]
+    },
+    "rawFile": "raw/item-detail-close-r1.json"
+  },
+  "record": {
+    "meta": {
+      "sampler": "2",
+      "startedAt": "2026-10-28T19:06:47.124Z",
+      "url": "http://127.0.0.1:5173/items/01M61YGPRF8ZCANGYMA68G829Z",
+      "viewport": {
+        "w": 390,
+        "h": 844,
+        "dpr": 2
+      },
+      "reducedMotion": false,
+      "colorScheme": "light",
+      "appThemeBefore": "light",
+      "geometryScope": "CSS viewport border boxes; own transform tx/ty; no ancestor/layout decomposition",
+      "config": {
+        "targets": [
+          {
+            "sel": ".modal-sheet-panel",
+            "label": "panel"
+          },
+          {
+            "sel": ".modal-sheet-backdrop",
+            "label": "backdrop"
+          },
+          {
+            "sel": "[data-item-card]:nth-child(5)",
+            "label": "listCard"
+          }
+        ],
+        "settleMs": 420,
+        "maxMs": 3200
+      },
+      "appThemeAfter": "light"
+    },
+    "frames": [
+      {
+        "t": 14.5,
+        "rafTime": 14,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 12,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.8
+      },
+      {
+        "t": 31.6,
+        "rafTime": 30.7,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 12,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 48.8,
+        "rafTime": 47.4,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 12,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 65.9,
+        "rafTime": 64,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 12,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 83.2,
+        "rafTime": 80.7,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 12,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 98.3,
+        "rafTime": 97.4,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 12,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 147.8,
+        "rafTime": 114,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 12,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 151.5,
+        "rafTime": 147.4,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 12,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 167.3,
+        "rafTime": 164,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 209.13,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 197.13,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.91,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.9
+      },
+      {
+        "t": 181.5,
+        "rafTime": 180.7,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 376.51,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 364.51,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.82,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.7
+      },
+      {
+        "t": 198.4,
+        "rafTime": 197.4,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 509.44,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 497.44,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.74,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 215.5,
+        "rafTime": 214,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 608.96,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 596.96,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.66,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.9
+      },
+      {
+        "t": 231.9,
+        "rafTime": 230.7,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 681.64,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 669.64,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.58,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 248.2,
+        "rafTime": 247.3,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 732.96,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 720.96,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.51,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.7
+      },
+      {
+        "t": 264.8,
+        "rafTime": 264.1,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 769.41,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 757.41,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.44,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 281.4,
+        "rafTime": 280.7,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 794.47,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 782.47,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.38,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 299.4,
+        "rafTime": 297.3,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 811.82,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 799.82,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.32,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 315.2,
+        "rafTime": 314,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 823.76,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 811.76,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.26,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 332.2,
+        "rafTime": 330.7,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 831.77,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 819.77,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.2,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 349.2,
+        "rafTime": 347.3,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 836.99,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 824.99,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.16,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 365.8,
+        "rafTime": 364,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 840.3,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 828.3,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.11,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.7
+      },
+      {
+        "t": 382.2,
+        "rafTime": 380.7,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 842.26,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 830.26,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.08,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 398.8,
+        "rafTime": 397.3,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 843.32,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 831.32,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.04,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.6
+      },
+      {
+        "t": 415.7,
+        "rafTime": 414,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 843.81,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 831.81,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.02,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.7
+      },
+      {
+        "t": 432.2,
+        "rafTime": 430.6,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 843.98,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 831.98,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.01,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.8
+      },
+      {
+        "t": 449.2,
+        "rafTime": 447.3,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 844,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 832,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.8
+      },
+      {
+        "t": 466.4,
+        "rafTime": 464,
+        "tg": {
+          "panel": {
+            "id": "el-1",
+            "x": 0,
+            "y": 844,
+            "w": 390,
+            "h": 832,
+            "o": 1,
+            "tx": 0,
+            "ty": 832,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.85338,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "backdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 498.4,
+        "rafTime": 480.6,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 501.4,
+        "rafTime": 497.3,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 514.4,
+        "rafTime": 514,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 531.6,
+        "rafTime": 530.7,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.6
+      },
+      {
+        "t": 548.4,
+        "rafTime": 547.4,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 565.2,
+        "rafTime": 564,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 581.5,
+        "rafTime": 580.7,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 598.3,
+        "rafTime": 597.3,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 615.3,
+        "rafTime": 614,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 631.9,
+        "rafTime": 630.7,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 649.3,
+        "rafTime": 647.4,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 666.3,
+        "rafTime": 664,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 681.9,
+        "rafTime": 680.6,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 699.9,
+        "rafTime": 697.3,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 715,
+        "rafTime": 714,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 732.1,
+        "rafTime": 730.6,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 748.7,
+        "rafTime": 747.3,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 764.8,
+        "rafTime": 764,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 782.4,
+        "rafTime": 780.6,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 798.3,
+        "rafTime": 797.3,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 814.9,
+        "rafTime": 814,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 831.3,
+        "rafTime": 830.7,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 848.1,
+        "rafTime": 847.4,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 864.4,
+        "rafTime": 863.9,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 881.1,
+        "rafTime": 880.7,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 898.2,
+        "rafTime": 897.3,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 914.4,
+        "rafTime": 914,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 933.1,
+        "rafTime": 930.7,
+        "tg": {
+          "panel": null,
+          "backdrop": null,
+          "listCard": {
+            "id": "el-3",
+            "x": 16,
+            "y": 293.13,
+            "w": 171,
+            "h": 258.56,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 401,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      }
+    ],
+    "events": [
+      {
+        "eventId": "event-1",
+        "t": 65.8,
+        "type": "transitionrun",
+        "p": "opacity",
+        "target": null,
+        "parentLabel": "panel",
+        "elementId": "el-4",
+        "pseudo": "",
+        "instanceId": "instance-1",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 2427,
+        "connected": true
+      },
+      {
+        "eventId": "event-2",
+        "t": 65.9,
+        "type": "transitionstart",
+        "p": "opacity",
+        "target": null,
+        "parentLabel": "panel",
+        "elementId": "el-4",
+        "pseudo": "",
+        "instanceId": "instance-1",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 2427,
+        "connected": true
+      },
+      {
+        "eventId": "event-3",
+        "t": 147.3,
+        "type": "transitioncancel",
+        "p": "opacity",
+        "target": null,
+        "parentLabel": "panel",
+        "elementId": "el-4",
+        "pseudo": "",
+        "instanceId": "instance-1",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 33.37,
+        "timeStamp": 2483.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-4",
+        "t": 147.6,
+        "type": "transitionrun",
+        "p": "opacity",
+        "target": null,
+        "parentLabel": "panel",
+        "elementId": "el-4",
+        "pseudo": "",
+        "instanceId": "instance-2",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 2483.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-5",
+        "t": 147.6,
+        "type": "transitionstart",
+        "p": "opacity",
+        "target": null,
+        "parentLabel": "panel",
+        "elementId": "el-4",
+        "pseudo": "",
+        "instanceId": "instance-2",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 2483.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-6",
+        "t": 147.7,
+        "type": "transitionrun",
+        "p": "opacity",
+        "target": "backdrop",
+        "parentLabel": null,
+        "elementId": "el-2",
+        "pseudo": "",
+        "instanceId": "instance-3",
+        "animationId": "anim-1",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 2523.8,
+        "connected": true
+      },
+      {
+        "eventId": "event-7",
+        "t": 147.8,
+        "type": "transitionstart",
+        "p": "opacity",
+        "target": "backdrop",
+        "parentLabel": null,
+        "elementId": "el-2",
+        "pseudo": "",
+        "instanceId": "instance-3",
+        "animationId": "anim-1",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 2523.8,
+        "connected": true
+      },
+      {
+        "eventId": "event-8",
+        "t": 147.8,
+        "type": "transitionrun",
+        "p": "transform",
+        "target": "panel",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-4",
+        "animationId": "anim-2",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 2523.9,
+        "connected": true
+      },
+      {
+        "eventId": "event-9",
+        "t": 147.8,
+        "type": "transitionstart",
+        "p": "transform",
+        "target": "panel",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-4",
+        "animationId": "anim-2",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 2523.9,
+        "connected": true
+      },
+      {
+        "eventId": "event-10",
+        "t": 151.4,
+        "type": "transitionend",
+        "p": "opacity",
+        "target": null,
+        "parentLabel": "panel",
+        "elementId": "el-4",
+        "pseudo": "",
+        "instanceId": "instance-2",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 26.36,
+        "timeStamp": 2527.8,
+        "connected": true
+      },
+      {
+        "eventId": "event-11",
+        "t": 466,
+        "type": "transitionend",
+        "p": "opacity",
+        "target": "backdrop",
+        "parentLabel": null,
+        "elementId": "el-2",
+        "pseudo": "",
+        "instanceId": "instance-3",
+        "animationId": "anim-1",
+        "ambiguous": false,
+        "elapsedMs": 300,
+        "timeStamp": 2842.8,
+        "connected": true
+      },
+      {
+        "eventId": "event-12",
+        "t": 466,
+        "type": "transitionend",
+        "p": "transform",
+        "target": "panel",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-4",
+        "animationId": "anim-2",
+        "ambiguous": false,
+        "elapsedMs": 300,
+        "timeStamp": 2842.8,
+        "connected": true
+      },
+      {
+        "eventId": "event-13",
+        "t": 466.4,
+        "id": "anim-1",
+        "elementId": "el-2",
+        "target": "backdrop",
+        "pseudo": "",
+        "k": "transition",
+        "p": "opacity",
+        "s": "finished",
+        "pending": false,
+        "d": 300,
+        "e": 300,
+        "g": "ease-out",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": 300,
+        "startTime": 2524.26,
+        "progress": null,
+        "type": "waapifinish",
+        "animationId": "anim-1"
+      },
+      {
+        "eventId": "event-14",
+        "t": 466.4,
+        "id": "anim-2",
+        "elementId": "el-1",
+        "target": "panel",
+        "pseudo": "",
+        "k": "transition",
+        "p": "transform",
+        "s": "finished",
+        "pending": false,
+        "d": 300,
+        "e": 300,
+        "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": 300,
+        "startTime": 2524.26,
+        "progress": null,
+        "type": "waapifinish",
+        "animationId": "anim-2"
+      }
+    ],
+    "animations": [
+      {
+        "t": 14.5,
+        "list": []
+      },
+      {
+        "t": 31.6,
+        "list": []
+      },
+      {
+        "t": 48.8,
+        "list": []
+      },
+      {
+        "t": 65.9,
+        "list": []
+      },
+      {
+        "t": 83.2,
+        "list": []
+      },
+      {
+        "t": 98.3,
+        "list": []
+      },
+      {
+        "t": 147.8,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": true,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": true,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 151.5,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": true,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": true,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 167.3,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.64,
+            "startTime": 2524.26,
+            "progress": 0.09098424572430563
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.64,
+            "startTime": 2524.26,
+            "progress": 0.23693520013920055
+          }
+        ]
+      },
+      {
+        "t": 181.5,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.34,
+            "startTime": 2524.26,
+            "progress": 0.1776040401238516
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.34,
+            "startTime": 2524.26,
+            "progress": 0.43811080426776633
+          }
+        ]
+      },
+      {
+        "t": 198.4,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 50.04,
+            "startTime": 2524.26,
+            "progress": 0.2605494475909992
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 50.04,
+            "startTime": 2524.26,
+            "progress": 0.5978862712322288
+          }
+        ]
+      },
+      {
+        "t": 215.5,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 66.64,
+            "startTime": 2524.26,
+            "progress": 0.3396005729912798
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 66.64,
+            "startTime": 2524.26,
+            "progress": 0.7175034630702812
+          }
+        ]
+      },
+      {
+        "t": 231.9,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 83.34,
+            "startTime": 2524.26,
+            "progress": 0.4157684916626738
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 83.34,
+            "startTime": 2524.26,
+            "progress": 0.804854978766246
+          }
+        ]
+      },
+      {
+        "t": 248.2,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 99.94,
+            "startTime": 2524.26,
+            "progress": 0.4881065038494774
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 99.94,
+            "startTime": 2524.26,
+            "progress": 0.8665419116014806
+          }
+        ]
+      },
+      {
+        "t": 264.8,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 116.74,
+            "startTime": 2524.26,
+            "progress": 0.5577925104673229
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 116.74,
+            "startTime": 2524.26,
+            "progress": 0.9103434499259119
+          }
+        ]
+      },
+      {
+        "t": 281.4,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 133.34,
+            "startTime": 2524.26,
+            "progress": 0.6230183659828465
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 133.34,
+            "startTime": 2524.26,
+            "progress": 0.9404700665754417
+          }
+        ]
+      },
+      {
+        "t": 299.4,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 149.94,
+            "startTime": 2524.26,
+            "progress": 0.6844391854580634
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 149.94,
+            "startTime": 2524.26,
+            "progress": 0.9613235627622707
+          }
+        ]
+      },
+      {
+        "t": 315.2,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 166.64,
+            "startTime": 2524.26,
+            "progress": 0.7421419949375486
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 166.64,
+            "startTime": 2524.26,
+            "progress": 0.9756683677870239
+          }
+        ]
+      },
+      {
+        "t": 332.2,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 183.34,
+            "startTime": 2524.26,
+            "progress": 0.7954382629061475
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 183.34,
+            "startTime": 2524.26,
+            "progress": 0.9852988160806566
+          }
+        ]
+      },
+      {
+        "t": 349.2,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 199.94,
+            "startTime": 2524.26,
+            "progress": 0.8436790583245619
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 199.94,
+            "startTime": 2524.26,
+            "progress": 0.9915695740570692
+          }
+        ]
+      },
+      {
+        "t": 365.8,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 216.64,
+            "startTime": 2524.26,
+            "progress": 0.8869933615250447
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 216.64,
+            "startTime": 2524.26,
+            "progress": 0.9955471991471928
+          }
+        ]
+      },
+      {
+        "t": 382.2,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 233.34,
+            "startTime": 2524.26,
+            "progress": 0.9245201109967672
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 233.34,
+            "startTime": 2524.26,
+            "progress": 0.9979094488245018
+          }
+        ]
+      },
+      {
+        "t": 398.8,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 249.94,
+            "startTime": 2524.26,
+            "progress": 0.9554075969859038
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 249.94,
+            "startTime": 2524.26,
+            "progress": 0.9991829807560456
+          }
+        ]
+      },
+      {
+        "t": 415.7,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 266.64,
+            "startTime": 2524.26,
+            "progress": 0.9791727123883678
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 266.64,
+            "startTime": 2524.26,
+            "progress": 0.9997760787360461
+          }
+        ]
+      },
+      {
+        "t": 432.2,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 283.24,
+            "startTime": 2524.26,
+            "progress": 0.9944494685082791
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 283.24,
+            "startTime": 2524.26,
+            "progress": 0.9999735983353918
+          }
+        ]
+      },
+      {
+        "t": 449.2,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "backdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 299.94,
+            "startTime": 2524.26,
+            "progress": 0.999999931798497
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "panel",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 299.94,
+            "startTime": 2524.26,
+            "progress": 0.9999999999990309
+          }
+        ]
+      },
+      {
+        "t": 466.4,
+        "list": []
+      },
+      {
+        "t": 498.4,
+        "list": []
+      },
+      {
+        "t": 501.4,
+        "list": []
+      },
+      {
+        "t": 514.4,
+        "list": []
+      },
+      {
+        "t": 531.6,
+        "list": []
+      },
+      {
+        "t": 548.4,
+        "list": []
+      },
+      {
+        "t": 565.2,
+        "list": []
+      },
+      {
+        "t": 581.5,
+        "list": []
+      },
+      {
+        "t": 598.3,
+        "list": []
+      },
+      {
+        "t": 615.3,
+        "list": []
+      },
+      {
+        "t": 631.9,
+        "list": []
+      },
+      {
+        "t": 649.3,
+        "list": []
+      },
+      {
+        "t": 666.3,
+        "list": []
+      },
+      {
+        "t": 681.9,
+        "list": []
+      },
+      {
+        "t": 699.9,
+        "list": []
+      },
+      {
+        "t": 715,
+        "list": []
+      },
+      {
+        "t": 732.1,
+        "list": []
+      },
+      {
+        "t": 748.7,
+        "list": []
+      },
+      {
+        "t": 764.8,
+        "list": []
+      },
+      {
+        "t": 782.4,
+        "list": []
+      },
+      {
+        "t": 798.3,
+        "list": []
+      },
+      {
+        "t": 814.9,
+        "list": []
+      },
+      {
+        "t": 831.3,
+        "list": []
+      },
+      {
+        "t": 848.1,
+        "list": []
+      },
+      {
+        "t": 864.4,
+        "list": []
+      },
+      {
+        "t": 881.1,
+        "list": []
+      },
+      {
+        "t": 898.2,
+        "list": []
+      },
+      {
+        "t": 914.4,
+        "list": []
+      },
+      {
+        "t": 933.1,
+        "list": []
+      }
+    ],
+    "triggerError": null,
+    "triggerAt": 42.7,
+    "truncated": {
+      "events": 0,
+      "animations": 0,
+      "snapshots": 0,
+      "frames": 0
+    },
+    "visibility": [
+      {
+        "t": 0.2,
+        "state": "visible"
+      }
+    ],
+    "lifecycles": [
+      {
+        "t": 14.5,
+        "target": "panel",
+        "from": null,
+        "to": "el-1"
+      },
+      {
+        "t": 14.5,
+        "target": "backdrop",
+        "from": null,
+        "to": "el-2"
+      },
+      {
+        "t": 14.5,
+        "target": "listCard",
+        "from": null,
+        "to": "el-3"
+      },
+      {
+        "t": 498.4,
+        "target": "panel",
+        "from": "el-1",
+        "to": null
+      },
+      {
+        "t": 498.4,
+        "target": "backdrop",
+        "from": "el-2",
+        "to": null
+      }
+    ],
+    "totalMs": 933.4,
+    "settledBy": "stable",
+    "timeline": {
+      "clock": "performance.now relative to capture start; Node send times are a separate clock (see record.input.sentAt)",
+      "input": {
+        "pointerdown": {
+          "t": 49.6,
+          "timeStamp": 2426.3
+        },
+        "mousedown": {
+          "t": 49.9,
+          "timeStamp": 2426.3
+        },
+        "click": {
+          "t": 105.4,
+          "timeStamp": 2480.9
+        }
+      },
+      "dom": [
+        {
+          "t": 144.8,
+          "kind": "attr",
+          "target": "DIV",
+          "attr": "data-state",
+          "value": "closing"
+        },
+        {
+          "t": 496.7,
+          "kind": "attr",
+          "target": "DIALOG",
+          "attr": "open",
+          "value": ""
+        }
+      ]
+    },
+    "input": {
+      "type": "CDP mouse",
+      "pressMs": 40,
+      "point": {
+        "x": 39,
+        "y": 53
+      },
+      "sentAt": {
+        "epochMs": 1793214407166,
+        "perfMs": 34895
+      }
+    }
+  },
+  "network": {
+    "policy": "Fetch Request interception + owned-server CSP; only local origin; no workers/frames/external connections",
+    "blocked": [],
+    "requests": [
+      {
+        "url": "http://127.0.0.1:5173/items",
+        "method": "GET",
+        "type": "Document",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/@vite/client",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/main.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react_jsx-dev-runtime.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-dom_client.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/index.css",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/App.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/theme/ThemeProvider.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/mock/loadDemoData.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/db.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/backupService.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/pwaUpdate.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/syncService.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/@fs/D:/Codex/item-storage-app-motion-integration/node_modules/vite/dist/client/env.mjs",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-BHCDMOPZ.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-BJ7B4R26.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/dexie.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-router.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-router_dom.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/itemPanelRouting.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/seed.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/categoryRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/pwa.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/BottomNav.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/UpdateBanner.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/pwa/PwaUpdateContext.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/SyncContext.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/HomePage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/ItemsListPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/CategoriesPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/CategoryDetailPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/SearchPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/ItemFormPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/ItemDetailPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/SettingsPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/CategoryManagePage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/TagManagePage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/IconLibraryPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ItemPanel.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/navigationMotion.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/pwaUpdateTransition.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/Toast.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/theme/theme.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/ulid.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/tagRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/lifecycle.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/backupRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/backup.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/appInfo.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/@vite-plugin-pwa/virtual:pwa-register",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/pwa/updateManager.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/pwa/updatePolicy.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/checkServiceWorkerUpdate.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/syncRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/syncDirty.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncEngine.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/syncBytes.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncTransport.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncPolicy.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/localChangeDebounce.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-Z7WWVKNR.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-WBQLO2WP.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-CKWWWIIU.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/types.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/data/icons.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/data/categories.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/categoryTree.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/itemRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/dexie-react-hooks.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/purchase.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/data/hooks.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/data/viewModels.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ItemCard.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/SectionHeader.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/CategoryCard.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/TagChip.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ModalSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/overviewItems.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/warrantyReminders.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/SearchField.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/useLayoutMotion.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/data/itemPresentation.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/StatusChip.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/SegmentedControl.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/EmptyState.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/PageHeader.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/searchItems.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/Dialogs.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/DisposalSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ConvertToOwnedSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/useHeaderCollapse.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/IconPickerSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/AiRecognitionSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/recognition.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/DateField.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/WarrantyInput.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/warranty.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/recentIcons.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/IconBrowser.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/tagNormalize.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/syncPayload.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncLimits.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/syncProtocol.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/assetRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/WarrantyStrip.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ModalLayer.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/sheetGesture.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/recognition.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/IconGrid.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-dom.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/other.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      }
+    ]
+  },
+  "faultInjection": null,
+  "waitFailure": null,
+  "cleanup": {
+    "status": "PASS",
+    "results": [
+      "context disposed"
+    ]
+  }
+}

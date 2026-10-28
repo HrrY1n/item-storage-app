@@ -1,0 +1,7672 @@
+{
+  "scenario": {
+    "id": "bottom-nav-rapid-switch",
+    "title": "底部导航：中途改向 / 三连击 / 重复点击"
+  },
+  "runIndex": 1,
+  "startedAt": "2026-10-28T19:10:12.052Z",
+  "summary": {
+    "scenarioId": "bottom-nav-rapid-switch",
+    "frames": 71,
+    "totalMs": 1238.2,
+    "triggerAt": 48.5,
+    "settledBy": "stable",
+    "reducedMotion": false,
+    "colorScheme": "light",
+    "appThemeBefore": "light",
+    "appThemeAfter": "light",
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 2
+    },
+    "primary": {
+      "label": "indicator",
+      "signal": "tx",
+      "declaredMs": null,
+      "expectedMs": null,
+      "actualDeclaredMs": [
+        280
+      ],
+      "easing": [
+        "cubic-bezier(0.22, 1, 0.36, 1)"
+      ],
+      "interval": {
+        "firstChange": 183.3,
+        "lastChange": 637.8,
+        "activeMs": 454.49999999999994,
+        "from": 73.5,
+        "to": 220.5,
+        "net": 147,
+        "min": 73.5,
+        "max": 220.5,
+        "amplitude": 147,
+        "moved": true,
+        "changes": 20,
+        "internalGaps": 0,
+        "instances": [
+          "el-1"
+        ],
+        "leadingNulls": 0,
+        "seriesLength": 71
+      },
+      "eventDuration": {
+        "id": "instance-3",
+        "elementId": "el-1",
+        "animationId": "anim-3",
+        "start": 221.2,
+        "end": 489.1,
+        "elapsedStart": 0,
+        "elapsedEnd": 266.62,
+        "outcome": "cancelled",
+        "ambiguous": false,
+        "durationMs": 267.90000000000003,
+        "engineElapsedMs": 266.62,
+        "segments": [
+          {
+            "id": "instance-3",
+            "elementId": "el-1",
+            "animationId": "anim-3",
+            "start": 221.2,
+            "end": 489.1,
+            "elapsedStart": 0,
+            "elapsedEnd": 266.62,
+            "outcome": "cancelled",
+            "ambiguous": false,
+            "durationMs": 267.90000000000003,
+            "engineElapsedMs": 266.62
+          },
+          {
+            "id": "instance-8",
+            "elementId": "el-1",
+            "animationId": "anim-6",
+            "start": 489.2,
+            "end": 754.9,
+            "elapsedStart": 0,
+            "elapsedEnd": 280,
+            "outcome": "ended",
+            "ambiguous": false,
+            "durationMs": 265.7,
+            "engineElapsedMs": 280
+          }
+        ]
+      },
+      "latencyMs": 134.8,
+      "shape": [
+        0.01,
+        0.244,
+        0.476,
+        0.498,
+        0.5,
+        0.703,
+        0.934,
+        0.989
+      ],
+      "shapeMethod": "median of observed samples in 8 time bins; no interpolation",
+      "requireMotion": false
+    },
+    "secondary": {
+      "route": {
+        "label": "route",
+        "signal": "tx",
+        "declaredMs": null,
+        "expectedMs": null,
+        "actualDeclaredMs": [
+          180
+        ],
+        "easing": [
+          "linear"
+        ],
+        "interval": {
+          "firstChange": 229.3,
+          "lastChange": 622.6,
+          "activeMs": 393.3,
+          "from": 0,
+          "to": 0,
+          "net": 0,
+          "min": 0,
+          "max": 6,
+          "amplitude": 6,
+          "moved": true,
+          "changes": 11,
+          "internalGaps": 2,
+          "instances": [
+            "el-2",
+            "el-3",
+            "el-5"
+          ],
+          "leadingNulls": 0,
+          "seriesLength": 71
+        },
+        "eventDuration": null,
+        "latencyMs": 180.8,
+        "shape": [
+          0.85,
+          0.258,
+          0.045,
+          0,
+          0,
+          1,
+          0.583,
+          0.258
+        ],
+        "shapeMethod": "median of observed samples in 8 time bins; no interpolation",
+        "requireMotion": false
+      }
+    },
+    "series": {
+      "indicator": [
+        [
+          0.6,
+          73.5
+        ],
+        [
+          5.7,
+          73.5
+        ],
+        [
+          21.3,
+          73.5
+        ],
+        [
+          37.6,
+          73.5
+        ],
+        [
+          56.6,
+          73.5
+        ],
+        [
+          70.9,
+          73.5
+        ],
+        [
+          88.8,
+          73.5
+        ],
+        [
+          104.8,
+          73.5
+        ],
+        [
+          121.4,
+          73.5
+        ],
+        [
+          139.3,
+          73.5
+        ],
+        [
+          183.3,
+          75
+        ],
+        [
+          221.4,
+          75
+        ],
+        [
+          229.3,
+          94.02
+        ],
+        [
+          289,
+          109.37
+        ],
+        [
+          314.2,
+          140.58
+        ],
+        [
+          322.7,
+          143.53
+        ],
+        [
+          337.9,
+          145.52
+        ],
+        [
+          355.3,
+          146.86
+        ],
+        [
+          372.3,
+          147.73
+        ],
+        [
+          389.4,
+          146.3
+        ],
+        [
+          405,
+          146.64
+        ],
+        [
+          422.9,
+          146.84
+        ],
+        [
+          438.2,
+          146.94
+        ],
+        [
+          462.6,
+          146.99
+        ],
+        [
+          473.5,
+          150
+        ],
+        [
+          489.6,
+          169
+        ],
+        [
+          505,
+          184.81
+        ],
+        [
+          523,
+          196.32
+        ],
+        [
+          538.8,
+          204.56
+        ],
+        [
+          554.5,
+          210.81
+        ],
+        [
+          571.6,
+          214.4
+        ],
+        [
+          588,
+          216.58
+        ],
+        [
+          604.8,
+          218.56
+        ],
+        [
+          622.6,
+          219.13
+        ],
+        [
+          637.8,
+          219.99
+        ],
+        [
+          656,
+          219.8
+        ],
+        [
+          672.7,
+          220.14
+        ],
+        [
+          689.1,
+          220.34
+        ],
+        [
+          705.7,
+          220.44
+        ],
+        [
+          721.3,
+          220.49
+        ],
+        [
+          737.7,
+          220.5
+        ],
+        [
+          755.1,
+          220.5
+        ],
+        [
+          771.5,
+          220.5
+        ],
+        [
+          787.6,
+          220.5
+        ],
+        [
+          804,
+          220.5
+        ],
+        [
+          820.9,
+          220.5
+        ],
+        [
+          837.9,
+          220.5
+        ],
+        [
+          855,
+          220.5
+        ],
+        [
+          871.2,
+          220.5
+        ],
+        [
+          887.2,
+          220.5
+        ],
+        [
+          904.8,
+          220.5
+        ],
+        [
+          921.6,
+          220.5
+        ],
+        [
+          938.3,
+          220.5
+        ],
+        [
+          956.4,
+          220.5
+        ],
+        [
+          971,
+          220.5
+        ],
+        [
+          988.2,
+          220.5
+        ],
+        [
+          1004.7,
+          220.5
+        ],
+        [
+          1021.3,
+          220.5
+        ],
+        [
+          1038.3,
+          220.5
+        ],
+        [
+          1054.4,
+          220.5
+        ],
+        [
+          1071.9,
+          220.5
+        ],
+        [
+          1088.1,
+          220.5
+        ],
+        [
+          1104.7,
+          220.5
+        ],
+        [
+          1121.6,
+          220.5
+        ],
+        [
+          1137.8,
+          220.5
+        ],
+        [
+          1154.4,
+          220.5
+        ],
+        [
+          1172.6,
+          220.5
+        ],
+        [
+          1188.1,
+          220.5
+        ],
+        [
+          1204.1,
+          220.5
+        ],
+        [
+          1220.8,
+          220.5
+        ],
+        [
+          1237.9,
+          220.5
+        ]
+      ],
+      "route": [
+        [
+          0.6,
+          0
+        ],
+        [
+          5.7,
+          0
+        ],
+        [
+          21.3,
+          0
+        ],
+        [
+          37.6,
+          0
+        ],
+        [
+          56.6,
+          0
+        ],
+        [
+          70.9,
+          0
+        ],
+        [
+          88.8,
+          0
+        ],
+        [
+          104.8,
+          0
+        ],
+        [
+          121.4,
+          0
+        ],
+        [
+          139.3,
+          0
+        ],
+        [
+          183.3,
+          null
+        ],
+        [
+          183.3,
+          6
+        ],
+        [
+          221.4,
+          6
+        ],
+        [
+          229.3,
+          5.1
+        ],
+        [
+          289,
+          4.28
+        ],
+        [
+          314.2,
+          1.55
+        ],
+        [
+          322.7,
+          1.03
+        ],
+        [
+          337.9,
+          0.6
+        ],
+        [
+          355.3,
+          0.27
+        ],
+        [
+          372.3,
+          0.06
+        ],
+        [
+          389.4,
+          0
+        ],
+        [
+          405,
+          0
+        ],
+        [
+          422.9,
+          0
+        ],
+        [
+          438.2,
+          0
+        ],
+        [
+          462.6,
+          0
+        ],
+        [
+          473.5,
+          null
+        ],
+        [
+          473.5,
+          6
+        ],
+        [
+          489.6,
+          6
+        ],
+        [
+          505,
+          6
+        ],
+        [
+          523,
+          5.11
+        ],
+        [
+          538.8,
+          4.28
+        ],
+        [
+          554.5,
+          3.5
+        ],
+        [
+          571.6,
+          2.79
+        ],
+        [
+          588,
+          2.14
+        ],
+        [
+          604.8,
+          1.55
+        ],
+        [
+          622.6,
+          1.03
+        ],
+        [
+          637.8,
+          0.6
+        ],
+        [
+          656,
+          0.27
+        ],
+        [
+          672.7,
+          0.06
+        ],
+        [
+          689.1,
+          0
+        ],
+        [
+          705.7,
+          0
+        ],
+        [
+          721.3,
+          0
+        ],
+        [
+          737.7,
+          0
+        ],
+        [
+          755.1,
+          0
+        ],
+        [
+          771.5,
+          0
+        ],
+        [
+          787.6,
+          0
+        ],
+        [
+          804,
+          0
+        ],
+        [
+          820.9,
+          0
+        ],
+        [
+          837.9,
+          0
+        ],
+        [
+          855,
+          0
+        ],
+        [
+          871.2,
+          0
+        ],
+        [
+          887.2,
+          0
+        ],
+        [
+          904.8,
+          0
+        ],
+        [
+          921.6,
+          0
+        ],
+        [
+          938.3,
+          0
+        ],
+        [
+          956.4,
+          0
+        ],
+        [
+          971,
+          0
+        ],
+        [
+          988.2,
+          0
+        ],
+        [
+          1004.7,
+          0
+        ],
+        [
+          1021.3,
+          0
+        ],
+        [
+          1038.3,
+          0
+        ],
+        [
+          1054.4,
+          0
+        ],
+        [
+          1071.9,
+          0
+        ],
+        [
+          1088.1,
+          0
+        ],
+        [
+          1104.7,
+          0
+        ],
+        [
+          1121.6,
+          0
+        ],
+        [
+          1137.8,
+          0
+        ],
+        [
+          1154.4,
+          0
+        ],
+        [
+          1172.6,
+          0
+        ],
+        [
+          1188.1,
+          0
+        ],
+        [
+          1204.1,
+          0
+        ],
+        [
+          1220.8,
+          0
+        ],
+        [
+          1237.9,
+          0
+        ]
+      ]
+    },
+    "gaps": {
+      "count": 70,
+      "median": 16.6,
+      "p95": 25.19999999999999,
+      "max": 59.69999999999999,
+      "over2xMedian": 3
+    },
+    "timings": [
+      {
+        "id": "anim-1",
+        "elementId": "el-1",
+        "target": "indicator",
+        "kind": "transition",
+        "property": "scale",
+        "durationMs": 240,
+        "endTimeMs": 240,
+        "easing": "ease",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 88.8,
+        "lastSeenAt": 121.4,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          16.68,
+          33.28
+        ]
+      },
+      {
+        "id": "anim-2",
+        "elementId": "el-1",
+        "target": "indicator",
+        "kind": "transition",
+        "property": "scale",
+        "durationMs": 39.05754181939134,
+        "endTimeMs": 39.05754181939134,
+        "easing": "ease",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 139.3,
+        "lastSeenAt": 183.3,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          16.7,
+          33.4
+        ]
+      },
+      {
+        "id": "anim-3",
+        "elementId": "el-1",
+        "target": "indicator",
+        "kind": "transition",
+        "property": "transform",
+        "durationMs": 280,
+        "endTimeMs": 280,
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 183.3,
+        "lastSeenAt": 462.6,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          0,
+          16.72,
+          33.32,
+          99.92,
+          116.62,
+          133.32,
+          150.02,
+          166.72,
+          183.32,
+          200.02,
+          216.72,
+          233.32,
+          249.92
+        ]
+      },
+      {
+        "id": "anim-4",
+        "elementId": "el-3",
+        "target": "route",
+        "kind": "animation",
+        "property": "route-forward",
+        "durationMs": 180,
+        "endTimeMs": 180,
+        "easing": "linear",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 183.3,
+        "lastSeenAt": 372.3,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          0,
+          16.72,
+          33.32,
+          99.92,
+          116.62,
+          133.32,
+          150.02,
+          166.72
+        ]
+      },
+      {
+        "id": "anim-5",
+        "elementId": "el-1",
+        "target": "indicator",
+        "kind": "transition",
+        "property": "scale",
+        "durationMs": 240,
+        "endTimeMs": 240,
+        "easing": "ease",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 422.9,
+        "lastSeenAt": 438.2,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          0
+        ]
+      },
+      {
+        "id": "anim-6",
+        "elementId": "el-1",
+        "target": "indicator",
+        "kind": "transition",
+        "property": "transform",
+        "durationMs": 280,
+        "endTimeMs": 280,
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 473.5,
+        "lastSeenAt": 737.7,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          16.7,
+          33.4,
+          50,
+          66.7,
+          83.4,
+          100.1,
+          116.7,
+          133.4,
+          150,
+          166.7,
+          183.4,
+          200,
+          216.7,
+          233.4,
+          250.1,
+          266.7
+        ]
+      },
+      {
+        "id": "anim-7",
+        "elementId": "el-5",
+        "target": "route",
+        "kind": "animation",
+        "property": "route-forward",
+        "durationMs": 180,
+        "endTimeMs": 180,
+        "easing": "linear",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 473.5,
+        "lastSeenAt": 672.7,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          0,
+          0,
+          16.63,
+          33.33,
+          50.03,
+          66.73,
+          83.33,
+          100.03,
+          116.63,
+          133.33,
+          150.03,
+          166.63
+        ]
+      }
+    ],
+    "anomalies": [],
+    "latencyChain": {
+      "triggerAt": 48.5,
+      "inputReceivedAt": 81,
+      "clickAt": 126.8,
+      "dialogAddedAt": null,
+      "panelAddedAt": null,
+      "statePendingAt": null,
+      "stateOpenAt": null,
+      "readyAt": null,
+      "firstChangeAt": 183.3
+    },
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "滑动中途改向后路由与 aria-current 落在 /search",
+        "pass": true
+      },
+      {
+        "name": "重定向曲线连续无瞬移（相邻帧最大位移 31.2px ≤ 1.6 Tab 宽）",
+        "pass": true
+      },
+      {
+        "name": "指示器终态停在搜索位（净位移 2 个 Tab 宽）",
+        "pass": true
+      },
+      {
+        "name": "三连击后路由停在 /search 且指示器存在",
+        "pass": true
+      },
+      {
+        "name": "重复点击同一 Tab 后指示器位置不漂移（220.5 → 220.5px）",
+        "pass": true
+      }
+    ],
+    "exceptions": [],
+    "shots": [
+      {
+        "name": "before",
+        "file": "shots/bottom-nav-rapid-switch-r1-before.png",
+        "still": null
+      },
+      {
+        "name": "after",
+        "file": "shots/bottom-nav-rapid-switch-r1-after.png",
+        "still": null
+      }
+    ],
+    "functionalFailure": false,
+    "runIndex": 1,
+    "notes": [
+      "tabWidth=74px，重定向最大相邻帧位移 31.2px"
+    ],
+    "contextCleanup": {
+      "status": "PASS",
+      "results": [
+        "context disposed"
+      ]
+    },
+    "rawFile": "raw/bottom-nav-rapid-switch-r1.json"
+  },
+  "record": {
+    "meta": {
+      "sampler": "2",
+      "startedAt": "2026-10-28T19:10:16.792Z",
+      "url": "http://127.0.0.1:5173/items",
+      "viewport": {
+        "w": 390,
+        "h": 844,
+        "dpr": 2
+      },
+      "reducedMotion": false,
+      "colorScheme": "light",
+      "appThemeBefore": "light",
+      "geometryScope": "CSS viewport border boxes; own transform tx/ty; no ancestor/layout decomposition",
+      "config": {
+        "targets": [
+          {
+            "sel": ".nav-indicator",
+            "label": "indicator"
+          },
+          {
+            "sel": ".route-content",
+            "label": "route"
+          }
+        ],
+        "settleMs": 480,
+        "maxMs": 2600
+      },
+      "appThemeAfter": "light"
+    },
+    "frames": [
+      {
+        "t": 0.6,
+        "rafTime": -13,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.6
+      },
+      {
+        "t": 5.7,
+        "rafTime": 3.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 21.3,
+        "rafTime": 20.4,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 37.6,
+        "rafTime": 37,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 56.6,
+        "rafTime": 53.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 70.9,
+        "rafTime": 70.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 88.8,
+        "rafTime": 87.1,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": null,
+            "sy": null,
+            "scaleSupported": false,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 104.8,
+        "rafTime": 103.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.58,
+            "y": 790.08,
+            "w": 73.66,
+            "h": 47.85,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": null,
+            "sy": null,
+            "scaleSupported": false,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 121.4,
+        "rafTime": 120.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.74,
+            "y": 790.23,
+            "w": 73.98,
+            "h": 47.53,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": null,
+            "sy": null,
+            "scaleSupported": false,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.6
+      },
+      {
+        "t": 139.3,
+        "rafTime": 137,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 89.57,
+            "y": 790.07,
+            "w": 73.63,
+            "h": 47.87,
+            "o": 1,
+            "tx": 73.5,
+            "ty": 0,
+            "sx": null,
+            "sy": null,
+            "scaleSupported": false,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 1784.38,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 183.3,
+        "rafTime": 153.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 91,
+            "y": 803,
+            "w": 75.01,
+            "h": 47.99,
+            "o": 1,
+            "tx": 75,
+            "ty": 0,
+            "sx": null,
+            "sy": null,
+            "scaleSupported": false,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 6,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 0.85,
+            "tx": 6,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 3,
+        "sampleCostMs": 21.5
+      },
+      {
+        "t": 221.4,
+        "rafTime": 203.6,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 91,
+            "y": 803,
+            "w": 75,
+            "h": 48,
+            "o": 1,
+            "tx": 75,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 6,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 0.85,
+            "tx": 6,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 229.3,
+        "rafTime": 220.4,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 110.02,
+            "y": 803,
+            "w": 75,
+            "h": 48,
+            "o": 1,
+            "tx": 94.02,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 5.1,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 0.87,
+            "tx": 5.1,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 289,
+        "rafTime": 237,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 125.37,
+            "y": 801,
+            "w": 74.75,
+            "h": 48,
+            "o": 1,
+            "tx": 109.37,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 4.28,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 0.89,
+            "tx": 4.28,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 1.1
+      },
+      {
+        "t": 314.2,
+        "rafTime": 303.6,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 156.58,
+            "y": 799,
+            "w": 74.5,
+            "h": 48,
+            "o": 1,
+            "tx": 140.58,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 1.55,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 0.96,
+            "tx": 1.55,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.8
+      },
+      {
+        "t": 322.7,
+        "rafTime": 320.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 159.53,
+            "y": 799,
+            "w": 74.5,
+            "h": 48,
+            "o": 1,
+            "tx": 143.53,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 1.03,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 0.97,
+            "tx": 1.03,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.8
+      },
+      {
+        "t": 337.9,
+        "rafTime": 337,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 161.52,
+            "y": 799,
+            "w": 74.5,
+            "h": 48,
+            "o": 1,
+            "tx": 145.52,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 0.6,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 0.99,
+            "tx": 0.6,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 1.4
+      },
+      {
+        "t": 355.3,
+        "rafTime": 353.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 162.86,
+            "y": 799,
+            "w": 74.5,
+            "h": 48,
+            "o": 1,
+            "tx": 146.86,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 0.27,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 0.99,
+            "tx": 0.27,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.8
+      },
+      {
+        "t": 372.3,
+        "rafTime": 370.4,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 163.73,
+            "y": 799,
+            "w": 74.5,
+            "h": 48,
+            "o": 1,
+            "tx": 147.73,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 0.06,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 1,
+            "tx": 0.06,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.6
+      },
+      {
+        "t": 389.4,
+        "rafTime": 387,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 162.3,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 146.3,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 405,
+        "rafTime": 403.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 162.64,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 146.64,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 422.9,
+        "rafTime": 420.4,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 162.84,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 146.84,
+            "ty": 0,
+            "sx": null,
+            "sy": null,
+            "scaleSupported": false,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 438.2,
+        "rafTime": 437,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 162.94,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 146.94,
+            "ty": 0,
+            "sx": null,
+            "sy": null,
+            "scaleSupported": false,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.7
+      },
+      {
+        "t": 462.6,
+        "rafTime": 453.6,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 162.99,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 146.99,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-3",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 3048,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 473.5,
+        "rafTime": 470.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 166,
+            "y": 803,
+            "w": 75,
+            "h": 48,
+            "o": 1,
+            "tx": 150,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 6,
+            "y": 0,
+            "w": 390,
+            "h": 16,
+            "o": 0.85,
+            "tx": 6,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 489.6,
+        "rafTime": 487,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 185,
+            "y": 803,
+            "w": 75,
+            "h": 48,
+            "o": 1,
+            "tx": 169,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 6,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.85,
+            "tx": 6,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 505,
+        "rafTime": 503.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 200.81,
+            "y": 803,
+            "w": 75,
+            "h": 48,
+            "o": 1,
+            "tx": 184.81,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 6,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.85,
+            "tx": 6,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 1
+      },
+      {
+        "t": 523,
+        "rafTime": 520.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 212.32,
+            "y": 801,
+            "w": 74.75,
+            "h": 48,
+            "o": 1,
+            "tx": 196.32,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 5.11,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.87,
+            "tx": 5.11,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 538.8,
+        "rafTime": 537,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 220.56,
+            "y": 799,
+            "w": 74.5,
+            "h": 48,
+            "o": 1,
+            "tx": 204.56,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 4.28,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.89,
+            "tx": 4.28,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.6
+      },
+      {
+        "t": 554.5,
+        "rafTime": 553.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 226.81,
+            "y": 799,
+            "w": 74.5,
+            "h": 48,
+            "o": 1,
+            "tx": 210.81,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 3.5,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.91,
+            "tx": 3.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.7
+      },
+      {
+        "t": 571.6,
+        "rafTime": 570.4,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 230.4,
+            "y": 797,
+            "w": 74.25,
+            "h": 48,
+            "o": 1,
+            "tx": 214.4,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 2.79,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.93,
+            "tx": 2.79,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 1
+      },
+      {
+        "t": 588,
+        "rafTime": 587,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 232.58,
+            "y": 795,
+            "w": 74,
+            "h": 48,
+            "o": 1,
+            "tx": 216.58,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 2.14,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.95,
+            "tx": 2.14,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.9
+      },
+      {
+        "t": 604.8,
+        "rafTime": 603.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 234.56,
+            "y": 795,
+            "w": 74,
+            "h": 48,
+            "o": 1,
+            "tx": 218.56,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 1.55,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.96,
+            "tx": 1.55,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 1
+      },
+      {
+        "t": 622.6,
+        "rafTime": 620.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 235.13,
+            "y": 793,
+            "w": 73.75,
+            "h": 48,
+            "o": 1,
+            "tx": 219.13,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 1.03,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.97,
+            "tx": 1.03,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 2.1
+      },
+      {
+        "t": 637.8,
+        "rafTime": 637,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 235.99,
+            "y": 793,
+            "w": 73.75,
+            "h": 48,
+            "o": 1,
+            "tx": 219.99,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0.6,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.99,
+            "tx": 0.6,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.8
+      },
+      {
+        "t": 656,
+        "rafTime": 653.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 235.8,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 219.8,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0.27,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 0.99,
+            "tx": 0.27,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 1.5
+      },
+      {
+        "t": 672.7,
+        "rafTime": 670.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.14,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.14,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0.06,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0.06,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 689.1,
+        "rafTime": 687,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.34,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.34,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 705.7,
+        "rafTime": 703.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.44,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.44,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 721.3,
+        "rafTime": 720.4,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.49,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.49,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 737.7,
+        "rafTime": 737,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 1,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 755.1,
+        "rafTime": 753.6,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 771.5,
+        "rafTime": 770.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 787.6,
+        "rafTime": 787,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 804,
+        "rafTime": 803.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 820.9,
+        "rafTime": 820.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 837.9,
+        "rafTime": 837,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 855,
+        "rafTime": 853.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 871.2,
+        "rafTime": 870.4,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 887.2,
+        "rafTime": 886.9,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 904.8,
+        "rafTime": 903.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 921.6,
+        "rafTime": 920.4,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 938.3,
+        "rafTime": 937,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 956.4,
+        "rafTime": 953.7,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 971,
+        "rafTime": 970.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 988.2,
+        "rafTime": 987,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 1004.7,
+        "rafTime": 1003.6,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 1021.3,
+        "rafTime": 1020.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 1038.3,
+        "rafTime": 1037,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 1054.4,
+        "rafTime": 1053.6,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 1071.9,
+        "rafTime": 1070.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 1088.1,
+        "rafTime": 1087,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 1104.7,
+        "rafTime": 1103.6,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 1121.6,
+        "rafTime": 1120.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 1137.8,
+        "rafTime": 1137,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 1154.4,
+        "rafTime": 1153.6,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 1172.6,
+        "rafTime": 1170.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 1188.1,
+        "rafTime": 1186.9,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 1204.1,
+        "rafTime": 1203.6,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 1220.8,
+        "rafTime": 1220.3,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 1237.9,
+        "rafTime": 1236.9,
+        "tg": {
+          "indicator": {
+            "id": "el-1",
+            "x": 236.5,
+            "y": 790,
+            "w": 73.5,
+            "h": 48,
+            "o": 1,
+            "tx": 220.5,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "route": {
+            "id": "el-5",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 99,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      }
+    ],
+    "events": [
+      {
+        "eventId": "event-1",
+        "t": 88.7,
+        "type": "transitionrun",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-1",
+        "animationId": "anim-1",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1561.5,
+        "connected": true
+      },
+      {
+        "eventId": "event-2",
+        "t": 88.8,
+        "type": "transitionstart",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-1",
+        "animationId": "anim-1",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1561.5,
+        "connected": true
+      },
+      {
+        "eventId": "event-3",
+        "t": 138.9,
+        "id": "anim-1",
+        "elementId": "el-1",
+        "target": "indicator",
+        "pseudo": "",
+        "k": "transition",
+        "p": "scale",
+        "s": "idle",
+        "pending": false,
+        "d": 240,
+        "e": 240,
+        "g": "ease",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": null,
+        "startTime": null,
+        "progress": null,
+        "type": "waapicancel",
+        "animationId": "anim-1"
+      },
+      {
+        "eventId": "event-4",
+        "t": 139,
+        "type": "transitioncancel",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-1",
+        "animationId": "anim-1",
+        "ambiguous": false,
+        "elapsedMs": 33.28,
+        "timeStamp": 1609.9,
+        "connected": true
+      },
+      {
+        "eventId": "event-5",
+        "t": 139.2,
+        "type": "transitionrun",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-2",
+        "animationId": "anim-2",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1609.9,
+        "connected": true
+      },
+      {
+        "eventId": "event-6",
+        "t": 139.3,
+        "type": "transitionstart",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-2",
+        "animationId": "anim-2",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1609.9,
+        "connected": true
+      },
+      {
+        "eventId": "event-7",
+        "t": 221.1,
+        "type": "transitionrun",
+        "p": "transform",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-3",
+        "animationId": "anim-3",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1683.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-8",
+        "t": 221.2,
+        "type": "transitionstart",
+        "p": "transform",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-3",
+        "animationId": "anim-3",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1683.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-9",
+        "t": 221.3,
+        "type": "transitionend",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-2",
+        "animationId": "anim-2",
+        "ambiguous": false,
+        "elapsedMs": 39.06,
+        "timeStamp": 1699.5,
+        "connected": true
+      },
+      {
+        "eventId": "event-10",
+        "t": 221.3,
+        "id": "anim-2",
+        "elementId": "el-1",
+        "target": "indicator",
+        "pseudo": "",
+        "k": "transition",
+        "p": "scale",
+        "s": "finished",
+        "pending": false,
+        "d": 39.05754181939134,
+        "e": 39.05754181939134,
+        "g": "ease",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": 39.06,
+        "startTime": 1599.5,
+        "progress": null,
+        "type": "waapifinish",
+        "animationId": "anim-2"
+      },
+      {
+        "eventId": "event-11",
+        "t": 228.9,
+        "type": "animationstart",
+        "p": "route-forward",
+        "target": "route",
+        "parentLabel": null,
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-4",
+        "animationId": "anim-4",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1706.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-12",
+        "t": 229.2,
+        "type": "animationstart",
+        "p": "fade-rise",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-4",
+        "pseudo": "",
+        "instanceId": "instance-5",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1706.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-13",
+        "t": 388.9,
+        "type": "animationend",
+        "p": "route-forward",
+        "target": "route",
+        "parentLabel": null,
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-4",
+        "animationId": "anim-4",
+        "ambiguous": false,
+        "elapsedMs": 180,
+        "timeStamp": 1867.9,
+        "connected": true
+      },
+      {
+        "eventId": "event-14",
+        "t": 389.3,
+        "id": "anim-4",
+        "elementId": "el-3",
+        "target": "route",
+        "pseudo": "",
+        "k": "animation",
+        "p": "route-forward",
+        "s": "finished",
+        "pending": false,
+        "d": 180,
+        "e": 180,
+        "g": "linear",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": 180,
+        "startTime": 1682.88,
+        "progress": null,
+        "type": "waapifinish",
+        "animationId": "anim-4"
+      },
+      {
+        "eventId": "event-15",
+        "t": 422.9,
+        "type": "transitionrun",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-6",
+        "animationId": "anim-5",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1886.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-16",
+        "t": 422.9,
+        "type": "transitionstart",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-6",
+        "animationId": "anim-5",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1886.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-17",
+        "t": 462.3,
+        "id": "anim-5",
+        "elementId": "el-1",
+        "target": "indicator",
+        "pseudo": "",
+        "k": "transition",
+        "p": "scale",
+        "s": "idle",
+        "pending": false,
+        "d": 240,
+        "e": 240,
+        "g": "ease",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": null,
+        "startTime": null,
+        "progress": null,
+        "type": "waapicancel",
+        "animationId": "anim-5"
+      },
+      {
+        "eventId": "event-18",
+        "t": 462.4,
+        "type": "transitioncancel",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-6",
+        "animationId": "anim-5",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1932.2,
+        "connected": true
+      },
+      {
+        "eventId": "event-19",
+        "t": 462.6,
+        "type": "transitionrun",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-7",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1932.2,
+        "connected": true
+      },
+      {
+        "eventId": "event-20",
+        "t": 462.6,
+        "type": "transitionstart",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-7",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1932.2,
+        "connected": true
+      },
+      {
+        "eventId": "event-21",
+        "t": 462.6,
+        "type": "transitionend",
+        "p": "scale",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-7",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1932.2,
+        "connected": true
+      },
+      {
+        "eventId": "event-22",
+        "t": 473.5,
+        "id": "anim-4",
+        "elementId": "el-3",
+        "target": "route",
+        "pseudo": "",
+        "k": "animation",
+        "p": "route-forward",
+        "s": "idle",
+        "pending": false,
+        "d": 180,
+        "e": 180,
+        "g": "linear",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": null,
+        "startTime": null,
+        "progress": null,
+        "type": "waapicancel",
+        "animationId": "anim-4"
+      },
+      {
+        "eventId": "event-23",
+        "t": 489,
+        "id": "anim-3",
+        "elementId": "el-1",
+        "target": "indicator",
+        "pseudo": "",
+        "k": "transition",
+        "p": "transform",
+        "s": "idle",
+        "pending": false,
+        "d": 280,
+        "e": 280,
+        "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": null,
+        "startTime": null,
+        "progress": null,
+        "type": "waapicancel",
+        "animationId": "anim-3"
+      },
+      {
+        "eventId": "event-24",
+        "t": 489.1,
+        "type": "transitioncancel",
+        "p": "transform",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-3",
+        "animationId": "anim-3",
+        "ambiguous": false,
+        "elapsedMs": 266.62,
+        "timeStamp": 1952.7,
+        "connected": true
+      },
+      {
+        "eventId": "event-25",
+        "t": 489.2,
+        "type": "transitionrun",
+        "p": "transform",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-8",
+        "animationId": "anim-6",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1952.7,
+        "connected": true
+      },
+      {
+        "eventId": "event-26",
+        "t": 489.2,
+        "type": "transitionstart",
+        "p": "transform",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-8",
+        "animationId": "anim-6",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1952.7,
+        "connected": true
+      },
+      {
+        "eventId": "event-27",
+        "t": 489.2,
+        "type": "transitionrun",
+        "p": "border-top-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-9",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1960.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-28",
+        "t": 489.2,
+        "type": "transitionstart",
+        "p": "border-top-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-9",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1960.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-29",
+        "t": 489.3,
+        "type": "transitionrun",
+        "p": "border-bottom-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-10",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1960.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-30",
+        "t": 489.3,
+        "type": "transitionstart",
+        "p": "border-bottom-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-10",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1960.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-31",
+        "t": 489.4,
+        "type": "transitionrun",
+        "p": "border-left-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-11",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1960.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-32",
+        "t": 489.4,
+        "type": "transitionstart",
+        "p": "border-left-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-11",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1960.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-33",
+        "t": 489.4,
+        "type": "transitionrun",
+        "p": "border-right-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-12",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1960.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-34",
+        "t": 489.4,
+        "type": "transitionstart",
+        "p": "border-right-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-12",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1960.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-35",
+        "t": 489.5,
+        "type": "transitionrun",
+        "p": "width",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-7",
+        "pseudo": "",
+        "instanceId": "instance-13",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1967.5,
+        "connected": true
+      },
+      {
+        "eventId": "event-36",
+        "t": 489.5,
+        "type": "transitionstart",
+        "p": "width",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-7",
+        "pseudo": "",
+        "instanceId": "instance-13",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1967.5,
+        "connected": true
+      },
+      {
+        "eventId": "event-37",
+        "t": 489.5,
+        "type": "transitionrun",
+        "p": "opacity",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-7",
+        "pseudo": "",
+        "instanceId": "instance-14",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1967.5,
+        "connected": true
+      },
+      {
+        "eventId": "event-38",
+        "t": 489.5,
+        "type": "transitionstart",
+        "p": "opacity",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-7",
+        "pseudo": "",
+        "instanceId": "instance-14",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 1967.5,
+        "connected": true
+      },
+      {
+        "eventId": "event-39",
+        "t": 523,
+        "type": "animationstart",
+        "p": "route-forward",
+        "target": "route",
+        "parentLabel": null,
+        "elementId": "el-5",
+        "pseudo": "",
+        "instanceId": "instance-15",
+        "animationId": "anim-7",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 2001.2,
+        "connected": true
+      },
+      {
+        "eventId": "event-40",
+        "t": 637.8,
+        "type": "transitionend",
+        "p": "opacity",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-7",
+        "pseudo": "",
+        "instanceId": "instance-14",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 140,
+        "timeStamp": 2116.9,
+        "connected": true
+      },
+      {
+        "eventId": "event-41",
+        "t": 655.8,
+        "type": "transitionend",
+        "p": "width",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-7",
+        "pseudo": "",
+        "instanceId": "instance-13",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 160,
+        "timeStamp": 2135,
+        "connected": true
+      },
+      {
+        "eventId": "event-42",
+        "t": 688.7,
+        "type": "animationend",
+        "p": "route-forward",
+        "target": "route",
+        "parentLabel": null,
+        "elementId": "el-5",
+        "pseudo": "",
+        "instanceId": "instance-15",
+        "animationId": "anim-7",
+        "ambiguous": false,
+        "elapsedMs": 180,
+        "timeStamp": 2167.8,
+        "connected": true
+      },
+      {
+        "eventId": "event-43",
+        "t": 689.1,
+        "id": "anim-7",
+        "elementId": "el-5",
+        "target": "route",
+        "pseudo": "",
+        "k": "animation",
+        "p": "route-forward",
+        "s": "finished",
+        "pending": false,
+        "d": 180,
+        "e": 180,
+        "g": "linear",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": 180,
+        "startTime": 1982.87,
+        "progress": null,
+        "type": "waapifinish",
+        "animationId": "anim-7"
+      },
+      {
+        "eventId": "event-44",
+        "t": 721.1,
+        "type": "transitionend",
+        "p": "border-bottom-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-10",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 220,
+        "timeStamp": 2200.2,
+        "connected": true
+      },
+      {
+        "eventId": "event-45",
+        "t": 721.2,
+        "type": "transitionend",
+        "p": "border-left-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-11",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 220,
+        "timeStamp": 2200.2,
+        "connected": true
+      },
+      {
+        "eventId": "event-46",
+        "t": 721.3,
+        "type": "transitionend",
+        "p": "border-right-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-12",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 220,
+        "timeStamp": 2200.2,
+        "connected": true
+      },
+      {
+        "eventId": "event-47",
+        "t": 721.3,
+        "type": "transitionend",
+        "p": "border-top-color",
+        "target": null,
+        "parentLabel": "route",
+        "elementId": "el-6",
+        "pseudo": "",
+        "instanceId": "instance-9",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 220,
+        "timeStamp": 2200.2,
+        "connected": true
+      },
+      {
+        "eventId": "event-48",
+        "t": 754.9,
+        "type": "transitionend",
+        "p": "transform",
+        "target": "indicator",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-8",
+        "animationId": "anim-6",
+        "ambiguous": false,
+        "elapsedMs": 280,
+        "timeStamp": 2234,
+        "connected": true
+      },
+      {
+        "eventId": "event-49",
+        "t": 755.1,
+        "id": "anim-6",
+        "elementId": "el-1",
+        "target": "indicator",
+        "pseudo": "",
+        "k": "transition",
+        "p": "transform",
+        "s": "finished",
+        "pending": false,
+        "d": 280,
+        "e": 280,
+        "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": 280,
+        "startTime": 1949.5,
+        "progress": null,
+        "type": "waapifinish",
+        "animationId": "anim-6"
+      }
+    ],
+    "animations": [
+      {
+        "t": 0.6,
+        "list": []
+      },
+      {
+        "t": 5.7,
+        "list": []
+      },
+      {
+        "t": 21.3,
+        "list": []
+      },
+      {
+        "t": 37.6,
+        "list": []
+      },
+      {
+        "t": 56.6,
+        "list": []
+      },
+      {
+        "t": 70.9,
+        "list": []
+      },
+      {
+        "t": 88.8,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "scale",
+            "s": "running",
+            "pending": true,
+            "d": 240,
+            "e": 240,
+            "g": "ease",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 104.8,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "scale",
+            "s": "running",
+            "pending": false,
+            "d": 240,
+            "e": 240,
+            "g": "ease",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.68,
+            "startTime": 1566.22,
+            "progress": 0.053472959144876285
+          }
+        ]
+      },
+      {
+        "t": 121.4,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "scale",
+            "s": "running",
+            "pending": false,
+            "d": 240,
+            "e": 240,
+            "g": "ease",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.28,
+            "startTime": 1566.22,
+            "progress": 0.16273975758079726
+          }
+        ]
+      },
+      {
+        "t": 139.3,
+        "list": [
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "scale",
+            "s": "running",
+            "pending": false,
+            "d": 39.05754181939134,
+            "e": 39.05754181939134,
+            "g": "ease",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.7,
+            "startTime": 1599.5,
+            "progress": 0.7199908045756688
+          }
+        ]
+      },
+      {
+        "t": 183.3,
+        "list": [
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "scale",
+            "s": "running",
+            "pending": false,
+            "d": 39.05754181939134,
+            "e": 39.05754181939134,
+            "g": "ease",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.4,
+            "startTime": 1599.5,
+            "progress": 0.9877064041336475
+          },
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": true,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          },
+          {
+            "id": "anim-4",
+            "elementId": "el-3",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": true,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 221.4,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": true,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          },
+          {
+            "id": "anim-4",
+            "elementId": "el-3",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": true,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 229.3,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.72,
+            "startTime": 1682.88,
+            "progress": 0.2536362172810106
+          },
+          {
+            "id": "anim-4",
+            "elementId": "el-3",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.72,
+            "startTime": 1682.88,
+            "progress": 0.09288888888724614
+          }
+        ]
+      },
+      {
+        "t": 289,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.32,
+            "startTime": 1682.88,
+            "progress": 0.46319699611309795
+          },
+          {
+            "id": "anim-4",
+            "elementId": "el-3",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.32,
+            "startTime": 1682.88,
+            "progress": 0.18511111110946807
+          }
+        ]
+      },
+      {
+        "t": 314.2,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 99.92,
+            "startTime": 1682.88,
+            "progress": 0.8870315447299303
+          },
+          {
+            "id": "anim-4",
+            "elementId": "el-3",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 99.92,
+            "startTime": 1682.88,
+            "progress": 0.5551111111094681
+          }
+        ]
+      },
+      {
+        "t": 322.7,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 116.62,
+            "startTime": 1682.88,
+            "progress": 0.9266047378541042
+          },
+          {
+            "id": "anim-4",
+            "elementId": "el-3",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 116.62,
+            "startTime": 1682.88,
+            "progress": 0.6478888888872467
+          }
+        ]
+      },
+      {
+        "t": 337.9,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 133.32,
+            "startTime": 1682.88,
+            "progress": 0.9533452177049341
+          },
+          {
+            "id": "anim-4",
+            "elementId": "el-3",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 133.32,
+            "startTime": 1682.88,
+            "progress": 0.7406666666650241
+          }
+        ]
+      },
+      {
+        "t": 355.3,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 150.02,
+            "startTime": 1682.88,
+            "progress": 0.9712193983690579
+          },
+          {
+            "id": "anim-4",
+            "elementId": "el-3",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 150.02,
+            "startTime": 1682.88,
+            "progress": 0.8334444444428016
+          }
+        ]
+      },
+      {
+        "t": 372.3,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 166.72,
+            "startTime": 1682.88,
+            "progress": 0.9829689461145922
+          },
+          {
+            "id": "anim-4",
+            "elementId": "el-3",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 166.72,
+            "startTime": 1682.88,
+            "progress": 0.926222222220579
+          }
+        ]
+      },
+      {
+        "t": 389.4,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 183.32,
+            "startTime": 1682.88,
+            "progress": 0.9904584625931405
+          }
+        ]
+      },
+      {
+        "t": 405,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 200.02,
+            "startTime": 1682.88,
+            "progress": 0.9951022218012148
+          }
+        ]
+      },
+      {
+        "t": 422.9,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 216.72,
+            "startTime": 1682.88,
+            "progress": 0.9977874923600353
+          },
+          {
+            "id": "anim-5",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "scale",
+            "s": "running",
+            "pending": true,
+            "d": 240,
+            "e": 240,
+            "g": "ease",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 438.2,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 233.32,
+            "startTime": 1682.88,
+            "progress": 0.9991852344707333
+          },
+          {
+            "id": "anim-5",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "scale",
+            "s": "running",
+            "pending": true,
+            "d": 240,
+            "e": 240,
+            "g": "ease",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 462.6,
+        "list": [
+          {
+            "id": "anim-3",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 249.92,
+            "startTime": 1682.88,
+            "progress": 0.9997990594114706
+          }
+        ]
+      },
+      {
+        "t": 473.5,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": 1949.5,
+            "progress": 0
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": true,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 489.6,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.7,
+            "startTime": 1949.5,
+            "progress": 0.25335650615661265
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": true,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 505,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.4,
+            "startTime": 1949.5,
+            "progress": 0.4640934725779898
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": true,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 523,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 50,
+            "startTime": 1949.5,
+            "progress": 0.626412028255922
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.63,
+            "startTime": 1982.87,
+            "progress": 0.09240000000475782
+          }
+        ]
+      },
+      {
+        "t": 538.8,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 66.7,
+            "startTime": 1949.5,
+            "progress": 0.7457770222813904
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.33,
+            "startTime": 1982.87,
+            "progress": 0.18517777778253525
+          }
+        ]
+      },
+      {
+        "t": 554.5,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 83.4,
+            "startTime": 1949.5,
+            "progress": 0.8297142276288821
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 50.03,
+            "startTime": 1982.87,
+            "progress": 0.2779555555603139
+          }
+        ]
+      },
+      {
+        "t": 571.6,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 100.1,
+            "startTime": 1949.5,
+            "progress": 0.8875447421785743
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 66.73,
+            "startTime": 1982.87,
+            "progress": 0.3707333333380901
+          }
+        ]
+      },
+      {
+        "t": 588,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 116.7,
+            "startTime": 1949.5,
+            "progress": 0.9267596618432042
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 83.33,
+            "startTime": 1982.87,
+            "progress": 0.46295555556031204
+          }
+        ]
+      },
+      {
+        "t": 604.8,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 133.4,
+            "startTime": 1949.5,
+            "progress": 0.9534493713364265
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 100.03,
+            "startTime": 1982.87,
+            "progress": 0.5557333333380907
+          }
+        ]
+      },
+      {
+        "t": 622.6,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 150,
+            "startTime": 1949.5,
+            "progress": 0.9712021055749352
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 116.63,
+            "startTime": 1982.87,
+            "progress": 0.6479555555603127
+          }
+        ]
+      },
+      {
+        "t": 637.8,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 166.7,
+            "startTime": 1949.5,
+            "progress": 0.9829577150395321
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 133.33,
+            "startTime": 1982.87,
+            "progress": 0.7407333333380913
+          }
+        ]
+      },
+      {
+        "t": 656,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 183.4,
+            "startTime": 1949.5,
+            "progress": 0.9904867411304298
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 150.03,
+            "startTime": 1982.87,
+            "progress": 0.8335111111158675
+          }
+        ]
+      },
+      {
+        "t": 672.7,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 200,
+            "startTime": 1949.5,
+            "progress": 0.9950979895505403
+          },
+          {
+            "id": "anim-7",
+            "elementId": "el-5",
+            "target": "route",
+            "pseudo": "",
+            "k": "animation",
+            "p": "route-forward",
+            "s": "running",
+            "pending": false,
+            "d": 180,
+            "e": 180,
+            "g": "linear",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 166.63,
+            "startTime": 1982.87,
+            "progress": 0.9257333333380919
+          }
+        ]
+      },
+      {
+        "t": 689.1,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 216.7,
+            "startTime": 1949.5,
+            "progress": 0.9977851570598655
+          }
+        ]
+      },
+      {
+        "t": 705.7,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 233.4,
+            "startTime": 1949.5,
+            "progress": 0.9991897435231928
+          }
+        ]
+      },
+      {
+        "t": 721.3,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 250.1,
+            "startTime": 1949.5,
+            "progress": 0.999802814847457
+          }
+        ]
+      },
+      {
+        "t": 737.7,
+        "list": [
+          {
+            "id": "anim-6",
+            "elementId": "el-1",
+            "target": "indicator",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 280,
+            "e": 280,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 266.7,
+            "startTime": 1949.5,
+            "progress": 0.9999839357193083
+          }
+        ]
+      },
+      {
+        "t": 755.1,
+        "list": []
+      },
+      {
+        "t": 771.5,
+        "list": []
+      },
+      {
+        "t": 787.6,
+        "list": []
+      },
+      {
+        "t": 804,
+        "list": []
+      },
+      {
+        "t": 820.9,
+        "list": []
+      },
+      {
+        "t": 837.9,
+        "list": []
+      },
+      {
+        "t": 855,
+        "list": []
+      },
+      {
+        "t": 871.2,
+        "list": []
+      },
+      {
+        "t": 887.2,
+        "list": []
+      },
+      {
+        "t": 904.8,
+        "list": []
+      },
+      {
+        "t": 921.6,
+        "list": []
+      },
+      {
+        "t": 938.3,
+        "list": []
+      },
+      {
+        "t": 956.4,
+        "list": []
+      },
+      {
+        "t": 971,
+        "list": []
+      },
+      {
+        "t": 988.2,
+        "list": []
+      },
+      {
+        "t": 1004.7,
+        "list": []
+      },
+      {
+        "t": 1021.3,
+        "list": []
+      },
+      {
+        "t": 1038.3,
+        "list": []
+      },
+      {
+        "t": 1054.4,
+        "list": []
+      },
+      {
+        "t": 1071.9,
+        "list": []
+      },
+      {
+        "t": 1088.1,
+        "list": []
+      },
+      {
+        "t": 1104.7,
+        "list": []
+      },
+      {
+        "t": 1121.6,
+        "list": []
+      },
+      {
+        "t": 1137.8,
+        "list": []
+      },
+      {
+        "t": 1154.4,
+        "list": []
+      },
+      {
+        "t": 1172.6,
+        "list": []
+      },
+      {
+        "t": 1188.1,
+        "list": []
+      },
+      {
+        "t": 1204.1,
+        "list": []
+      },
+      {
+        "t": 1220.8,
+        "list": []
+      },
+      {
+        "t": 1237.9,
+        "list": []
+      }
+    ],
+    "triggerError": null,
+    "triggerAt": 48.5,
+    "truncated": {
+      "events": 0,
+      "animations": 0,
+      "snapshots": 0,
+      "frames": 0
+    },
+    "visibility": [
+      {
+        "t": 0.2,
+        "state": "visible"
+      }
+    ],
+    "lifecycles": [
+      {
+        "t": 0.6,
+        "target": "indicator",
+        "from": null,
+        "to": "el-1"
+      },
+      {
+        "t": 0.6,
+        "target": "route",
+        "from": null,
+        "to": "el-2"
+      },
+      {
+        "t": 183.3,
+        "target": "route",
+        "from": "el-2",
+        "to": "el-3"
+      },
+      {
+        "t": 473.5,
+        "target": "route",
+        "from": "el-3",
+        "to": "el-5"
+      }
+    ],
+    "totalMs": 1238.2,
+    "settledBy": "stable",
+    "timeline": {
+      "clock": "performance.now relative to capture start; Node send times are a separate clock (see record.input.sentAt)",
+      "input": {
+        "pointerdown": {
+          "t": 81,
+          "timeStamp": 1559.5
+        },
+        "mousedown": {
+          "t": 81.2,
+          "timeStamp": 1559.5
+        },
+        "click": {
+          "t": 126.8,
+          "timeStamp": 1605.1
+        }
+      },
+      "dom": [
+        {
+          "t": 148.9,
+          "kind": "added",
+          "tag": "DIV",
+          "cls": "route-content"
+        },
+        {
+          "t": 180.7,
+          "kind": "added",
+          "tag": "HEADER",
+          "cls": "animate-fade-rise flex items-baseline justify-betw"
+        },
+        {
+          "t": 180.7,
+          "kind": "added",
+          "tag": "DIV",
+          "cls": "mt-6 grid items-start gap-3 px-5 sm:px-7 lg:grid-c"
+        },
+        {
+          "t": 471.7,
+          "kind": "added",
+          "tag": "DIV",
+          "cls": "route-content"
+        },
+        {
+          "t": 486.9,
+          "kind": "added",
+          "tag": "DIV",
+          "cls": "chrome sticky top-0 z-10 border-b border-line px-5"
+        },
+        {
+          "t": 486.9,
+          "kind": "added",
+          "tag": "DIV",
+          "cls": "px-5"
+        }
+      ]
+    },
+    "input": {
+      "type": "CDP mouse sequence",
+      "sentAt": {
+        "epochMs": 1793214616840,
+        "perfMs": 244570
+      },
+      "clickCount": 2
+    }
+  },
+  "network": {
+    "policy": "Fetch Request interception + owned-server CSP; only local origin; no workers/frames/external connections",
+    "blocked": [],
+    "requests": [
+      {
+        "url": "http://127.0.0.1:5173/items",
+        "method": "GET",
+        "type": "Document",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/@vite/client",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/main.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react_jsx-dev-runtime.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-dom_client.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/index.css",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/App.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/theme/ThemeProvider.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/mock/loadDemoData.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/db.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/backupService.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/pwaUpdate.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/syncService.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/@fs/D:/Codex/item-storage-app-motion-integration/node_modules/vite/dist/client/env.mjs",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-BHCDMOPZ.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-BJ7B4R26.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/theme/theme.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/dexie.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-router.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-router_dom.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/itemPanelRouting.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/seed.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/categoryRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/pwa.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/BottomNav.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/UpdateBanner.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/pwa/PwaUpdateContext.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/SyncContext.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/HomePage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/ItemsListPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/CategoriesPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/CategoryDetailPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/SearchPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/ItemFormPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/ItemDetailPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/SettingsPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/CategoryManagePage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/TagManagePage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/IconLibraryPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ItemPanel.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/navigationMotion.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/pwaUpdateTransition.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/Toast.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/ulid.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/tagRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/lifecycle.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/@vite-plugin-pwa/virtual:pwa-register",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/pwa/updateManager.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/pwa/updatePolicy.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/checkServiceWorkerUpdate.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/backupRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/backup.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/appInfo.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/syncRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/syncDirty.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncEngine.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/syncBytes.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncTransport.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncPolicy.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/localChangeDebounce.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-Z7WWVKNR.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-WBQLO2WP.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-CKWWWIIU.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/types.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/data/icons.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/data/categories.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/categoryTree.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/itemRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/dexie-react-hooks.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/purchase.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/data/hooks.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/data/viewModels.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ItemCard.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/SectionHeader.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/CategoryCard.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/TagChip.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ModalSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/overviewItems.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/warrantyReminders.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/SearchField.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/useLayoutMotion.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/data/itemPresentation.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/StatusChip.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/SegmentedControl.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/EmptyState.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/PageHeader.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/searchItems.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/Dialogs.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/DisposalSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ConvertToOwnedSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/useHeaderCollapse.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/IconPickerSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/AiRecognitionSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/recognition.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/DateField.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/WarrantyInput.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/warranty.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/recentIcons.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/IconBrowser.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/tagNormalize.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncLimits.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/syncProtocol.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/syncPayload.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/assetRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/WarrantyStrip.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ModalLayer.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/sheetGesture.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/recognition.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/IconGrid.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-dom.js?v=f3bc4b15",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/other.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/laptop.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/phone.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/earbuds.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/hdd.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/charger.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/keyboard.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/camera.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/gameconsole.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/router.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/smartwatch.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/book.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/notebook.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/pen.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/folder.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/printer.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/deskorg.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/tshirt.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/pants.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/coat.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/shoes.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/backpack.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/hat.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/socks.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/sportswear.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/bottle.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/luggage.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/electrictoothbrush.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/skincare.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/cleaning.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/firstaid.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/toolbox.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/storagebox.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/chair.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/bed.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/pillow.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/desklamp.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/fan.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/tv.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/ricecooker.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/pot.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/bowl.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/lunchbox.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/collectionbox.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/dumbbell.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/basketball.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/bicycle.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/instrument.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/paintbrushes.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/toy.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/cards.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/souvenir.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      }
+    ]
+  },
+  "faultInjection": null,
+  "waitFailure": null,
+  "cleanup": {
+    "status": "PASS",
+    "results": [
+      "context disposed"
+    ]
+  }
+}

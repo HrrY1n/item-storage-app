@@ -1,0 +1,265 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "close before data resolves releases the list and scroll lock",
+      "pass": true
+    },
+    {
+      "name": "late result for the first item cannot replace the second item",
+      "pass": true,
+      "evidence": {
+        "currentTitle": "物品详情",
+        "path": "/items/01M61XHFZPNQSRCFHDTVD5CYBD"
+      }
+    },
+    {
+      "name": "portrait stays within the current viewport",
+      "pass": true,
+      "evidence": {
+        "innerWidth": 390,
+        "innerHeight": 844,
+        "visualHeight": 844,
+        "panel": {
+          "x": 0,
+          "y": 12,
+          "width": 390,
+          "height": 832,
+          "top": 12,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "client": 830,
+        "scroll": 2840,
+        "maxHeight": "832px",
+        "outerScroll": 0,
+        "ty": 0
+      }
+    },
+    {
+      "name": "small stays within the current viewport",
+      "pass": true,
+      "evidence": {
+        "innerWidth": 320,
+        "innerHeight": 568,
+        "visualHeight": 568,
+        "panel": {
+          "x": 0,
+          "y": 12,
+          "width": 320,
+          "height": 556,
+          "top": 12,
+          "right": 320,
+          "bottom": 568,
+          "left": 0
+        },
+        "client": 554,
+        "scroll": 3318,
+        "maxHeight": "556px",
+        "outerScroll": 0,
+        "ty": 0
+      }
+    },
+    {
+      "name": "landscape stays within the current viewport",
+      "pass": true,
+      "evidence": {
+        "innerWidth": 844,
+        "innerHeight": 390,
+        "visualHeight": 390,
+        "panel": {
+          "x": 24,
+          "y": 24,
+          "width": 796,
+          "height": 342,
+          "top": 24,
+          "right": 820,
+          "bottom": 366,
+          "left": 24
+        },
+        "client": 340,
+        "scroll": 1843,
+        "maxHeight": "342px",
+        "outerScroll": 0,
+        "ty": 0
+      }
+    },
+    {
+      "name": "toolbar-size simulation stays within the current viewport",
+      "pass": true,
+      "evidence": {
+        "innerWidth": 390,
+        "innerHeight": 650,
+        "visualHeight": 650,
+        "panel": {
+          "x": 0,
+          "y": 12,
+          "width": 390,
+          "height": 638,
+          "top": 12,
+          "right": 390,
+          "bottom": 650,
+          "left": 0
+        },
+        "client": 636,
+        "scroll": 2840,
+        "maxHeight": "638px",
+        "outerScroll": 0,
+        "ty": 0
+      }
+    },
+    {
+      "name": "available-height simulation stays within the current viewport",
+      "pass": true,
+      "evidence": {
+        "innerWidth": 390,
+        "innerHeight": 420,
+        "visualHeight": 420,
+        "panel": {
+          "x": 0,
+          "y": 12,
+          "width": 390,
+          "height": 408,
+          "top": 12,
+          "right": 390,
+          "bottom": 420,
+          "left": 0
+        },
+        "client": 406,
+        "scroll": 2840,
+        "maxHeight": "408px",
+        "outerScroll": 0,
+        "ty": 0
+      }
+    },
+    {
+      "name": "restored portrait stays within the current viewport",
+      "pass": true,
+      "evidence": {
+        "innerWidth": 390,
+        "innerHeight": 844,
+        "visualHeight": 844,
+        "panel": {
+          "x": 0,
+          "y": 12,
+          "width": 390,
+          "height": 832,
+          "top": 12,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "client": 830,
+        "scroll": 2840,
+        "maxHeight": "832px",
+        "outerScroll": 0,
+        "ty": 0
+      }
+    },
+    {
+      "name": "long content scrolls inside the panel",
+      "pass": true
+    },
+    {
+      "name": "diagonal horizontal gesture leaves the detail open at rest",
+      "pass": true
+    },
+    {
+      "name": "pointercancel resets an active pointer drag without dismissing",
+      "pass": true,
+      "evidence": {
+        "cancelInput": "synthetic DOM PointerEvent following trusted CDP mouse drag"
+      }
+    },
+    {
+      "name": "focused form survives a smaller available viewport",
+      "pass": true
+    },
+    {
+      "name": "restoring viewport preserves the same draft",
+      "pass": true
+    },
+    {
+      "name": "no runtime, CDP or forbidden network errors",
+      "pass": true,
+      "evidence": {
+        "exceptions": [],
+        "errors": [
+          "Inspector.detached"
+        ],
+        "blocked": []
+      }
+    },
+    {
+      "name": "context cleanup",
+      "pass": true
+    },
+    {
+      "name": "owned dev cleanup",
+      "pass": true,
+      "evidence": {
+        "resource": "dev",
+        "status": "PASS",
+        "detail": "owned child stopped"
+      }
+    },
+    {
+      "name": "owned edge cleanup",
+      "pass": true,
+      "evidence": {
+        "resource": "edge",
+        "status": "PASS",
+        "detail": "launcher stopped owned PID"
+      }
+    }
+  ],
+  "environment": {
+    "browser": {
+      "pid": 25408,
+      "exe": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "command": "\"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\" --headless=new --disable-gpu --hide-scrollbars --remote-debugging-address=127.0.0.1 --remote-debugging-port=9223 --remote-allow-origins=* --user-data-dir=D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9223 --profile-directory=Default --no-first-run --no-default-browser-check --disable-sync --disable-extensions --disable-background-networking --disable-component-update --disable-features=ImportOnEachLaunch --password-store=basic about:blank",
+      "created": "2026-10-28T18:49:30.5649040Z",
+      "profile": "D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9223",
+      "port": 9223,
+      "args": [
+        "--headless=new",
+        "--disable-gpu",
+        "--hide-scrollbars",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=9223",
+        "--remote-allow-origins=*",
+        "--user-data-dir=D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9223",
+        "--profile-directory=Default",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-sync",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-component-update",
+        "--disable-features=ImportOnEachLaunch",
+        "--password-store=basic",
+        "about:blank"
+      ],
+      "browser": "Edg/156.0.4314.42",
+      "protocol": "1.3"
+    },
+    "dev": {
+      "pid": 49584,
+      "exe": "D:\\Program Files\\Nodejs\\node.exe",
+      "command": "\"D:\\Program Files\\Nodejs\\node.exe\" D:\\Codex\\item-storage-app-motion-integration\\.tmp\\motionlab-runner\\tools\\motion-lab\\src\\dev-server.mjs 5174 c5a7cd65-136c-4c2b-9347-a0ac41293038",
+      "created": "2026-10-28T18:49:24.4562020Z",
+      "root": "D:\\Codex\\item-storage-app-motion-integration",
+      "fingerprint": "68577f530dd94466fdfdaac850a8f2a583d57d65be6ef343fad45cfb2f11dfa2",
+      "port": 5174
+    },
+    "node": "v24.14.1",
+    "os": {
+      "platform": "win32",
+      "release": "10.0.26200",
+      "arch": "x64"
+    },
+    "fingerprint": "68577f530dd94466fdfdaac850a8f2a583d57d65be6ef343fad45cfb2f11dfa2"
+  },
+  "limits": "Viewport changes simulate available space; this is not an iPhone Safari toolbar or real software-keyboard test."
+}

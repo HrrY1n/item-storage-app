@@ -1,0 +1,10 @@
+PASS  1. 空库首次启动显示 Empty State（还没有物品 / 0 件）
+PASS  2. 新增后进入详情页并显示物品 — 01M61X646YCN61N0V0M4DJ94SF
+PASS  3. 刷新后物品仍存在（详情页）
+PASS  3b. 首页显示真实数量（1 件物品）与卡片
+PASS  4. 编辑后详情页显示 #白色 与备注
+PASS  5. 搜索 apple 能找到该物品（经标签命中）
+PASS  6. 分类详情页显示该物品
+PASS  7. 删除后从首页 / 分类 / 搜索全部消失 — home=true cat=true search=true
+PASS  8. 刷新后删除状态保持（回到 Empty State）
+ALL CHECKS PASSED

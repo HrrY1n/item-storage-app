@@ -1,0 +1,4503 @@
+{
+  "scenario": {
+    "id": "icon-picker-select",
+    "title": "图标搜索与选择"
+  },
+  "runIndex": 2,
+  "startedAt": "2026-10-28T19:18:25.626Z",
+  "summary": {
+    "scenarioId": "icon-picker-select",
+    "frames": 49,
+    "totalMs": 815.6,
+    "triggerAt": 53.6,
+    "settledBy": "stable",
+    "reducedMotion": false,
+    "colorScheme": "light",
+    "appThemeBefore": "light",
+    "appThemeAfter": "light",
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 2
+    },
+    "primary": {
+      "label": "picker",
+      "signal": "ty",
+      "declaredMs": 300,
+      "expectedMs": 300,
+      "actualDeclaredMs": [
+        300
+      ],
+      "easing": [
+        "cubic-bezier(0.22, 1, 0.36, 1)"
+      ],
+      "interval": {
+        "firstChange": 150.7,
+        "lastChange": 392.8,
+        "activeMs": 242.10000000000002,
+        "from": 0,
+        "to": 844,
+        "net": 844,
+        "min": 0,
+        "max": 844,
+        "amplitude": 844,
+        "moved": true,
+        "changes": 15,
+        "internalGaps": 0,
+        "instances": [
+          "el-1"
+        ],
+        "leadingNulls": 0,
+        "seriesLength": 26
+      },
+      "eventDuration": {
+        "id": "instance-7",
+        "elementId": "el-1",
+        "animationId": "anim-2",
+        "start": 141.3,
+        "end": 442,
+        "elapsedStart": 0,
+        "elapsedEnd": 300,
+        "outcome": "ended",
+        "ambiguous": false,
+        "durationMs": 300.7,
+        "engineElapsedMs": 300,
+        "segments": [
+          {
+            "id": "instance-7",
+            "elementId": "el-1",
+            "animationId": "anim-2",
+            "start": 141.3,
+            "end": 442,
+            "elapsedStart": 0,
+            "elapsedEnd": 300,
+            "outcome": "ended",
+            "ambiguous": false,
+            "durationMs": 300.7,
+            "engineElapsedMs": 300
+          }
+        ]
+      },
+      "latencyMs": 97.1,
+      "shape": [
+        0.338,
+        0.597,
+        0.761,
+        0.888,
+        0.951,
+        0.981,
+        0.994,
+        0.999
+      ],
+      "shapeMethod": "median of observed samples in 8 time bins; no interpolation",
+      "requireMotion": true
+    },
+    "secondary": {
+      "pickerBackdrop": {
+        "label": "pickerBackdrop",
+        "signal": "o",
+        "declaredMs": 300,
+        "expectedMs": 300,
+        "actualDeclaredMs": [
+          300
+        ],
+        "easing": [
+          "ease-out"
+        ],
+        "interval": {
+          "firstChange": 150.7,
+          "lastChange": 409.3,
+          "activeMs": 258.6,
+          "from": 1,
+          "to": 0,
+          "net": -1,
+          "min": 0,
+          "max": 1,
+          "amplitude": 1,
+          "moved": true,
+          "changes": 16,
+          "internalGaps": 0,
+          "instances": [
+            "el-2"
+          ],
+          "leadingNulls": 0,
+          "seriesLength": 26
+        },
+        "eventDuration": {
+          "id": "instance-8",
+          "elementId": "el-2",
+          "animationId": "anim-1",
+          "start": 141.4,
+          "end": 441.8,
+          "elapsedStart": 0,
+          "elapsedEnd": 300,
+          "outcome": "ended",
+          "ambiguous": false,
+          "durationMs": 300.4,
+          "engineElapsedMs": 300,
+          "segments": [
+            {
+              "id": "instance-8",
+              "elementId": "el-2",
+              "animationId": "anim-1",
+              "start": 141.4,
+              "end": 441.8,
+              "elapsedStart": 0,
+              "elapsedEnd": 300,
+              "outcome": "ended",
+              "ambiguous": false,
+              "durationMs": 300.4,
+              "engineElapsedMs": 300
+            }
+          ]
+        },
+        "latencyMs": 97.1,
+        "shape": [
+          0.865,
+          0.7,
+          0.545,
+          0.41,
+          0.32,
+          0.2,
+          0.11,
+          0.04
+        ],
+        "shapeMethod": "median of observed samples in 8 time bins; no interpolation",
+        "requireMotion": true
+      }
+    },
+    "series": {
+      "picker": [
+        [
+          16.1,
+          0
+        ],
+        [
+          34,
+          0
+        ],
+        [
+          49.1,
+          0
+        ],
+        [
+          67.7,
+          0
+        ],
+        [
+          83,
+          0
+        ],
+        [
+          100.6,
+          0
+        ],
+        [
+          141.4,
+          0
+        ],
+        [
+          143.1,
+          0
+        ],
+        [
+          150.7,
+          200.94
+        ],
+        [
+          165.6,
+          369.65
+        ],
+        [
+          196.3,
+          503.82
+        ],
+        [
+          213.9,
+          605.51
+        ],
+        [
+          229.9,
+          679.25
+        ],
+        [
+          246.1,
+          731.33
+        ],
+        [
+          261.9,
+          768.12
+        ],
+        [
+          278.3,
+          793.74
+        ],
+        [
+          294.6,
+          811.35
+        ],
+        [
+          312.4,
+          823.52
+        ],
+        [
+          327.7,
+          831.59
+        ],
+        [
+          343.2,
+          836.91
+        ],
+        [
+          360.4,
+          840.24
+        ],
+        [
+          377,
+          842.23
+        ],
+        [
+          392.8,
+          843.31
+        ],
+        [
+          409.3,
+          843.81
+        ],
+        [
+          425.7,
+          843.98
+        ],
+        [
+          442.4,
+          844
+        ],
+        [
+          455.8,
+          null
+        ],
+        [
+          467.4,
+          null
+        ],
+        [
+          483.5,
+          null
+        ],
+        [
+          500.4,
+          null
+        ],
+        [
+          515.5,
+          null
+        ],
+        [
+          533.6,
+          null
+        ],
+        [
+          550.1,
+          null
+        ],
+        [
+          565.6,
+          null
+        ],
+        [
+          583.5,
+          null
+        ],
+        [
+          599.6,
+          null
+        ],
+        [
+          616,
+          null
+        ],
+        [
+          632.8,
+          null
+        ],
+        [
+          648.8,
+          null
+        ],
+        [
+          665.5,
+          null
+        ],
+        [
+          682.6,
+          null
+        ],
+        [
+          698.7,
+          null
+        ],
+        [
+          716.9,
+          null
+        ],
+        [
+          733.8,
+          null
+        ],
+        [
+          748.9,
+          null
+        ],
+        [
+          766.3,
+          null
+        ],
+        [
+          783,
+          null
+        ],
+        [
+          799.4,
+          null
+        ],
+        [
+          815.4,
+          null
+        ]
+      ],
+      "pickerBackdrop": [
+        [
+          16.1,
+          1
+        ],
+        [
+          34,
+          1
+        ],
+        [
+          49.1,
+          1
+        ],
+        [
+          67.7,
+          1
+        ],
+        [
+          83,
+          1
+        ],
+        [
+          100.6,
+          1
+        ],
+        [
+          141.4,
+          1
+        ],
+        [
+          143.1,
+          1
+        ],
+        [
+          150.7,
+          0.91
+        ],
+        [
+          165.6,
+          0.82
+        ],
+        [
+          196.3,
+          0.74
+        ],
+        [
+          213.9,
+          0.66
+        ],
+        [
+          229.9,
+          0.58
+        ],
+        [
+          246.1,
+          0.51
+        ],
+        [
+          261.9,
+          0.44
+        ],
+        [
+          278.3,
+          0.38
+        ],
+        [
+          294.6,
+          0.32
+        ],
+        [
+          312.4,
+          0.26
+        ],
+        [
+          327.7,
+          0.2
+        ],
+        [
+          343.2,
+          0.16
+        ],
+        [
+          360.4,
+          0.11
+        ],
+        [
+          377,
+          0.08
+        ],
+        [
+          392.8,
+          0.04
+        ],
+        [
+          409.3,
+          0.02
+        ],
+        [
+          425.7,
+          0.01
+        ],
+        [
+          442.4,
+          0
+        ],
+        [
+          455.8,
+          null
+        ],
+        [
+          467.4,
+          null
+        ],
+        [
+          483.5,
+          null
+        ],
+        [
+          500.4,
+          null
+        ],
+        [
+          515.5,
+          null
+        ],
+        [
+          533.6,
+          null
+        ],
+        [
+          550.1,
+          null
+        ],
+        [
+          565.6,
+          null
+        ],
+        [
+          583.5,
+          null
+        ],
+        [
+          599.6,
+          null
+        ],
+        [
+          616,
+          null
+        ],
+        [
+          632.8,
+          null
+        ],
+        [
+          648.8,
+          null
+        ],
+        [
+          665.5,
+          null
+        ],
+        [
+          682.6,
+          null
+        ],
+        [
+          698.7,
+          null
+        ],
+        [
+          716.9,
+          null
+        ],
+        [
+          733.8,
+          null
+        ],
+        [
+          748.9,
+          null
+        ],
+        [
+          766.3,
+          null
+        ],
+        [
+          783,
+          null
+        ],
+        [
+          799.4,
+          null
+        ],
+        [
+          815.4,
+          null
+        ]
+      ]
+    },
+    "gaps": {
+      "count": 48,
+      "median": 16.4,
+      "p95": 18.6,
+      "max": 40.80000000000001,
+      "over2xMedian": 1
+    },
+    "timings": [
+      {
+        "id": "anim-1",
+        "elementId": "el-2",
+        "target": "pickerBackdrop",
+        "kind": "transition",
+        "property": "opacity",
+        "durationMs": 300,
+        "endTimeMs": 300,
+        "easing": "ease-out",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 141.4,
+        "lastSeenAt": 425.7,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          0,
+          16.73,
+          33.33,
+          49.93,
+          66.63,
+          83.33,
+          99.93,
+          116.63,
+          133.33,
+          149.93,
+          166.73,
+          183.33,
+          200.03,
+          216.63,
+          233.33,
+          250.03,
+          266.63,
+          283.33
+        ]
+      },
+      {
+        "id": "anim-2",
+        "elementId": "el-1",
+        "target": "picker",
+        "kind": "transition",
+        "property": "transform",
+        "durationMs": 300,
+        "endTimeMs": 300,
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "delayMs": 0,
+        "playbackRate": 1,
+        "firstSeenAt": 141.4,
+        "lastSeenAt": 425.7,
+        "states": [
+          "running"
+        ],
+        "currentTimes": [
+          0,
+          0,
+          16.73,
+          33.33,
+          49.93,
+          66.63,
+          83.33,
+          99.93,
+          116.63,
+          133.33,
+          149.93,
+          166.73,
+          183.33,
+          200.03,
+          216.63,
+          233.33,
+          250.03,
+          266.63,
+          283.33
+        ]
+      }
+    ],
+    "anomalies": [],
+    "latencyChain": {
+      "triggerAt": 53.6,
+      "inputReceivedAt": 68.8,
+      "clickAt": 111.4,
+      "dialogAddedAt": null,
+      "panelAddedAt": null,
+      "statePendingAt": null,
+      "stateOpenAt": null,
+      "readyAt": null,
+      "firstChangeAt": 150.7
+    },
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "搜索结果选择后picker关闭",
+        "pass": true
+      },
+      {
+        "name": "表单预览变为所选图标",
+        "pass": true
+      },
+      {
+        "name": "草稿输入仍保留",
+        "pass": true
+      }
+    ],
+    "exceptions": [],
+    "shots": [
+      {
+        "name": "before",
+        "file": "shots/icon-picker-select-r2-before.png",
+        "still": null
+      },
+      {
+        "name": "after",
+        "file": "shots/icon-picker-select-r2-after.png",
+        "still": null
+      }
+    ],
+    "functionalFailure": false,
+    "runIndex": 2,
+    "notes": [],
+    "contextCleanup": {
+      "status": "PASS",
+      "results": [
+        "context disposed"
+      ]
+    },
+    "rawFile": "raw/icon-picker-select-r2.json"
+  },
+  "record": {
+    "meta": {
+      "sampler": "2",
+      "startedAt": "2026-10-28T19:18:31.711Z",
+      "url": "http://127.0.0.1:5173/items/new",
+      "viewport": {
+        "w": 390,
+        "h": 844,
+        "dpr": 2
+      },
+      "reducedMotion": false,
+      "colorScheme": "light",
+      "appThemeBefore": "light",
+      "geometryScope": "CSS viewport border boxes; own transform tx/ty; no ancestor/layout decomposition",
+      "config": {
+        "targets": [
+          {
+            "sel": ".modal-sheet[data-sheet=\"picker\"] .modal-sheet-panel",
+            "label": "picker"
+          },
+          {
+            "sel": ".modal-sheet[data-sheet=\"picker\"] .modal-sheet-backdrop",
+            "label": "pickerBackdrop"
+          }
+        ],
+        "settleMs": 350,
+        "maxMs": 3000
+      },
+      "appThemeAfter": "light"
+    },
+    "frames": [
+      {
+        "t": 16.1,
+        "rafTime": 15.1,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 118.17,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.7
+      },
+      {
+        "t": 34,
+        "rafTime": 31.8,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 118.17,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 49.1,
+        "rafTime": 48.4,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 118.17,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 67.7,
+        "rafTime": 65.1,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 118.17,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 83,
+        "rafTime": 81.8,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 118.17,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 100.6,
+        "rafTime": 98.5,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 118.17,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 141.4,
+        "rafTime": 115.1,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 118.17,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 143.1,
+        "rafTime": 131.7,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 118.17,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 1,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 150.7,
+        "rafTime": 148.5,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 319.12,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 200.94,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.91,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 165.6,
+        "rafTime": 165.1,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 487.82,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 369.65,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.82,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 196.3,
+        "rafTime": 181.7,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 621.99,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 503.82,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.74,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 213.9,
+        "rafTime": 198.4,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 723.68,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 605.51,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.66,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 229.9,
+        "rafTime": 215.1,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 797.42,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 679.25,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.58,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 246.1,
+        "rafTime": 231.7,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 849.5,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 731.33,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.51,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 261.9,
+        "rafTime": 248.4,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 886.3,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 768.12,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.44,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 278.3,
+        "rafTime": 265.1,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 911.91,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 793.74,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.38,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 294.6,
+        "rafTime": 281.7,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 929.52,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 811.35,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.32,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.5
+      },
+      {
+        "t": 312.4,
+        "rafTime": 298.5,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 941.69,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 823.52,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.26,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 327.7,
+        "rafTime": 315.1,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 949.76,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 831.59,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.2,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 343.2,
+        "rafTime": 331.8,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 955.08,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 836.91,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.16,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 360.4,
+        "rafTime": 348.4,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 958.41,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 840.24,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.11,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 377,
+        "rafTime": 365.1,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 960.41,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 842.23,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.08,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 392.8,
+        "rafTime": 381.8,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 961.49,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 843.31,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.04,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 409.3,
+        "rafTime": 398.4,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 961.98,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 843.81,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.02,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.4
+      },
+      {
+        "t": 425.7,
+        "rafTime": 415.1,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 962.15,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 843.98,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0.01,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 2,
+        "sampleCostMs": 0.3
+      },
+      {
+        "t": 442.4,
+        "rafTime": 431.8,
+        "tg": {
+          "picker": {
+            "id": "el-1",
+            "x": 0,
+            "y": 962.17,
+            "w": 390,
+            "h": 725.83,
+            "o": 1,
+            "tx": 0,
+            "ty": 844,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 1,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          },
+          "pickerBackdrop": {
+            "id": "el-2",
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 844,
+            "o": 0,
+            "tx": 0,
+            "ty": 0,
+            "sx": 1,
+            "sy": 1,
+            "scaleSupported": true,
+            "lum": 0.00857,
+            "scrollTop": 0,
+            "scrollLeft": 0
+          }
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 455.8,
+        "rafTime": 448.4,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 467.4,
+        "rafTime": 465.1,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 483.5,
+        "rafTime": 481.7,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0
+      },
+      {
+        "t": 500.4,
+        "rafTime": 498.5,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 515.5,
+        "rafTime": 515.1,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 533.6,
+        "rafTime": 531.8,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 550.1,
+        "rafTime": 548.4,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 565.6,
+        "rafTime": 565.1,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0
+      },
+      {
+        "t": 583.5,
+        "rafTime": 581.8,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 599.6,
+        "rafTime": 598.4,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 616,
+        "rafTime": 615.1,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 632.8,
+        "rafTime": 631.7,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0
+      },
+      {
+        "t": 648.8,
+        "rafTime": 648.4,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 665.5,
+        "rafTime": 665.1,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 682.6,
+        "rafTime": 681.7,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 698.7,
+        "rafTime": 698.4,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0
+      },
+      {
+        "t": 716.9,
+        "rafTime": 715,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 733.8,
+        "rafTime": 731.7,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 748.9,
+        "rafTime": 748.5,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 766.3,
+        "rafTime": 765.1,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      },
+      {
+        "t": 783,
+        "rafTime": 781.8,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.2
+      },
+      {
+        "t": 799.4,
+        "rafTime": 798.4,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0
+      },
+      {
+        "t": 815.4,
+        "rafTime": 815.1,
+        "tg": {
+          "picker": null,
+          "pickerBackdrop": null
+        },
+        "scroll": {
+          "x": 0,
+          "y": 0,
+          "visualScale": 1
+        },
+        "running": 0,
+        "sampleCostMs": 0.1
+      }
+    ],
+    "events": [
+      {
+        "eventId": "event-1",
+        "t": 82.8,
+        "type": "transitionrun",
+        "p": "transform",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-1",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3072.6,
+        "connected": true
+      },
+      {
+        "eventId": "event-2",
+        "t": 83,
+        "type": "transitionstart",
+        "p": "transform",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-1",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3072.6,
+        "connected": true
+      },
+      {
+        "eventId": "event-3",
+        "t": 140.2,
+        "type": "transitioncancel",
+        "p": "transform",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-1",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 16.73,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-4",
+        "t": 140.9,
+        "type": "transitionrun",
+        "p": "border-top-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-2",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-5",
+        "t": 140.9,
+        "type": "transitionstart",
+        "p": "border-top-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-2",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-6",
+        "t": 140.9,
+        "type": "transitionrun",
+        "p": "transform",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-3",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-7",
+        "t": 140.9,
+        "type": "transitionstart",
+        "p": "transform",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-3",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-8",
+        "t": 141,
+        "type": "transitionrun",
+        "p": "border-bottom-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-4",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-9",
+        "t": 141.1,
+        "type": "transitionstart",
+        "p": "border-bottom-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-4",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-10",
+        "t": 141.1,
+        "type": "transitionrun",
+        "p": "border-left-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-5",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-11",
+        "t": 141.2,
+        "type": "transitionstart",
+        "p": "border-left-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-5",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-12",
+        "t": 141.3,
+        "type": "transitionrun",
+        "p": "border-right-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-6",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-13",
+        "t": 141.3,
+        "type": "transitionstart",
+        "p": "border-right-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-6",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-14",
+        "t": 141.3,
+        "type": "transitionrun",
+        "p": "transform",
+        "target": "picker",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-7",
+        "animationId": "anim-2",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-15",
+        "t": 141.3,
+        "type": "transitionstart",
+        "p": "transform",
+        "target": "picker",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-7",
+        "animationId": "anim-2",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-16",
+        "t": 141.4,
+        "type": "transitionrun",
+        "p": "opacity",
+        "target": "pickerBackdrop",
+        "parentLabel": null,
+        "elementId": "el-2",
+        "pseudo": "",
+        "instanceId": "instance-8",
+        "animationId": "anim-1",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-17",
+        "t": 141.4,
+        "type": "transitionstart",
+        "p": "opacity",
+        "target": "pickerBackdrop",
+        "parentLabel": null,
+        "elementId": "el-2",
+        "pseudo": "",
+        "instanceId": "instance-8",
+        "animationId": "anim-1",
+        "ambiguous": false,
+        "elapsedMs": 0,
+        "timeStamp": 3142.1,
+        "connected": true
+      },
+      {
+        "eventId": "event-18",
+        "t": 165.4,
+        "type": "transitionend",
+        "p": "transform",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-3",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 65.9,
+        "timeStamp": 3168.4,
+        "connected": true
+      },
+      {
+        "eventId": "event-19",
+        "t": 312.3,
+        "type": "transitionend",
+        "p": "border-bottom-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-4",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 150,
+        "timeStamp": 3315.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-20",
+        "t": 312.4,
+        "type": "transitionend",
+        "p": "border-left-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-5",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 150,
+        "timeStamp": 3315.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-21",
+        "t": 312.4,
+        "type": "transitionend",
+        "p": "border-right-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-6",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 150,
+        "timeStamp": 3315.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-22",
+        "t": 312.4,
+        "type": "transitionend",
+        "p": "border-top-color",
+        "target": null,
+        "parentLabel": "picker",
+        "elementId": "el-3",
+        "pseudo": "",
+        "instanceId": "instance-2",
+        "animationId": null,
+        "ambiguous": false,
+        "elapsedMs": 150,
+        "timeStamp": 3315.3,
+        "connected": true
+      },
+      {
+        "eventId": "event-23",
+        "t": 441.8,
+        "type": "transitionend",
+        "p": "opacity",
+        "target": "pickerBackdrop",
+        "parentLabel": null,
+        "elementId": "el-2",
+        "pseudo": "",
+        "instanceId": "instance-8",
+        "animationId": "anim-1",
+        "ambiguous": false,
+        "elapsedMs": 300,
+        "timeStamp": 3444.8,
+        "connected": true
+      },
+      {
+        "eventId": "event-24",
+        "t": 442,
+        "type": "transitionend",
+        "p": "transform",
+        "target": "picker",
+        "parentLabel": null,
+        "elementId": "el-1",
+        "pseudo": "",
+        "instanceId": "instance-7",
+        "animationId": "anim-2",
+        "ambiguous": false,
+        "elapsedMs": 300,
+        "timeStamp": 3444.8,
+        "connected": true
+      },
+      {
+        "eventId": "event-25",
+        "t": 442.3,
+        "id": "anim-1",
+        "elementId": "el-2",
+        "target": "pickerBackdrop",
+        "pseudo": "",
+        "k": "transition",
+        "p": "opacity",
+        "s": "finished",
+        "pending": false,
+        "d": 300,
+        "e": 300,
+        "g": "ease-out",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": 300,
+        "startTime": 3134.87,
+        "progress": null,
+        "type": "waapifinish",
+        "animationId": "anim-1"
+      },
+      {
+        "eventId": "event-26",
+        "t": 442.4,
+        "id": "anim-2",
+        "elementId": "el-1",
+        "target": "picker",
+        "pseudo": "",
+        "k": "transition",
+        "p": "transform",
+        "s": "finished",
+        "pending": false,
+        "d": 300,
+        "e": 300,
+        "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "delay": 0,
+        "iterations": 1,
+        "rate": 1,
+        "currentTime": 300,
+        "startTime": 3134.87,
+        "progress": null,
+        "type": "waapifinish",
+        "animationId": "anim-2"
+      }
+    ],
+    "animations": [
+      {
+        "t": 16.1,
+        "list": []
+      },
+      {
+        "t": 34,
+        "list": []
+      },
+      {
+        "t": 49.1,
+        "list": []
+      },
+      {
+        "t": 67.7,
+        "list": []
+      },
+      {
+        "t": 83,
+        "list": []
+      },
+      {
+        "t": 100.6,
+        "list": []
+      },
+      {
+        "t": 141.4,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": true,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": true,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 143.1,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": true,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": true,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 0,
+            "startTime": null,
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "t": 150.7,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.73,
+            "startTime": 3134.87,
+            "progress": 0.09144596371609859
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 16.73,
+            "startTime": 3134.87,
+            "progress": 0.23808501275705507
+          }
+        ]
+      },
+      {
+        "t": 165.6,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.33,
+            "startTime": 3134.87,
+            "progress": 0.17753809223800526
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 33.33,
+            "startTime": 3134.87,
+            "progress": 0.4379701185855475
+          }
+        ]
+      },
+      {
+        "t": 196.3,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 49.93,
+            "startTime": 3134.87,
+            "progress": 0.25999985816251714
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 49.93,
+            "startTime": 3134.87,
+            "progress": 0.5969435219328044
+          }
+        ]
+      },
+      {
+        "t": 213.9,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 66.63,
+            "startTime": 3134.87,
+            "progress": 0.3395399685018827
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 66.63,
+            "startTime": 3134.87,
+            "progress": 0.7174235736377271
+          }
+        ]
+      },
+      {
+        "t": 229.9,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 83.33,
+            "startTime": 3134.87,
+            "progress": 0.4157105142922
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 83.33,
+            "startTime": 3134.87,
+            "progress": 0.8047978213955472
+          }
+        ]
+      },
+      {
+        "t": 246.1,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 99.93,
+            "startTime": 3134.87,
+            "progress": 0.48805119143273634
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 99.93,
+            "startTime": 3134.87,
+            "progress": 0.8665015523614569
+          }
+        ]
+      },
+      {
+        "t": 261.9,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 116.63,
+            "startTime": 3134.87,
+            "progress": 0.5573359396329821
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 116.63,
+            "startTime": 3134.87,
+            "progress": 0.9100986598516837
+          }
+        ]
+      },
+      {
+        "t": 278.3,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 133.33,
+            "startTime": 3134.87,
+            "progress": 0.6229687456308971
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 133.33,
+            "startTime": 3134.87,
+            "progress": 0.9404505155672431
+          }
+        ]
+      },
+      {
+        "t": 294.6,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 149.93,
+            "startTime": 3134.87,
+            "progress": 0.6843926341921059
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 149.93,
+            "startTime": 3134.87,
+            "progress": 0.9613100992908103
+          }
+        ]
+      },
+      {
+        "t": 312.4,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 166.73,
+            "startTime": 3134.87,
+            "progress": 0.7424313575206285
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 166.73,
+            "startTime": 3134.87,
+            "progress": 0.9757293447608376
+          }
+        ]
+      },
+      {
+        "t": 327.7,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 183.33,
+            "startTime": 3134.87,
+            "progress": 0.7953985805559203
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 183.33,
+            "startTime": 3134.87,
+            "progress": 0.9852927650765231
+          }
+        ]
+      },
+      {
+        "t": 343.2,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 200.03,
+            "startTime": 3134.87,
+            "progress": 0.8439186988293949
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 200.03,
+            "startTime": 3134.87,
+            "progress": 0.9915956272777369
+          }
+        ]
+      },
+      {
+        "t": 360.4,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 216.63,
+            "startTime": 3134.87,
+            "progress": 0.886961815026752
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 216.63,
+            "startTime": 3134.87,
+            "progress": 0.995544810838568
+          }
+        ]
+      },
+      {
+        "t": 377,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 233.33,
+            "startTime": 3134.87,
+            "progress": 0.9244933174997253
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 233.33,
+            "startTime": 3134.87,
+            "progress": 0.9979080902579319
+          }
+        ]
+      },
+      {
+        "t": 392.8,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 250.03,
+            "startTime": 3134.87,
+            "progress": 0.9555512287413604
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 250.03,
+            "startTime": 3134.87,
+            "progress": 0.9991875663881288
+          }
+        ]
+      },
+      {
+        "t": 409.3,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 266.63,
+            "startTime": 3134.87,
+            "progress": 0.979157328261469
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 266.63,
+            "startTime": 3134.87,
+            "progress": 0.9997758037866731
+          }
+        ]
+      },
+      {
+        "t": 425.7,
+        "list": [
+          {
+            "id": "anim-1",
+            "elementId": "el-2",
+            "target": "pickerBackdrop",
+            "pseudo": "",
+            "k": "transition",
+            "p": "opacity",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "ease-out",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 283.33,
+            "startTime": 3134.87,
+            "progress": 0.9945053134848276
+          },
+          {
+            "id": "anim-2",
+            "elementId": "el-1",
+            "target": "picker",
+            "pseudo": "",
+            "k": "transition",
+            "p": "transform",
+            "s": "running",
+            "pending": false,
+            "d": 300,
+            "e": 300,
+            "g": "cubic-bezier(0.22, 1, 0.36, 1)",
+            "delay": 0,
+            "iterations": 1,
+            "rate": 1,
+            "currentTime": 283.33,
+            "startTime": 3134.87,
+            "progress": 0.9999740170644241
+          }
+        ]
+      },
+      {
+        "t": 442.4,
+        "list": []
+      },
+      {
+        "t": 455.8,
+        "list": []
+      },
+      {
+        "t": 467.4,
+        "list": []
+      },
+      {
+        "t": 483.5,
+        "list": []
+      },
+      {
+        "t": 500.4,
+        "list": []
+      },
+      {
+        "t": 515.5,
+        "list": []
+      },
+      {
+        "t": 533.6,
+        "list": []
+      },
+      {
+        "t": 550.1,
+        "list": []
+      },
+      {
+        "t": 565.6,
+        "list": []
+      },
+      {
+        "t": 583.5,
+        "list": []
+      },
+      {
+        "t": 599.6,
+        "list": []
+      },
+      {
+        "t": 616,
+        "list": []
+      },
+      {
+        "t": 632.8,
+        "list": []
+      },
+      {
+        "t": 648.8,
+        "list": []
+      },
+      {
+        "t": 665.5,
+        "list": []
+      },
+      {
+        "t": 682.6,
+        "list": []
+      },
+      {
+        "t": 698.7,
+        "list": []
+      },
+      {
+        "t": 716.9,
+        "list": []
+      },
+      {
+        "t": 733.8,
+        "list": []
+      },
+      {
+        "t": 748.9,
+        "list": []
+      },
+      {
+        "t": 766.3,
+        "list": []
+      },
+      {
+        "t": 783,
+        "list": []
+      },
+      {
+        "t": 799.4,
+        "list": []
+      },
+      {
+        "t": 815.4,
+        "list": []
+      }
+    ],
+    "triggerError": null,
+    "triggerAt": 53.6,
+    "truncated": {
+      "events": 0,
+      "animations": 0,
+      "snapshots": 0,
+      "frames": 0
+    },
+    "visibility": [
+      {
+        "t": 0.3,
+        "state": "visible"
+      }
+    ],
+    "lifecycles": [
+      {
+        "t": 16.1,
+        "target": "picker",
+        "from": null,
+        "to": "el-1"
+      },
+      {
+        "t": 16.1,
+        "target": "pickerBackdrop",
+        "from": null,
+        "to": "el-2"
+      },
+      {
+        "t": 455.8,
+        "target": "picker",
+        "from": "el-1",
+        "to": null
+      },
+      {
+        "t": 455.8,
+        "target": "pickerBackdrop",
+        "from": "el-2",
+        "to": null
+      }
+    ],
+    "totalMs": 815.6,
+    "settledBy": "stable",
+    "timeline": {
+      "clock": "performance.now relative to capture start; Node send times are a separate clock (see record.input.sentAt)",
+      "input": {
+        "pointerdown": {
+          "t": 68.8,
+          "timeStamp": 3071.4
+        },
+        "mousedown": {
+          "t": 69,
+          "timeStamp": 3071.4
+        },
+        "click": {
+          "t": 111.4,
+          "timeStamp": 3114.1
+        }
+      },
+      "dom": [
+        {
+          "t": 137.2,
+          "kind": "added",
+          "tag": "SPAN",
+          "cls": "absolute right-1 top-1 flex h-4 w-4 items-center j"
+        },
+        {
+          "t": 137.2,
+          "kind": "attr",
+          "target": "DIV",
+          "attr": "data-state",
+          "value": "closing"
+        },
+        {
+          "t": 446,
+          "kind": "attr",
+          "target": "DIALOG",
+          "attr": "open",
+          "value": ""
+        }
+      ]
+    },
+    "input": {
+      "type": "CDP mouse",
+      "pressMs": 40,
+      "point": {
+        "x": 60.75,
+        "y": 329.171875
+      },
+      "sentAt": {
+        "epochMs": 1793215111765,
+        "perfMs": 300083
+      }
+    }
+  },
+  "network": {
+    "policy": "Fetch Request interception + owned-server CSP; only local origin; no workers/frames/external connections",
+    "blocked": [],
+    "requests": [
+      {
+        "url": "http://127.0.0.1:5173/items",
+        "method": "GET",
+        "type": "Document",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/@vite/client",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/main.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react_jsx-dev-runtime.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-dom_client.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/index.css",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/App.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/theme/ThemeProvider.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/mock/loadDemoData.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/db.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/backupService.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/pwaUpdate.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/syncService.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/vite/dist/client/env.mjs",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-BHCDMOPZ.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-BJ7B4R26.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-router.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-router_dom.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/itemPanelRouting.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/seed.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/categoryRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/pwa.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/BottomNav.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/UpdateBanner.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/pwa/PwaUpdateContext.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/SyncContext.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/HomePage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/ItemsListPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/CategoriesPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/CategoryDetailPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/SearchPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/ItemFormPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/ItemDetailPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/SettingsPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/CategoryManagePage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/TagManagePage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/pages/IconLibraryPage.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ItemPanel.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/navigationMotion.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/pwaUpdateTransition.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/Toast.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/theme/theme.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/ulid.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/tagRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/lifecycle.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/dexie.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/backupRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/backup.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/appInfo.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/@vite-plugin-pwa/virtual:pwa-register",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/pwa/updateManager.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/pwa/updatePolicy.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/checkServiceWorkerUpdate.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/syncRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/syncDirty.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncEngine.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/syncBytes.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncTransport.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncPolicy.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/localChangeDebounce.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-Z7WWVKNR.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-CKWWWIIU.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/types.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/data/icons.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/data/categories.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/categoryTree.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/itemRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/dexie-react-hooks.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/purchase.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/data/hooks.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/data/viewModels.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ItemCard.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/SectionHeader.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/CategoryCard.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/TagChip.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ModalSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/overviewItems.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/warrantyReminders.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/SearchField.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/useLayoutMotion.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/data/itemPresentation.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/StatusChip.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/SegmentedControl.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/EmptyState.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/PageHeader.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/searchItems.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/Dialogs.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/DisposalSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ConvertToOwnedSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/useHeaderCollapse.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/IconPickerSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/AiRecognitionSheet.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/recognition.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/DateField.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/WarrantyInput.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/warranty.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/recentIcons.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/IconBrowser.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/tagNormalize.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/chunk-WBQLO2WP.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/syncPayload.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/sync/syncLimits.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/domain/syncProtocol.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/db/repositories/assetRepository.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/WarrantyStrip.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/ModalLayer.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/features/ui/sheetGesture.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/services/recognition.ts",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/src/components/IconGrid.tsx",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/node_modules/.cache/motion-lab-vite/deps/react-dom.js?v=307cb7f0",
+        "method": "GET",
+        "type": "Script",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/other.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/pwa/favicon-32x32.png",
+        "method": "GET",
+        "type": "Other",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/phone.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/book.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/tshirt.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/bottle.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/electrictoothbrush.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/pot.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/tv.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/instrument.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/gift.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/tablet.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/laptop.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/desktop.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/tabletkeyboard.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/webcam.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      },
+      {
+        "url": "http://127.0.0.1:5173/icons/items/laptopstand.webp",
+        "method": "GET",
+        "type": "Image",
+        "blocked": false
+      }
+    ]
+  },
+  "faultInjection": null,
+  "waitFailure": null,
+  "cleanup": {
+    "status": "PASS",
+    "results": [
+      "context disposed"
+    ]
+  }
+}

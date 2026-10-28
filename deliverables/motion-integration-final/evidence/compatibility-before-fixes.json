@@ -1,0 +1,79 @@
+{
+  "checks": [
+    {
+      "name": "harness",
+      "pass": false,
+      "error": "Error: evaluate failed: TypeError: window.fixture.mount is not a function\n    at <anonymous>:1:16\n    at Session.ev (file:///D:/Codex/item-storage-app-motion-integration/.tmp/motionlab-runner/tools/motion-lab/src/cdp.mjs:48:39)\n    at async file:///D:/Codex/item-storage-app-motion-integration/deliverables/motion-integration-final/verification/compatibility.mjs:28:5"
+    },
+    {
+      "name": "context cleanup",
+      "pass": true
+    },
+    {
+      "name": "owned dev cleanup",
+      "pass": true,
+      "evidence": {
+        "resource": "dev",
+        "status": "PASS",
+        "detail": "owned child stopped"
+      }
+    },
+    {
+      "name": "owned edge cleanup",
+      "pass": true,
+      "evidence": {
+        "resource": "edge",
+        "status": "PASS",
+        "detail": "launcher stopped owned PID"
+      }
+    }
+  ],
+  "status": "FAIL",
+  "environment": {
+    "browser": {
+      "pid": 18104,
+      "exe": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "command": "\"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\" --headless=new --disable-gpu --hide-scrollbars --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 --remote-allow-origins=* --user-data-dir=D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9222 --profile-directory=Default --no-first-run --no-default-browser-check --disable-sync --disable-extensions --disable-background-networking --disable-component-update --disable-features=ImportOnEachLaunch --password-store=basic about:blank",
+      "created": "2026-10-28T18:34:56.2524480Z",
+      "profile": "D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9222",
+      "port": 9222,
+      "args": [
+        "--headless=new",
+        "--disable-gpu",
+        "--hide-scrollbars",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=9222",
+        "--remote-allow-origins=*",
+        "--user-data-dir=D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9222",
+        "--profile-directory=Default",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-sync",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-component-update",
+        "--disable-features=ImportOnEachLaunch",
+        "--password-store=basic",
+        "about:blank"
+      ],
+      "browser": "Edg/156.0.4314.42",
+      "protocol": "1.3"
+    },
+    "dev": {
+      "pid": 33744,
+      "exe": "D:\\Program Files\\Nodejs\\node.exe",
+      "command": "\"D:\\Program Files\\Nodejs\\node.exe\" D:\\Codex\\item-storage-app-motion-integration\\.tmp\\motionlab-runner\\tools\\motion-lab\\src\\dev-server.mjs 5173 f0423669-7bac-4e15-af0e-9ccec48eadf5",
+      "created": "2026-10-28T18:34:49.7868850Z",
+      "root": "D:\\Codex\\item-storage-app-motion-integration",
+      "fingerprint": "8b1580aa44301450043401e3564180739136879635e45801131faf491b147768",
+      "port": 5173
+    },
+    "node": "v24.14.1",
+    "os": {
+      "platform": "win32",
+      "release": "10.0.26200",
+      "arch": "x64"
+    },
+    "fingerprint": "8b1580aa44301450043401e3564180739136879635e45801131faf491b147768"
+  }
+}

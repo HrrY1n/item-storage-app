@@ -1,0 +1,68 @@
+PASS Search focus reveals a cancel action without replacing the input
+PASS Cancel leaves the query intact and releases input focus
+PASS Clear preserves keyboard focus and empties the query
+PASS Category filter expands a persistent accessible chip strip
+PASS Theme color changes preserve disclosure layout transitions
+PASS Disclosure moves following rows continuously using existing CSS layout
+PASS Entry runs a transform transition
+PASS Detail opens above the mounted, scrolled list with focus and scroll lock
+PASS Initial panel focus does not outline the back button
+PASS Keyboard Tab still visibly focuses the back button
+PASS Compact detail title follows sheet scroll and expands again
+PASS Detail exit stays mounted and blocks repeated interaction
+PASS Exit runs a transform transition
+PASS Return restores scroll, filters, card disclosure and focus
+PASS Fast browser back/forward cancels pending removal
+PASS Disposal closes above detail without closing its parent
+PASS Delete confirmation cancels above detail
+PASS Detail to edit reuses the same settled sheet instead of reopening
+PASS Category chooser keeps the draft inside a nested sheet
+PASS Source chooser fits its short content instead of filling the screen
+PASS Source selection returns to the unchanged name draft
+PASS Nested icon picker owns focus without opening the keyboard
+PASS Escape closes only picker and restores the form draft/focus
+PASS Date close remains mounted and inert through its exit
+PASS Nested date cancel preserves the date and restores its trigger
+PASS Collapsed warranty controls remain mounted and inert
+PASS Warranty reopening preserves custom months and calculated expiry
+PASS Scrolled edit panel stays within its modal viewport
+PASS Escape dismisses dirty confirmation only
+PASS Edit cancel restores detail scroll inside the same sheet
+PASS Discard returns through detail to the original list and releases all locks
+PASS Reduced motion still completes close and focus restoration
+PASS Sheet fits viewport 375
+PASS Sheet fits viewport 430
+PASS Sheet fits viewport 768
+PASS Sheet fits viewport 1280
+PASS Direct detail URL remains a normal page
+PASS Creation entry at 1x CPU keeps loading/content visible, scroll fixed and transform monotonic
+PASS Creation entry at 4x CPU keeps loading/content visible, scroll fixed and transform monotonic
+PASS Cancelling before form readiness releases the dialog, focus and scroll lock
+REDUCED_FORM_PROOF {
+  reduce: true,
+  top: 12,
+  outer: 0,
+  inert: false,
+  state: 'open',
+  focus: 'item-panel-content outline-none',
+  animations: [],
+  transition: 'none'
+}
+PASS Reduced motion opens the ready form without a transition or outer scroll
+PASS Creation is a sheet above the same list
+PASS Touch drag moves the sheet with the finger
+PASS Short slow pull rebounds without closing or changing the draft
+PASS Re-grabbing a rebound takes over its current visual position
+PASS Cancelled touch rebounds and keeps the sheet usable
+PASS A gesture starting in scrolled content stays native
+PASS Dismissal continues from the released drag position
+PASS Long pull dismisses pristine creation and restores the list/focus
+PASS Dirty swipe requests confirmation and cancelling preserves input
+PASS Nested drag leaves the parent sheet stationary
+PASS Nested drag closes only the picker and keeps the draft/scroll lock
+PASS Discard after gestures writes no business records and releases locks
+PASS View switch animates stable visible item identities
+PASS Interrupted layout motion settles without stale transforms or ghosts
+PASS Reduced motion skips layout animation and retains all results
+PASS Segment indicator aligns with the selected accessible radio
+PASS 57 interaction checks; no runtime exceptions

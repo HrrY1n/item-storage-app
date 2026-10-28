@@ -1,0 +1,9 @@
+{"label":"missing detail/edit finish loading and can return","directDetail":true,"directEdit":true,"returnToList":true,"deleteWhileViewing":true,"deleteWhileEditing":true}
+{"label":"edit rejects invalid price and extra cost without changing stored amounts","invalidPriceBlocked":3,"invalidExtraBlocked":true,"savedPriceCents":50,"savedExtraCents":0}
+{"label":"conversion validates both prices and accepts zero","invalidPriceBlocked":true,"invalidExtraBlocked":true,"zeroSaved":true,"optionalExtraRemainsNull":true}
+{"label":"sale validates amount and discarded ignores unused sale input","invalidSaleBlocked":true,"validSaleCents":50,"discardedIgnoresSale":true}
+{"label":"sync session UI reacts to disable and backup restore without reload","immediateDisableUi":true,"credentialsCleared":true,"disableKeepsOutbox":true,"backupRestoreUi":true,"restoredItemPreserved":true}
+{"label":"unsaved history and in-app navigation are guarded (page)","nativeBackGuard":true,"inAppBackGuard":true,"continuePreservesDraft":true,"explicitDiscard":true,"forwardStartsClean":true,"saveCompletes":true}
+{"label":"unsaved history and in-app navigation are guarded (panel)","nativeBackGuard":true,"inAppBackGuard":true,"continuePreservesDraft":true,"explicitDiscard":true,"forwardStartsClean":true,"saveCompletes":true}
+{"label":"invalid amount alone is dirty and direct new form has a safe return","invalidAmountCountsAsDraft":true,"continuePreservesAmount":true,"directNewReturnsToList":true}
+{"label":"whole-document reload and back ask before losing a draft","cancelledReloadKeepsDraft":true,"cancelledDocumentBackKeepsDraft":true,"explicitLeaveAllowed":true}

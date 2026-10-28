@@ -1,0 +1,78 @@
+{
+  "checks": [
+    {
+      "label": "crud",
+      "code": 0,
+      "pass": true
+    },
+    {
+      "label": "form-state",
+      "code": 0,
+      "pass": true
+    },
+    {
+      "label": "interactions-original",
+      "code": 1,
+      "pass": false
+    }
+  ],
+  "cleanup": [
+    {
+      "resource": "dev",
+      "status": "PASS",
+      "detail": "owned child stopped"
+    },
+    {
+      "resource": "edge",
+      "status": "PASS",
+      "detail": "launcher stopped owned PID"
+    }
+  ],
+  "environment": {
+    "browser": {
+      "pid": 43216,
+      "exe": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "command": "\"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\" --headless=new --disable-gpu --hide-scrollbars --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 --remote-allow-origins=* --user-data-dir=D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9222 --profile-directory=Default --no-first-run --no-default-browser-check --disable-sync --disable-extensions --disable-background-networking --disable-component-update --disable-features=ImportOnEachLaunch --password-store=basic about:blank",
+      "created": "2026-10-28T18:43:15.2738280Z",
+      "profile": "D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9222",
+      "port": 9222,
+      "args": [
+        "--headless=new",
+        "--disable-gpu",
+        "--hide-scrollbars",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=9222",
+        "--remote-allow-origins=*",
+        "--user-data-dir=D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9222",
+        "--profile-directory=Default",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-sync",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-component-update",
+        "--disable-features=ImportOnEachLaunch",
+        "--password-store=basic",
+        "about:blank"
+      ],
+      "browser": "Edg/156.0.4314.42",
+      "protocol": "1.3"
+    },
+    "dev": {
+      "pid": 12388,
+      "exe": "D:\\Program Files\\Nodejs\\node.exe",
+      "command": "\"D:\\Program Files\\Nodejs\\node.exe\" D:\\Codex\\item-storage-app-motion-integration\\.tmp\\motionlab-runner\\tools\\motion-lab\\src\\dev-server.mjs 5173 47149c62-a103-4183-9c5e-5f6b4b37437d",
+      "created": "2026-10-28T18:43:09.1317320Z",
+      "root": "D:\\Codex\\item-storage-app-motion-integration",
+      "fingerprint": "68577f530dd94466fdfdaac850a8f2a583d57d65be6ef343fad45cfb2f11dfa2",
+      "port": 5173
+    },
+    "node": "v24.14.1",
+    "os": {
+      "platform": "win32",
+      "release": "10.0.26200",
+      "arch": "x64"
+    },
+    "fingerprint": "68577f530dd94466fdfdaac850a8f2a583d57d65be6ef343fad45cfb2f11dfa2"
+  }
+}

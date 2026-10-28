@@ -1,0 +1,92 @@
+{
+  "status": "FAIL",
+  "checks": [
+    {
+      "name": "close before data resolves releases the list and scroll lock",
+      "pass": true
+    },
+    {
+      "name": "late result for the first item cannot replace the second item",
+      "pass": true,
+      "evidence": {
+        "currentTitle": "物品详情",
+        "path": "/items/01M61XCTRMMZN5QHMTA0Q95XSE"
+      }
+    },
+    {
+      "name": "harness",
+      "pass": false,
+      "error": "Error: evaluate failed: SyntaxError: Invalid or unexpected token\n    at Session.ev (file:///D:/Codex/item-storage-app-motion-integration/.tmp/motionlab-runner/tools/motion-lab/src/cdp.mjs:48:39)\n    at async file:///D:/Codex/item-storage-app-motion-integration/deliverables/motion-integration-final/verification/app-edges.mjs:40:3"
+    },
+    {
+      "name": "context cleanup",
+      "pass": true
+    },
+    {
+      "name": "owned dev cleanup",
+      "pass": true,
+      "evidence": {
+        "resource": "dev",
+        "status": "PASS",
+        "detail": "owned child stopped"
+      }
+    },
+    {
+      "name": "owned edge cleanup",
+      "pass": true,
+      "evidence": {
+        "resource": "edge",
+        "status": "PASS",
+        "detail": "launcher stopped owned PID"
+      }
+    }
+  ],
+  "environment": {
+    "browser": {
+      "pid": 31228,
+      "exe": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "command": "\"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\" --headless=new --disable-gpu --hide-scrollbars --remote-debugging-address=127.0.0.1 --remote-debugging-port=9223 --remote-allow-origins=* --user-data-dir=D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9223 --profile-directory=Default --no-first-run --no-default-browser-check --disable-sync --disable-extensions --disable-background-networking --disable-component-update --disable-features=ImportOnEachLaunch --password-store=basic about:blank",
+      "created": "2026-10-28T18:46:56.3851920Z",
+      "profile": "D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9223",
+      "port": 9223,
+      "args": [
+        "--headless=new",
+        "--disable-gpu",
+        "--hide-scrollbars",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=9223",
+        "--remote-allow-origins=*",
+        "--user-data-dir=D:\\Codex\\item-storage-app-motion-integration\\.tmp\\edge-test-profile-9223",
+        "--profile-directory=Default",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-sync",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-component-update",
+        "--disable-features=ImportOnEachLaunch",
+        "--password-store=basic",
+        "about:blank"
+      ],
+      "browser": "Edg/156.0.4314.42",
+      "protocol": "1.3"
+    },
+    "dev": {
+      "pid": 24788,
+      "exe": "D:\\Program Files\\Nodejs\\node.exe",
+      "command": "\"D:\\Program Files\\Nodejs\\node.exe\" D:\\Codex\\item-storage-app-motion-integration\\.tmp\\motionlab-runner\\tools\\motion-lab\\src\\dev-server.mjs 5174 553454a7-52fd-4727-b23c-b250ec567e8b",
+      "created": "2026-10-28T18:46:50.1965900Z",
+      "root": "D:\\Codex\\item-storage-app-motion-integration",
+      "fingerprint": "68577f530dd94466fdfdaac850a8f2a583d57d65be6ef343fad45cfb2f11dfa2",
+      "port": 5174
+    },
+    "node": "v24.14.1",
+    "os": {
+      "platform": "win32",
+      "release": "10.0.26200",
+      "arch": "x64"
+    },
+    "fingerprint": "68577f530dd94466fdfdaac850a8f2a583d57d65be6ef343fad45cfb2f11dfa2"
+  },
+  "limits": "Viewport changes simulate available space; this is not an iPhone Safari toolbar or real software-keyboard test."
+}
