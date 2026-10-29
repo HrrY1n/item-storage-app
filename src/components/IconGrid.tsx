@@ -46,6 +46,7 @@ export default function IconGrid({
                 className="plate-surface h-full w-full object-cover"
                 draggable={false}
                 loading="lazy"
+                decoding="async"
               />
               {selected && (
                 <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-pill bg-accent">

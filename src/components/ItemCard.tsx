@@ -50,18 +50,28 @@ export function ObjectPlate({
   alt,
   className = '',
   bare = false,
+  loading = 'eager',
 }: {
   src: string
   alt: string
   className?: string
   bare?: boolean
+  /** 详情 Hero 等首屏大图保持默认 eager；列表卡片缩略图传 lazy 以延迟离屏解码。 */
+  loading?: 'eager' | 'lazy'
 }) {
   return (
     <div
       className={`overflow-hidden ${bare ? '' : 'plate-surface'} ${className}`}
       data-object-plate=""
     >
-      <img src={src} alt={alt} className="h-full w-full object-contain" draggable={false} />
+      <img
+        src={src}
+        alt={alt}
+        loading={loading}
+        decoding="async"
+        className="h-full w-full object-contain"
+        draggable={false}
+      />
     </div>
   )
 }
@@ -207,6 +217,7 @@ export default function ItemCard({
           <ObjectPlate
             src={iconUrl}
             alt={name}
+            loading="lazy"
             className="item-art aspect-[1.15/1] w-full shrink-0 rounded-card"
           />
           {/* 处置方法徽标：图区左上。pointer-events-none，不影响整卡点击。 */}

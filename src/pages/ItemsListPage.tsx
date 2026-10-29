@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import SearchField from '../components/SearchField'
 import { useLayoutMotion } from '../features/ui/useLayoutMotion'
 import { Link, useLocation } from 'react-router'
@@ -29,6 +29,7 @@ import {
   matchesDispositionFilter,
   type DispositionKind,
 } from '../features/data/itemPresentation'
+import { readListSessionState, writeListSessionState } from '../features/ui/listSessionState'
 import ItemCard, { ObjectPlate } from '../components/ItemCard'
 import { DisposalChip, FINANCE_TONES, StatusChip } from '../components/StatusChip'
 import SegmentedControl from '../components/SegmentedControl'
@@ -107,6 +108,7 @@ function ListRow({
         <ObjectPlate
           src={iconUrl}
           alt={item.name}
+          loading="lazy"
           className="h-14 w-14 rounded-control border border-line-inner"
         />
         {/* 处置方法徽标放缩略图右下角；心愿仍用生命周期 chip */}
@@ -184,18 +186,35 @@ export default function ItemsListPage() {
   const links = useItemTagLinks()
   const assetMap = usePresetAssetMap()
 
-  const [status, setStatus] = useState<ItemStatus>('owned')
-  const [query, setQuery] = useState('')
-  const [categoryId, setCategoryId] = useState<string | null>(null)
-  const [sort, setSort] = useState<ItemSortKey>('recent')
-  const [view, setView] = useState<ViewMode>('grid')
+  // 会话内恢复：同一标签页离开列表（底栏切页）再回来时还原浏览状态。
+  // 只读一次作为初值；/items 没有 URL 筛选参数，不存在与导航意图的冲突。
+  const [session] = useState(() => readListSessionState())
+  const [status, setStatus] = useState<ItemStatus>(session.status)
+  const [query, setQuery] = useState(session.query)
+  const [categoryId, setCategoryId] = useState<string | null>(session.categoryId)
+  const [sort, setSort] = useState<ItemSortKey>(session.sort)
+  const [view, setView] = useState<ViewMode>(session.view)
   /**
    * 处置二级筛选 —— **纯 React UI 状态**。
    * 不写 URL、不写 IndexedDB、不进 sync/D1，因为它不是业务数据。
    */
-  const [disposition, setDisposition] = useState<DispositionKind | 'all'>('all')
+  const [disposition, setDisposition] = useState<DispositionKind | 'all'>(session.disposition)
   const [filterExpanded, setFilterExpanded] = useState(false)
   const layout = useLayoutMotion(JSON.stringify([status, query, categoryId, sort, view, disposition]))
+
+  /** 恢复的 categoryId 若已不存在（被删除），静默回落到全部分类，不产生错误条目。 */
+  const activeRootCategoryIds = useMemo(
+    () => new Set((categories ?? []).filter(c => c.parentId === null && c.deletedAt === null).map(c => c.id)),
+    [categories],
+  )
+  useEffect(() => {
+    if (categories && categoryId !== null && !activeRootCategoryIds.has(categoryId)) setCategoryId(null)
+  }, [categories, categoryId, activeRootCategoryIds])
+
+  // 每次变化写回 sessionStorage；写入失败（隐私模式等）静默忽略，当次会话内状态仍在组件里。
+  useEffect(() => {
+    writeListSessionState({ status, query, categoryId, sort, view, disposition })
+  }, [status, query, categoryId, sort, view, disposition])
 
   /** 切换生命周期时重置处置筛选，避免"心愿 tab 下遗留 sold 筛选"这种隐藏态 */
   const handleStatusChange = useCallback((next: ItemStatus) => {
