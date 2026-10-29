@@ -122,10 +122,24 @@ try {
   }))
   await ev(() => document.querySelector('main section button').click())
   await poll(() => document.querySelector('main section button').getAttribute('aria-expanded') === 'false')
-  check('折叠移除子分类入口，键盘不会进入隐藏内容', await ev(() => document.querySelector('main section button').getAttribute('aria-expanded') === 'false' && !document.querySelector('main section').querySelector('.grid')))
+  // 折叠高度经 220ms grid-rows 过渡收敛；等过渡完成再断言终态，避免把进行中的过渡误判为失败。
+  await poll(() => document.querySelector('main section .category-disclosure').getBoundingClientRect().height < 2)
+  check('折叠后入口保持挂载且 inert，键盘不可进入隐藏内容', await ev(() => {
+    const section = document.querySelector('main section')
+    const disclosure = section.querySelector('.category-disclosure')
+    return section.querySelector('button').getAttribute('aria-expanded') === 'false'
+      && !!disclosure && disclosure.inert === true && disclosure.getAttribute('aria-hidden') === 'true'
+      && disclosure.getBoundingClientRect().height < 2
+  }))
   await ev(() => document.querySelector('main section button').click())
   await poll(() => document.querySelector('main section').querySelector('.grid')?.children.length === 10)
-  check('再次展开恢复全部十个数码二级入口', await ev(() => document.querySelector('main section').querySelector('.grid').children.length === 10))
+  await poll(() => document.querySelector('main section .category-disclosure').getBoundingClientRect().height > 40)
+  check('再次展开恢复全部十个数码二级入口', await ev(() => {
+    const section = document.querySelector('main section')
+    const disclosure = section.querySelector('.category-disclosure')
+    return section.querySelector('.grid').children.length === 10
+      && disclosure.inert === false && disclosure.getBoundingClientRect().height > 40
+  }))
   await ev(() => [...document.querySelectorAll('a')].find(a => a.textContent.includes('音频设备')).click())
   await poll(() => document.querySelector('main h1')?.textContent === '音频设备')
   check('二级分类跳转显示该类实际物品', await ev(() => document.body.textContent.includes('分类验收 · 旧耳机')))
