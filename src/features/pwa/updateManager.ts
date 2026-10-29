@@ -17,7 +17,8 @@ import {
  *   因此这个模块能在 node 环境里用假 host 完整测试，不需要 DOM 测试库。
  * - **只有一条 reload 路径**：`host.reload()` 只被 `apply()` 调用，
  *   且调用前用 `applying` 关门，杜绝重复刷新与双重 reload listener。
- * - 更新检查失败一律静默（catch 掉），绝不阻塞应用使用，也不弹"更新失败"。
+ * - 后台（boot/visible 等被动）检查失败静默、绝不阻塞应用使用；
+ *   手动检查失败会置 `checkFailed`，由设置页显示"未能完成线上版本检查"。
  */
 
 export interface PwaUpdateHost {

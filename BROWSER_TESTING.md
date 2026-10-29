@@ -30,6 +30,10 @@ npm run browser:stop -- --port=9223
 
 `verify-2c.mjs`、`verify-purchase.mjs`、`verify-additional-cost.mjs` 和 `verify-deploy.mjs` 的临时截图写入 `.tmp/browser-verification/` 下对应子目录。`docs/screenshots/` 保留 README 与正式验收文档使用的预览和证据。
 
+`node scripts/verify-list-state.mjs`（2026-10-30 新增）在四个一次性上下文中回归列表会话状态：底栏切页返回/刷新恢复搜索词、排序、视图与状态 tab，重置筛选后的存储写回，损坏 JSON / 非法枚举 / 已删除分类的安全回退，新浏览器上下文不继承旧会话，以及详情面板往返与恢复机制的兼容。结果与截图写入 `.tmp/list-state-verification/`。
+
+**断言语义说明（2026-10-30 修正）**：`verify-interactions.mjs` 与 `verify-categories.mjs` 中的过渡类断言一律"等待终态再断言"（脚本自带 `until`/`poll`，有界超时），因为 React 提交、退出过渡（约 300ms）与 220ms 折叠动画都是异步的，同步求值会把过渡中的 DOM 误判为缺陷。其中"创建面板入场"的三条断言已按 `c1fe47e` 之后的设计更新（入场与异步查询解耦：查询未就绪时面板照常上滑并显示明确的「正在载入表单」占位，见 `deliverables/motion-integration-final/INTEGRATION_RESULT.md`）；判断"动画过渡"还是"真实回归"时，先看断言等待的是过渡中间态还是终态，再用有界轮询复现一次。
+
 ## 物品分类与旧库补齐
 
 先启动 `npm run dev -- --host=127.0.0.1` 和生产 preview。此用例需要未使用过的项目测试 Profile，例如另选一个空闲端口 `9234`；不删除或清空之前的测试 Profile：

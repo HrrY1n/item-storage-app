@@ -15,10 +15,14 @@
 | [图标资源说明](../assets/item-icons/README.md) | 素材规范与来源 |
 | [物品展示与财务约定](architecture.md#9-物品展示与财务约定) | 卡片与列表共用的金额、处置与缺失值规则 |
 | [文件治理记录](REPOSITORY_GOVERNANCE.md) | 文件保留、归档与清理边界 |
+| [交互对齐记录](interaction-parity.md) | 对照参考应用的交互差距账本（缺失/部分实现清单） |
+| [动效审计实施](motion-audit-implementation.md) | T1–T5 动效实施记录与调校值 |
+| [视觉与动效实施](visual-motion-parity.md) | 面板入场、PWA 更新过渡、玻璃导航等验收记录 |
+| [AI 识别说明](ai-recognition.md) | AI 辅助录入的接口边界、限制与验证记录 |
 
 ## 审计与来源
 
-`audit/` 保存专项审计；`screenshots/` 保留 README 与正式验收文档使用的预览和证据。未被引用的历史截图和已完成的长篇阶段方案可从 Git 历史查询；临时浏览器截图写入 `.tmp/browser-verification/`，必要约定已合入当前架构。
+`audit/` 保存专项审计（[2026-10-23 代码质量](audit/2026-10-23-code-quality.md)、[2026-10-25 Bug 审计](audit/2026-10-25-bug-audit.md)、[iOS PWA 离线冷启动](audit/ios-pwa-offline-coldstart.md)，后者含 2026-10-09 真机验收记录）；`screenshots/` 保留 README 与正式验收文档使用的预览和证据。未被引用的历史截图和已完成的长篇阶段方案可从 Git 历史查询；临时浏览器截图写入 `.tmp/browser-verification/`，必要约定已合入当前架构。
 
 旧说明从 Git 历史查询，见[历史出处说明](architecture.md#10-旧说明的出处)。用户本地交接快照 `WORKBUDDY_HANDOFF.md` 和已执行迁移保持原样，其中的旧文件名是历史记录。
 
