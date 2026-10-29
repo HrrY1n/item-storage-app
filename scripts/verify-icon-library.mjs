@@ -13,23 +13,45 @@ assert.ok(icons.every(icon => precacheUrls.includes(`icons/items/${icon.key}.web
 const digitalCount = icons.filter(i=>i.category === 'digital').length
 const categoryLabels = { digital: '数码', office: '办公', apparel: '服饰', life: '生活', care: '护理', kitchen: '厨房', home: '家居', hobby: '兴趣', other: '其他' }
 const results = []
+const phaseStart = { at: Date.now() }
+const phase = (label) => {
+  console.log(`\n[phase] ${label} (+${((Date.now() - phaseStart.at) / 1000).toFixed(1)}s)`)
+  phaseStart.at = Date.now()
+}
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-const target = await (await fetch(`${CDP}/json/new?about:blank`, { method: 'PUT' })).json()
-const ws = new WebSocket(target.webSocketDebuggerUrl)
+let target = await (await fetch(`${CDP}/json/new?about:blank`, { method: 'PUT' })).json()
+let ws = new WebSocket(target.webSocketDebuggerUrl)
 await new Promise((resolve) => ws.addEventListener('open', resolve, { once: true }))
 let seq = 0
 const pending = new Map()
-ws.addEventListener('message', ({ data }) => {
+const attachMessageListener = () => ws.addEventListener('message', ({ data }) => {
   const message = JSON.parse(data)
   if (message.id) { pending.get(message.id)?.(message); pending.delete(message.id) }
 })
-const send = (method, params = {}) => new Promise((resolve, reject) => {
+attachMessageListener()
+// 重建浏览器目标：渲染进程在长生命周期文档上经历大量解码/截图后，
+// 跨文档导航可能触发环境相关的挂起（主线程阻塞、Debugger.pause 无法送达）。
+// 明暗主题分段改用新文档执行——同 profile、同 Service Worker 与缓存，检查项一项不减。
+const reconnect = async () => {
+  await fetch(`${CDP}/json/close/${target.id}`).catch(() => {})
+  try { ws.close() } catch {}
+  target = await (await fetch(`${CDP}/json/new?about:blank`, { method: 'PUT' })).json()
+  ws = new WebSocket(target.webSocketDebuggerUrl)
+  await new Promise((resolve) => ws.addEventListener('open', resolve, { once: true }))
+  attachMessageListener()
+}
+// 有界超时：页面侧 Promise 永不 settle 或 CDP 会话异常时，脚本报错退出而不是无限挂起。
+const send = (method, params = {}, timeoutMs = 30000) => new Promise((resolve, reject) => {
   const id = ++seq
-  pending.set(id, (message) => message.error ? reject(new Error(JSON.stringify(message.error))) : resolve(message.result))
+  const timer = setTimeout(() => { pending.delete(id); reject(new Error(`CDP timeout after ${timeoutMs}ms: ${method}`)) }, timeoutMs)
+  pending.set(id, (message) => {
+    clearTimeout(timer)
+    message.error ? reject(new Error(JSON.stringify(message.error))) : resolve(message.result)
+  })
   ws.send(JSON.stringify({ id, method, params }))
 })
-const ev = async (expression) => {
-  const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })
+const ev = async (expression, timeoutMs) => {
+  const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }, timeoutMs)
   if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails))
   return result.result?.value
 }
@@ -68,17 +90,20 @@ const itemCount = () => ev(`new Promise((resolve,reject)=>{ const r=indexedDB.op
 
 try {
   await mkdir(OUT, { recursive: true })
+  phase('setup: CDP 会话与视口')
   await send('Page.enable')
   await send('Network.enable')
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
   await send('Emulation.setFocusEmulationEnabled', { enabled: true })
   // Reused test profiles can have an older SW; establish the preview build outside the guarded form.
+  phase('establish preview build (SW 更新检查)')
   await navigate('/settings')
   await textButton('检查更新')
   await sleep(1500)
   await navigate('/settings')
   await poll(`!!document.querySelector('script[src=${JSON.stringify(expectedBundle)}]')`)
   await ev(`localStorage.setItem('pil.theme','light')`)
+  phase('picker on /items/new')
   await navigate('/items/new')
   const beforeCount = await itemCount()
   await openPicker()
@@ -159,6 +184,7 @@ try {
   await query('领夹麦')
   check('新麦克风按别名搜索仍显示选中状态', await ev(`!!document.querySelector('button[aria-pressed="true"] img[alt="麦克风"]')`))
   await shot('10-new-icon-selected-light')
+  phase('six new-icon alias checks')
   for (const [key, label, alias] of [
     ['drone', '无人机', '航拍机'],
     ['gimbal', '手持稳定器', '三轴云台'],
@@ -186,6 +212,12 @@ try {
   await poll(`!document.querySelector('[role="dialog"]')`)
   check('关闭后焦点回到原图标按钮', await ev(`document.activeElement?.tagName==='BUTTON' && document.activeElement.textContent.includes('点击本行更换图标')`))
   await ev(`localStorage.setItem('pil.theme','dark')`)
+  phase('dark theme + offline decode on a fresh document (same profile/SW)')
+  await reconnect()
+  await send('Page.enable')
+  await send('Network.enable')
+  await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
+  await send('Emulation.setFocusEmulationEnabled', { enabled: true })
   await navigate('/items/new')
   await openPicker()
   check('深色主题沿用现有 Token', await ev(`document.documentElement.dataset.theme==='dark'`))
@@ -203,10 +235,22 @@ try {
   await query('RGB散热器')
   check('RGB散热器在设置图标库中可搜索', await ev(`!!document.querySelector('img[alt="手机散热器"]')`))
   await shot('12-phonecooler-dark')
+  phase('offline precache decode (220 张 WebP 分块校验)')
   await poll(`!!navigator.serviceWorker.controller`)
   await send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 })
-  const assetErrors = await ev(`(async()=>{const errors=[];for(const key of ${JSON.stringify(icons.map((icon) => icon.key))}){try{const i=new Image();i.src='/icons/items/'+key+'.webp';await i.decode();if(i.naturalWidth!==768||i.naturalHeight!==768)errors.push(key+':size');const c=document.createElement('canvas');c.width=c.height=1;const x=c.getContext('2d');x.drawImage(i,0,0,1,1,0,0,1,1);if(x.getImageData(0,0,1,1).data[3]!==0)errors.push(key+':alpha')}catch{errors.push(key+':decode')}}return errors})()`)
-  check('全部现有 WebP 离线可解码、768×768 且透明角落', assetErrors.length === 0)
+  // 220 张 768×768 WebP 的离线解码原为单个 awaitPromise 求值，慢机上可能长时间无响应；
+  // 改为分块执行并逐块上报进度与首个失败键，任何一块超时都能定位到具体分组。
+  const iconKeys = icons.map((icon) => icon.key)
+  const CHUNK = 40
+  const assetErrors = []
+  for (let offset = 0; offset < iconKeys.length; offset += CHUNK) {
+    const keys = iconKeys.slice(offset, offset + CHUNK)
+    const chunkErrors = await ev(`(async()=>{const errors=[];for(const key of ${JSON.stringify(keys)}){try{const i=new Image();i.src='/icons/items/'+key+'.webp';await i.decode();if(i.naturalWidth!==768||i.naturalHeight!==768)errors.push(key+':size');const c=document.createElement('canvas');c.width=c.height=1;const x=c.getContext('2d');x.drawImage(i,0,0,1,1,0,0,1,1);if(x.getImageData(0,0,1,1).data[3]!==0)errors.push(key+':alpha')}catch{errors.push(key+':decode')}}return errors})()`, 120000)
+    assetErrors.push(...chunkErrors)
+    console.log(`  decoded ${Math.min(offset + CHUNK, iconKeys.length)}/${iconKeys.length}${chunkErrors.length ? ` errors=${JSON.stringify(chunkErrors)}` : ''}`)
+  }
+  check('全部现有 WebP 离线可解码、768×768 且透明角落', assetErrors.length === 0, assetErrors.slice(0, 5).join(','))
+  phase('offline reload + desktop layout')
   await send('Page.reload')
   await poll(`!!document.querySelector('[data-icon-browser]')`)
   check('图标库离线刷新可用', await ev(`document.querySelectorAll('[aria-label="图标分类"] button').length===9`))
