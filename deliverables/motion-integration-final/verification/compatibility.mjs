@@ -3,7 +3,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { mkdir, writeFile } from 'node:fs/promises'
 const appRoot = process.cwd()
-const toolRoot = process.env.MOTIONLAB_TOOL_ROOT ?? path.join(appRoot, '.tmp/motionlab-runner/tools/motion-lab')
+const toolRoot = process.env.MOTIONLAB_TOOL_ROOT ?? path.join(appRoot, 'tools/motion-lab')
 process.env.MOTIONLAB_APP_ROOT = appRoot
 const { ensureEnvironment } = await import(pathToFileURL(path.join(toolRoot, 'src/env.mjs')))
 const { openMotionPage } = await import(pathToFileURL(path.join(toolRoot, 'src/page.mjs')))

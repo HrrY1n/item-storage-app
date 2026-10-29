@@ -5,7 +5,7 @@ import {readFile,writeFile,stat} from 'node:fs/promises'
 import {pathToFileURL,fileURLToPath} from 'node:url'
 const root=process.cwd(),out=path.join(root,'deliverables/motion-integration-final')
 process.env.MOTIONLAB_APP_ROOT=root
-const tool=path.join(root,'.tmp/motionlab-runner/tools/motion-lab')
+const tool=path.join(root,'tools/motion-lab')
 const {ensureEnvironment}=await import(pathToFileURL(path.join(tool,'src/env.mjs')))
 const {openMotionPage}=await import(pathToFileURL(path.join(tool,'src/page.mjs')))
 const result={filesHashed:0,localReferencesChecked:0,pages:[],errors:[]}

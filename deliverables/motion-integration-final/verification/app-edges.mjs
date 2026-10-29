@@ -5,7 +5,7 @@ import {pathToFileURL} from 'node:url'
 import {writeFile} from 'node:fs/promises'
 const root=process.cwd()
 process.env.MOTIONLAB_APP_ROOT=root
-const tool=path.join(root,'.tmp/motionlab-runner/tools/motion-lab')
+const tool=path.join(root,'tools/motion-lab')
 const {ensureEnvironment}=await import(pathToFileURL(path.join(tool,'src/env.mjs')))
 const {openMotionPage}=await import(pathToFileURL(path.join(tool,'src/page.mjs')))
 const {openItemList}=await import(pathToFileURL(path.join(tool,'src/scenarios/lib.mjs')))

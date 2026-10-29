@@ -6,7 +6,7 @@ import {mkdir,writeFile,readFile} from 'node:fs/promises'
 const integrationRoot=path.resolve(import.meta.dirname,'../../..')
 const root=path.resolve(process.env.APP_TEST_ROOT??integrationRoot)
 process.env.MOTIONLAB_APP_ROOT=root
-const tool=path.join(integrationRoot,'.tmp/motionlab-runner/tools/motion-lab')
+const tool=path.join(integrationRoot,'tools/motion-lab')
 const {ensureEnvironment}=await import(pathToFileURL(path.join(tool,'src/env.mjs')))
 const out=path.join(root,'deliverables/motion-integration-final/evidence')
 const checks=[]

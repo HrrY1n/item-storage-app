@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><title>MotionLab controlled browser fixture</title>
+<style>body{font:16px system-ui;margin:24px}.box{width:40px;height:40px;background:#4b75eb;margin:16px}button{height:48px;padding:12px 24px}</style></head>
+<body><button id="go">Run controlled interaction</button><div id="stage"><div class="box" id="a"></div><div class="box" id="b"></div></div>
+<script>
+window.fixtureMode=new URL(location.href).searchParams.get('mode')||'return';window.fixtureStarted=false;
+document.querySelector('#go').addEventListener('click',()=>{
+ window.fixtureStarted=true;const a=document.querySelector('#a'),b=document.querySelector('#b');
+ const animate=(el,to,duration)=>el.animate([{transform:'translateX(0px)'},{transform:'translateX('+to+'px)'}],{duration,fill:'forwards',easing:'linear'});
+ if(window.fixtureMode==='delay-cancel'){
+   a.style.transition='transform 180ms linear 180ms';a.getBoundingClientRect();a.style.transform='translateX(100px)';
+   setTimeout(()=>{a.style.transition='none';a.style.transform='translateX(0px)';a.getBoundingClientRect();a.style.transition='transform 220ms linear';a.style.transform='translateX(90px)'},70);
+ }else if(window.fixtureMode==='parallel'){
+   const first=animate(a,100,200);animate(b,70,280);
+   setTimeout(()=>{first.cancel();animate(a,90,220)},70);
+ }else if(window.fixtureMode==='remount'){
+   animate(a,100,320);setTimeout(()=>a.remove(),80);
+   setTimeout(()=>{const next=document.createElement('div');next.id='a';next.className='box';document.querySelector('#stage').prepend(next);animate(next,60,240)},160);
+ }else{
+   a.animate([{transform:'translateX(0px)'},{transform:'translateX(60px)'},{transform:'translateX(0px)'}],{duration:320,fill:'forwards',easing:'linear'});
+ }
+});
+</script></body></html>

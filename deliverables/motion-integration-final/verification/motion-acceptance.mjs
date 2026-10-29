@@ -4,7 +4,7 @@ import { pathToFileURL, fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 const integrationRoot = path.resolve(import.meta.dirname, '../../..')
-const toolRoot = process.env.MOTIONLAB_TOOL_ROOT ?? path.join(integrationRoot, '.tmp/motionlab-runner/tools/motion-lab')
+const toolRoot = process.env.MOTIONLAB_TOOL_ROOT ?? path.join(integrationRoot, 'tools/motion-lab')
 process.env.MOTIONLAB_APP_ROOT ??= integrationRoot
 const {parseArgs, runLab} = await import(pathToFileURL(path.join(toolRoot,'run.mjs')))
 const {scenarios} = await import(pathToFileURL(path.join(toolRoot,'src/scenarios/index.mjs')))

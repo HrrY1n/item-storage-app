@@ -6,9 +6,11 @@
 - 版本兼容：共同历史已核实，无更晚业务冲突；修复了嵌套rAF取消不完整和无关暂停动画阻塞退出两项实测问题。未重写手势、状态架构、导航曲线或新增依赖。
 - 原有业务：本轮853单元测试、CRUD9、表单状态9组、交互57项均通过；数据、路由、草稿、焦点与滚动在已测流程保持正确。没有对未测场景作全面保证。
 - 动效：17场景×3轮全部PASS；具体数字和波动见BEFORE_AFTER。受控异步查询尚未释放时，原版0/3轮面板已打开并移动，集成版3/3轮；两侧均有明确加载占位并在释放查询后显示当前物品。它证明入场与查询结果解耦，不是真机性能认证。
-- 正式仓库保持不变：2860个tracked/非忽略untracked文件的SHA256及3个受保护仓库的HEAD、分支、状态均相同。没有修改原MotionLab或已验收v2副本。两套集成/对照克隆无共享Git对象/硬链接。
+- 集成验收时的保护检查：2860个tracked/非忽略untracked文件的SHA256及3个受保护仓库的HEAD、分支、状态均相同。集成阶段没有修改原MotionLab或已验收v2副本。随后按用户要求只清理各实验目录的审计与过程产物；工具/App源码及Git历史保留。原版对照临时克隆已清理，必要时可从fa8fa77重建。
 - 发布门槛：没有本轮已知自动化阻断；iPhone Safari及主屏PWA实机仍待按清单验收。建议采用此候选，在实机通过后人工批准正式合并。当前不宣布完全发布。
 
 项目：D:/Codex/item-storage-app-motion-integration。HTML：[index.html](index.html)。手机步骤：[IPHONE_ACCEPTANCE.md](IPHONE_ACCEPTANCE.md)。本地交付说明与证据另建Git检查点，未推送。
 
-原版工作区、线上Worker/D1、真实数据及既有备份未写入；没有push或部署。
+正式App工作区、线上Worker/D1、真实数据及既有备份未写入；没有push或部署。
+
+目录已归并：后续统一使用 D:/Codex/item-storage-app-motion-integration。MotionLab工具位于 tools/motion-lab，旧工程代码历史位于本仓库 refs/archive/；原始素材与旧隔离浏览器资料位于本机忽略目录 .workbuddy。重复工程、旧交付包和一次性审计流程已清理，复核通过，正式项目保持原状。
