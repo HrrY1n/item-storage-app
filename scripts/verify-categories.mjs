@@ -148,6 +148,7 @@ try {
   await poll(() => document.querySelector('main h1')?.textContent === '数码与电子')
   check('大类全部入口同时包含直接归入和二级物品', await ev(() => document.body.textContent.includes('分类验收 · 旧 Pocket') && document.body.textContent.includes('分类验收 · 旧耳机')))
   await navigate(DEV,'/items/new')
+  await poll(() => !!document.querySelector('button[aria-label="选择分类"]'))
   await ev(() => document.querySelector('button[aria-label="选择分类"]').click())
   await button('数码与电子')
   await poll(() => [...document.querySelectorAll('button')].some(button => button.textContent.trim() === '摄影摄像'))
