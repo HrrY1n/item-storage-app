@@ -4,6 +4,7 @@ node_modules/
 # 构建产物
 dist/
 *.tsbuildinfo
+vite.config.*.timestamp-*
 
 # Cloudflare Workers / Wrangler 本地状态（dev 缓存、上传临时文件）
 .wrangler/
@@ -34,16 +35,25 @@ temp/
 
 # 本地文件型 SQLite 运行态（正式同步 schema 仍提交 worker/migrations/*.sql）
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite-journal
 *.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+*.sqlite3-journal
 *.db
 *.db-shm
 *.db-wal
 *.db-journal
 
-# 环境变量
+# 环境变量与 Wrangler 本地开发密钥
 .env
 .env.*
 !.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
 
 # 编辑器
 .vscode/
@@ -52,6 +62,7 @@ temp/
 # 系统文件
 .DS_Store
 Thumbs.db
+[Dd]esktop.ini
 
 # 日志
 *.log
