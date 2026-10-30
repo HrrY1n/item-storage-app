@@ -45,7 +45,7 @@ node scripts/verify-categories.mjs
 npm run browser:stop -- --port=9234
 ```
 
-脚本在隔离开发 origin 写入冻结的旧版 6+15 分类和三件验收物品，再由实际 Boot 完成增量升级；逐项检查旧 ID、物品归属、原 outbox、七个一级和 49 个二级、父子件数、直接归入大类的提示、折叠与跳转、表单保存、浅深色、短屏和桌面布局。独立生产 origin 检查全新安装和离线刷新。全程不清空数据库，截图与结果写入 `docs/screenshots/categories/`。
+脚本在隔离开发 origin 写入冻结的旧版 6+15 分类和三件验收物品，再由实际 Boot 完成增量升级；逐项检查旧 ID、物品归属、原 outbox、七个一级和 49 个二级、父子件数、直接归入大类的提示、折叠与跳转、表单保存、浅深色、短屏和桌面布局。独立生产 origin 检查全新安装和离线刷新。全程不清空数据库，截图与结果写入 `.tmp/browser-verification/categories/`。
 
 ## 图标库 2.0
 
@@ -60,7 +60,7 @@ npm run verify:icons
 npm run browser:stop -- --port=9222
 ```
 
-`scripts/verify-icon-library.mjs` 检查九类动态数量、移动三列分类/四列图标、全局搜索、滚动恢复、单击后仅更新待保存表单、最近使用/选中状态、键盘焦点、浅深色、桌面布局，以及全部注册 WebP 的离线解码、768×768 尺寸和透明角落。它复用测试 Profile 的数据与缓存，不清空存储；截图和结果写入 `docs/screenshots/icon-library-v2/`。
+`scripts/verify-icon-library.mjs` 检查九类动态数量、移动三列分类/四列图标、全局搜索、滚动恢复、单击后仅更新待保存表单、最近使用/选中状态、键盘焦点、浅深色、桌面布局，以及全部注册 WebP 的离线解码、768×768 尺寸和透明角落。它复用测试 Profile 的数据与缓存，不清空存储；新运行的截图和结果写入 `.tmp/browser-verification/icon-library-v2/`；原 docs/screenshots/ 中的历史证据保持不变。
 
 ## 按月保修与日期确认（0.2.1）
 
@@ -108,3 +108,11 @@ npm run build                          # 恢复正式版本 dist
 图标库 2.0 的扩展在 `http://127.0.0.1:4190` 交换构建并改变相同 URL 的 `phone.webp` 内容，检查响应 SHA-256 和浏览器 40px 解码像素均被替换、旧 SVG 元数据原位升级、preset 去重、物品/分类/标签及待同步条目保留，以及在线更新请求返回 503 时不会提示“最新”。它在 `try/finally` 中恢复临时修改的源码和图片；测试产物与测试数据保留在隔离目录，不删除 Profile、IndexedDB 或缓存。
 
 本次还从 `git archive cdb19c0` 在隔离目录构建真实 0.1.0，再与正式 0.2.0 的 `dist` 在 :4191 交换，验证旧版既有机制可更新、156 preset 自动补齐至 219、业务数据/outbox 保留及新图片离线解码。临时扩展脚本保留在 `.tmp/verify/legacy-to-v2.mjs`，结果入库为 `docs/screenshots/icon-library-v2/pwa-legacy-results.json`。此场景不修改当前源码，也不需要清空旧 Profile。
+
+## 含空格的固定工作目录与离线测试
+
+Windows PowerShell 请使用 Set-Location -LiteralPath 'D:\Codex\Markitem App'，再运行 npm 命令。Node 子进程使用参数数组和明确 cwd，不拼接项目路径到 shell 命令。
+
+npm run verify:pwa-offline 现统一通过 scripts/start-test-edge.mjs 和 scripts/stop-test-edge.mjs 管理隔离 Edge，只停止本次记录的 PID，所有 Profile 位于项目 .tmp/。
+
+会临时改变版本、图片、构建产物或 SW 行为的 PWA 测试，必须先用 git archive 从当前已验证树导出到项目 .tmp/ 内的独立测试副本，再在副本安装锁定依赖并构建、运行；不得在日常源码或 dist 上切换实验版本。保留合成测试证据，不清空既有业务库或 outbox。

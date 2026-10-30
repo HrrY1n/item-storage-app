@@ -7,7 +7,7 @@ const port = process.env.EDGE_TEST_PORT ?? '9222'
 const CDP = 'http://127.0.0.1:' + port
 const DEV = 'http://127.0.0.1:5173'
 const PROD = 'http://127.0.0.1:4173'
-const OUT = 'docs/screenshots/categories'
+const OUT = '.tmp/browser-verification/categories'
 const record = JSON.parse(await readFile('.tmp/edge-test-' + port + '.pid.json', 'utf8'))
 const relativeProfile = path.relative(path.resolve('.tmp'), path.resolve(record.profile))
 assert(relativeProfile && !relativeProfile.startsWith('..') && !path.isAbsolute(relativeProfile), 'Use the project-local Edge launcher')

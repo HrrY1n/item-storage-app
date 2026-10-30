@@ -21,12 +21,12 @@
  *      `Response.url === ""` 的合成响应；新配置必须存成 url 正常的响应
  *
  * 硬约束：本脚本**从不**调用 `caches.delete` / `indexedDB.deleteDatabase` /
- * `registration.unregister`。每个场景换一个新的浏览器 profile，用完即弃（只删
+ * `registration.unregister`。每个场景换一个新的浏览器 profile，用完即弃（保留
  * `.tmp/` 下的测试 profile，不动用户数据）。
  *
  * 用法：npm run build && node scripts/verify-pwa-offline.mjs
  */
-import { spawn, execFileSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { mkdir, readFile, writeFile, access } from 'node:fs/promises'
 import fsSync from 'node:fs'
 import http from 'node:http'
@@ -162,78 +162,24 @@ async function exists(file) {
   }
 }
 
-async function findEdge() {
-  const candidates = [
-    process.env.EDGE_PATH,
-    process.env['ProgramFiles(x86)'] &&
-      path.join(process.env['ProgramFiles(x86)'], 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
-    process.env.ProgramFiles &&
-      path.join(process.env.ProgramFiles, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
-    'msedge.exe',
-  ].filter(Boolean)
-  for (const c of candidates) {
-    if (c === 'msedge.exe' || (await exists(c))) return c
-  }
-  throw new Error('找不到 Microsoft Edge，请设置 EDGE_PATH')
-}
-
-async function waitForCdp(port, timeoutMs = 30000) {
-  const deadline = Date.now() + timeoutMs
-  while (Date.now() < deadline) {
-    try {
-      const r = await fetch(`http://127.0.0.1:${port}/json/version`)
-      if (r.ok) return r.json()
-    } catch {
-      /* retry */
-    }
-    await sleep(250)
-  }
-  throw new Error(`CDP 在 ${port} 上未就绪`)
-}
-
-/** 启动 Edge（非 detached，父进程持有句柄，可真实杀进程） */
+/** 复用项目启动器；Node 参数数组能保留含空格的项目及 Profile 路径。 */
 async function launchEdge(profileDir) {
-  const executable = await findEdge()
-  const proc = spawn(
-    executable,
-    [
-      '--headless=new',
-      '--disable-gpu',
-      '--hide-scrollbars',
-      '--remote-debugging-address=127.0.0.1',
-      `--remote-debugging-port=${CDP_PORT}`,
-      '--remote-allow-origins=*',
-      `--user-data-dir=${profileDir}`,
-      '--profile-directory=Default',
-      '--no-first-run',
-      '--no-default-browser-check',
-      '--disable-sync',
-      '--disable-extensions',
-      '--disable-background-networking',
-      '--disable-component-update',
-      '--password-store=basic',
-      'about:blank',
-    ],
-    { cwd: root, stdio: 'ignore', windowsHide: true },
-  )
-  await waitForCdp(CDP_PORT)
-  return proc
+  const output = execFileSync(process.execPath, [
+    path.join(root, 'scripts', 'start-test-edge.mjs'),
+    '--port=' + CDP_PORT,
+    '--profile=' + profileDir,
+  ], { cwd: root, encoding: 'utf8', windowsHide: true })
+  return JSON.parse(output)
 }
 
-async function killEdge(proc) {
-  if (!proc || proc.exitCode !== null) return
-  if (process.platform === 'win32') {
-    try {
-      execFileSync('taskkill.exe', ['/PID', String(proc.pid), '/T', '/F'], {
-        stdio: 'ignore',
-        windowsHide: true,
-      })
-    } catch {
-      /* ignore */
-    }
-  } else {
-    proc.kill('SIGKILL')
-  }
+async function killEdge(record) {
+  if (!record) return
+  const active = JSON.parse(await readFile(path.join(root, '.tmp', 'edge-test-' + CDP_PORT + '.pid.json'), 'utf8'))
+  if (active.pid !== record.pid) throw new Error('Refusing to stop a different Edge session')
+  execFileSync(process.execPath, [
+    path.join(root, 'scripts', 'stop-test-edge.mjs'),
+    '--port=' + CDP_PORT,
+  ], { cwd: root, stdio: 'ignore', windowsHide: true })
   await sleep(1200)
 }
 
@@ -640,7 +586,7 @@ async function main() {
           await s.send('Page.navigate', { url: `${ORIGIN}/` })
           await waitFor(s, APP_RENDERED, 20000, 'A 首屏')
           await sleep(1500)
-          return probeShell(s, '/index.html')
+          return await probeShell(s, '/index.html')
         } finally {
           await killEdge(proc)
         }

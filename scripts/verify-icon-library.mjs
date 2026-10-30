@@ -4,7 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 
 const BASE = 'http://127.0.0.1:4173'
 const CDP = 'http://127.0.0.1:9222'
-const OUT = 'docs/screenshots/icon-library-v2'
+const OUT = '.tmp/browser-verification/icon-library-v2'
 const { icons } = JSON.parse(await readFile('assets/item-icons/prompts.json', 'utf8'))
 const expectedBundle = (await readFile('dist/index.html', 'utf8')).match(/src="([^" ]+\/index-[^" ]+\.js)"/)[1]
 const precacheUrls = [...(await readFile('dist/sw.js', 'utf8')).matchAll(/\{url:"([^"]+)",revision:/g)].map(match => match[1])
