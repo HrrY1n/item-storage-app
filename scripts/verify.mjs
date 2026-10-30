@@ -135,7 +135,7 @@ async function run() {
   await sleep(200)
   await s.clickText('[role="dialog"] button', '无线耳机')
   for (let i = 0; i < 15 && await s.ev(`!!document.querySelector('[data-sheet="picker"]')`); i++) await sleep(100)
-  await s.focusByPlaceholder('比如：AirPods')
+  await s.ev(`document.querySelector('input[aria-label="物品名称"]').focus()`)
   await s.type('AirPods Pro 2')
   await s.ev(`document.querySelector('button[aria-label="选择分类"]').click()`)
   await s.clickText('button', '数码与电子')

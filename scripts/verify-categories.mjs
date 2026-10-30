@@ -156,7 +156,7 @@ try {
   await poll(() => [...document.querySelectorAll('button[aria-pressed="true"]')].some(button => button.textContent.trim() === '摄影摄像'))
   await ev(() => document.querySelector('dialog[aria-label="分类"] header button').click())
   await poll(() => !document.querySelector('dialog[aria-label="分类"]'))
-  await ev(() => document.querySelector('input[placeholder="比如：AirPods Pro"]').focus())
+  await ev(() => document.querySelector('input[aria-label="物品名称"]').focus())
   await send('Input.insertText',{text:'分类验收 · 新摄影设备'})
   await poll(() => [...document.querySelectorAll('header button')].some(button => button.textContent.trim() === '保存' && !button.disabled))
   await button('保存')

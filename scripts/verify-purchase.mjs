@@ -128,7 +128,7 @@ async function run() {
   /* ---- 1. 新增带购买信息的物品 ---- */
   await s.nav(`${BASE}/items/new`, '新增物品')
   await s.ev(`(() => { const b = document.querySelectorAll('button[aria-pressed]')[2]; if (b) b.click(); return !!b })()`)
-  await s.focusByPlaceholder('比如：AirPods')
+  await s.ev(`document.querySelector('input[aria-label="物品名称"]').focus()`)
   await s.type('AirPods Pro 2')
   await s.ev(`document.querySelector('button[aria-label="选择分类"]').click()`)
   await s.clickText('button', '数码与电子')

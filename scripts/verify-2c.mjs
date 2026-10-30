@@ -123,7 +123,7 @@ async function createItem(s, { name, category, subCategory, iconIndex, tags = []
   await s.ev(
     `(() => { const b = document.querySelectorAll('button[aria-pressed]')[${iconIndex}]; if (b) b.click(); return !!b })()`,
   )
-  await s.focusByPlaceholder('比如：AirPods')
+  await s.ev(`document.querySelector('input[aria-label="物品名称"]').focus()`)
   await s.type(name)
   await s.ev(`document.querySelector('button[aria-label="选择分类"]').click()`)
   await s.clickText('button', category)

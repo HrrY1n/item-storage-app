@@ -27,6 +27,24 @@ describe('checkServiceWorkerUpdate', () => {
     await expect(checkServiceWorkerUpdate(h.registration)).rejects.toThrow('network failed')
   })
 
+  it('更新网络请求挂住时在十秒后失败，清理计时器并可重试', async () => {
+    vi.useFakeTimers()
+    const h = harness()
+    vi.mocked(h.registration.update).mockImplementationOnce(() => new Promise(() => {}))
+    const done = vi.fn()
+    const checking = checkServiceWorkerUpdate(h.registration)
+    void checking.then(done, () => {})
+    const timedOut = expect(checking).rejects.toThrow('update request timed out')
+    await vi.advanceTimersByTimeAsync(9999)
+    expect(done).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1)
+    await timedOut
+    expect(vi.getTimerCount()).toBe(0)
+    Object.assign(h.registration, { installing: null })
+    await expect(checkServiceWorkerUpdate(h.registration)).resolves.toBeUndefined()
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
   it('等待真实安装/激活，慢于 900ms 时也不提前完成', async () => {
     vi.useFakeTimers()
     const h = harness()

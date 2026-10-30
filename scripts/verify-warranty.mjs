@@ -80,7 +80,7 @@ const save = async () => {
   await poll(`location.pathname.startsWith('/items/') && location.pathname.split('/').length===3 && !location.pathname.endsWith('/new')`)
   return ev(`location.pathname.split('/').pop()`)
 }
-const nameSelector = 'input[placeholder="比如：AirPods Pro"]'
+const nameSelector = 'input[aria-label="物品名称"]'
 const runName = `保修验收-${Date.now()}`
 
 try {

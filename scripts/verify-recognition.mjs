@@ -102,7 +102,7 @@ try {
   await page.send('Fetch.enable', { patterns: [{ urlPattern: '*://127.0.0.1:5173/api/ai/recognize', requestStage: 'Request' }] })
   await page.send('Page.navigate', { url: 'http://127.0.0.1:5173/items/new' })
   await page.until(`!!document.querySelector('[data-ai-entry]')`)
-  await page.click('input[placeholder="比如：AirPods Pro"]')
+  await page.click('input[aria-label="物品名称"]')
   await page.send('Input.insertText', { text: '手工填写的名称' })
   await page.click('textarea')
   await page.send('Input.insertText', { text: '手工保留的备注' })
@@ -144,7 +144,7 @@ try {
   await page.shot('01-candidate-selection')
   await page.click('dialog button', '填入表单')
   await page.until(`!document.querySelector('dialog[aria-label="AI 辅助录入"]')`)
-  await page.check('Apply preserves existing fields and fills selected price/date', `document.querySelector('input[placeholder="比如：AirPods Pro"]').value==='手工填写的名称'
+  await page.check('Apply preserves existing fields and fills selected price/date', `document.querySelector('input[aria-label="物品名称"]').value==='手工填写的名称'
     && document.querySelector('textarea').value==='手工保留的备注'
     && document.querySelector('[data-date-field="购买日期"]').dataset.dateValue==='2026-01-15'
     && [...document.querySelectorAll('input[placeholder="0.00"]')].some(input=>input.value==='199.90')
@@ -154,7 +154,7 @@ try {
   replyMode = 'quota'
   await page.click('dialog button', '开始识别')
   await page.until(`document.querySelector('dialog [role="alert"]')?.textContent.includes('额度')`)
-  await page.check('Quota failure retains preview and the existing form', `!!document.querySelector('img[alt="待识别图片预览"]') && document.querySelector('input[placeholder="比如：AirPods Pro"]').value==='手工填写的名称'`)
+  await page.check('Quota failure retains preview and the existing form', `!!document.querySelector('img[alt="待识别图片预览"]') && document.querySelector('input[aria-label="物品名称"]').value==='手工填写的名称'`)
   replyMode = 'hold'
   await page.click('dialog button', '开始识别')
   await page.until(`document.querySelector('dialog [role="status"]')?.textContent.includes('识别')`)
@@ -201,7 +201,7 @@ try {
   await page.click('#ai-priceText'); await page.send('Input.insertText', { text: '1.234' })
   await page.click('[data-ai-actions] button', '填入表单')
   await page.until(`document.querySelector('dialog [role="alert"]')?.textContent.includes('金额最多两位小数')`)
-  await page.check('An invalid manual amount blocks apply without dropping the other corrections', `document.querySelector('#ai-name').value==='核对后的名称' && document.querySelector('#ai-priceText').value==='1.234' && document.querySelector('input[placeholder="比如：AirPods Pro"]').value===''`)
+  await page.check('An invalid manual amount blocks apply without dropping the other corrections', `document.querySelector('#ai-name').value==='核对后的名称' && document.querySelector('#ai-priceText').value==='1.234' && document.querySelector('input[aria-label="物品名称"]').value===''`)
   await page.ev(`(()=>{const input=document.querySelector('#ai-priceText');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'');input.dispatchEvent(new Event('input',{bubbles:true}))})()`)
   await page.click('button[aria-label="选择识别购买日期"]')
   await page.until(`!!document.querySelector('dialog[aria-label="识别购买日期"]')`)
@@ -213,7 +213,7 @@ try {
   await page.shot('04-correct-category')
   await page.click('[data-ai-actions] button', '填入表单')
   await page.until(`!document.querySelector('dialog[aria-label="AI 辅助录入"]')`)
-  await page.check('Corrected values are applied only to the current draft', `document.querySelector('input[placeholder="比如：AirPods Pro"]').value==='核对后的名称'`)
+  await page.check('Corrected values are applied only to the current draft', `document.querySelector('input[aria-label="物品名称"]').value==='核对后的名称'`)
   await page.click('[data-ai-entry]'); await sleep(400); await page.file()
   const requestsBeforeReplacement = requests.length
   await page.ev(`(()=>{const files=new DataTransfer();files.items.add(new File([new Uint8Array(15*1024*1024+1)],'too-large.jpg',{type:'image/jpeg'}));const input=document.querySelector('[data-ai-file="album"]');input.files=files.files;input.dispatchEvent(new Event('change',{bubbles:true}))})()`)

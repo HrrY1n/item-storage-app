@@ -221,16 +221,16 @@ try {
   await page.ev(`window.detailFrame=document.querySelector('.modal-sheet-panel');detailFrame.scrollTop=180`)
   await sleep(80)
   await page.ev(`window.detailY=detailFrame.scrollTop;document.querySelector('dialog[open] a[href$="/edit"]').click()`)
-  await page.until(`!!document.querySelector('dialog input[placeholder="比如：AirPods Pro"]')`)
+  await page.until(`!!document.querySelector('dialog input[aria-label="物品名称"]')`)
   await sleep(550)
   await page.check('Detail to edit reuses the same settled sheet instead of reopening', `detailFrame===document.querySelector('.modal-sheet-panel') && document.querySelectorAll('dialog:modal').length===1 && Math.abs(new DOMMatrixReadOnly(getComputedStyle(detailFrame).transform).m42)<1 && detailFrame.scrollTop===0`)
   await page.shot('09-edit-shared-panel')
-  await page.click('dialog input[placeholder="比如：AirPods Pro"]')
+  await page.click('dialog input[aria-label="物品名称"]')
   await page.send('Input.insertText', { text: ' 草稿' })
-  await page.ev(`window.nameDraft=document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value`)
+  await page.ev(`window.nameDraft=document.querySelector('dialog input[aria-label="物品名称"]').value`)
   await page.click('button[aria-label="选择分类"]')
   await page.until(`document.querySelectorAll('dialog:modal').length===2`)
-  await page.check('Category chooser keeps the draft inside a nested sheet', `!!document.querySelector('dialog[aria-label="分类"] button[aria-pressed="true"]') && document.querySelector('input[placeholder="比如：AirPods Pro"]').value===nameDraft`)
+  await page.check('Category chooser keeps the draft inside a nested sheet', `!!document.querySelector('dialog[aria-label="分类"] button[aria-pressed="true"]') && document.querySelector('input[aria-label="物品名称"]').value===nameDraft`)
   await page.escape()
   await page.until(`!document.querySelector('dialog[aria-label="分类"]')`)
   await page.click('button[aria-label="选择购买来源"]')
@@ -241,7 +241,7 @@ try {
   await page.click('dialog[aria-label="购买来源"] button', '京东')
   await page.escape()
   await page.until(`!document.querySelector('dialog[aria-label="购买来源"]')`)
-  await page.check('Source selection returns to the unchanged name draft', `document.querySelector('button[aria-label="选择购买来源"]').textContent.includes('京东') && document.querySelector('input[placeholder="比如：AirPods Pro"]').value===nameDraft`)
+  await page.check('Source selection returns to the unchanged name draft', `document.querySelector('button[aria-label="选择购买来源"]').textContent.includes('京东') && document.querySelector('input[aria-label="物品名称"]').value===nameDraft`)
   await page.click('button[aria-label="选择购买来源"]')
   await page.until(`!!document.querySelector('dialog[aria-label="购买来源"]')`)
   await sleep(380)
@@ -258,7 +258,7 @@ try {
   await page.until(`!document.querySelector('[data-sheet="picker"]')`)
   await page.check('Escape closes only picker and restores the form draft/focus', `
     document.querySelectorAll('dialog:modal').length===1 && document.body.style.overflow==='hidden'
-    && document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value===nameDraft
+    && document.querySelector('dialog input[aria-label="物品名称"]').value===nameDraft
     && document.activeElement.textContent.includes('点击本行更换图标')`)
   await page.click('dialog [data-date-field="购买日期"]')
   await page.until(`!!document.querySelector('[data-date-picker]')`)
@@ -307,7 +307,7 @@ try {
     document.querySelectorAll('dialog:modal').length===1
     && !document.querySelector('dialog[aria-label="放弃此次修改？"]')
     && location.pathname.endsWith('/edit')
-    && document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value===nameDraft
+    && document.querySelector('dialog input[aria-label="物品名称"]').value===nameDraft
     && !!document.activeElement.closest('dialog')`)
   await page.escape()
   await page.until(`document.querySelectorAll('dialog:modal').length===2`)
@@ -369,7 +369,7 @@ try {
               const rect=panel.getBoundingClientRect();
               frames.push({time:time-start,top:rect.top,height:rect.height,scroll:panel.closest('dialog').scrollTop,
                 visible:getComputedStyle(panel).opacity==='1' && rect.top<innerHeight && rect.bottom>0,
-                pending:panel.textContent.includes('正在载入表单'),form:!!panel.querySelector('input[placeholder="比如：AirPods Pro"]')});
+                pending:panel.textContent.includes('正在载入表单'),form:!!panel.querySelector('input[aria-label="物品名称"]')});
             }
             if(time-start<2400) requestAnimationFrame(sample); else resolve();
           }
@@ -427,7 +427,7 @@ try {
   await page.until(`!document.querySelector('dialog[open]')`)
   await page.send('Emulation.setEmulatedMedia', { features: [] })
   await page.click('a[aria-label="新增物品"]')
-  await page.until(`!!document.querySelector('dialog[aria-label="新增物品"] input[placeholder="比如：AirPods Pro"]')`)
+  await page.until(`!!document.querySelector('dialog[aria-label="新增物品"] input[aria-label="物品名称"]')`)
   await sleep(550)
   await page.check('Creation is a sheet above the same list', `location.pathname==='/items/new' && creationList.isConnected && creationSearch===document.querySelector('input[aria-label="搜索物品"]')`)
   const creationTitle = 'dialog[aria-label="新增物品"] header h1'
@@ -438,7 +438,7 @@ try {
   await sleep(150)
   await page.touchEnd()
   await sleep(550)
-  await page.check('Short slow pull rebounds without closing or changing the draft', `location.pathname==='/items/new' && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42)<1 && document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value===''`)
+  await page.check('Short slow pull rebounds without closing or changing the draft', `location.pathname==='/items/new' && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42)<1 && document.querySelector('dialog input[aria-label="物品名称"]').value===''`)
   touch = await page.touchStart(creationTitle)
   await page.touchMove(touch, 100)
   await sleep(150)
@@ -473,9 +473,9 @@ try {
   await page.check('Long pull dismisses pristine creation and restores the list/focus', `location.pathname==='/items' && creationList.isConnected && document.activeElement.matches('a[aria-label="新增物品"]') && document.body.style.overflow===''`)
 
   await page.click('a[aria-label="新增物品"]')
-  await page.until(`!!document.querySelector('dialog input[placeholder="比如：AirPods Pro"]')`)
+  await page.until(`!!document.querySelector('dialog input[aria-label="物品名称"]')`)
   await sleep(550)
-  await page.click('dialog input[placeholder="比如：AirPods Pro"]')
+  await page.click('dialog input[aria-label="物品名称"]')
   await page.send('Input.insertText', { text: '需要保留的下拉草稿' })
   touch = await page.touchStart(creationTitle)
   await page.touchMove(touch, 220)
@@ -483,7 +483,7 @@ try {
   await page.until(`!!document.querySelector('dialog[aria-label="放弃此次修改？"]')`)
   await page.escape()
   await sleep(550)
-  await page.check('Dirty swipe requests confirmation and cancelling preserves input', `location.pathname==='/items/new' && document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value==='需要保留的下拉草稿' && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42)<1`)
+  await page.check('Dirty swipe requests confirmation and cancelling preserves input', `location.pathname==='/items/new' && document.querySelector('dialog input[aria-label="物品名称"]').value==='需要保留的下拉草稿' && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42)<1`)
   await page.click('dialog button', '点击本行更换图标')
   await page.until(`document.querySelectorAll('dialog:modal').length===2`)
   await sleep(380)
@@ -493,7 +493,7 @@ try {
   await page.shot('07-nested-picker-drag')
   await page.touchEnd()
   await page.until(`document.querySelectorAll('dialog:modal').length===1`)
-  await page.check('Nested drag closes only the picker and keeps the draft/scroll lock', `location.pathname==='/items/new' && document.querySelector('dialog input[placeholder="比如：AirPods Pro"]').value==='需要保留的下拉草稿' && document.body.style.overflow==='hidden'`)
+  await page.check('Nested drag closes only the picker and keeps the draft/scroll lock', `location.pathname==='/items/new' && document.querySelector('dialog input[aria-label="物品名称"]').value==='需要保留的下拉草稿' && document.body.style.overflow==='hidden'`)
   await page.escape()
   await page.until(`!!document.querySelector('dialog[aria-label="放弃此次修改？"]')`)
   await page.click('dialog[aria-label="放弃此次修改？"] button', '放弃修改')

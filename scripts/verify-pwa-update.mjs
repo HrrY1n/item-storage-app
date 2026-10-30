@@ -46,6 +46,7 @@ const setActive = (v) => writeFile(join(SWAP, 'active'), v)
 
 /** 静态服务 + SPA fallback；sw.js 不缓存（对齐 Cloudflare 的 must-revalidate） */
 let failSwCheck = false
+let slowSwCheck = false
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, BASE)
@@ -53,6 +54,7 @@ const server = createServer(async (req, res) => {
       res.writeHead(503, { 'Cache-Control': 'no-store' }).end('test update check failure')
       return
     }
+    if (slowSwCheck && url.pathname === '/sw.js') await new Promise(resolve => setTimeout(resolve, 15_000))
     const dir = await activeDir()
     let filePath = join(dir, decodeURIComponent(url.pathname))
     if (!existsSync(filePath) || url.pathname === '/' || !extname(url.pathname)) {
@@ -395,11 +397,11 @@ await ev(`localStorage.setItem('pil.theme','light');document.documentElement.dat
 // ============================================================ 5. 表单保护
 await setActive('a')
 await ev(`document.querySelector('a[aria-label="新增物品"]').click()`)
-await untilPage(`location.pathname === '/items/new' && !!document.querySelector('input[placeholder^="比如"]')`)
+await untilPage(`location.pathname === '/items/new' && !!document.querySelector('input[aria-label="物品名称"]')`)
 await sleep(1200)
 const bundleOnForm = await bundle()
 await ev(`(() => {
-  const input = document.querySelector('input[placeholder^="比如"]')
+  const input = document.querySelector('input[aria-label="物品名称"]')
   input.focus()
 })()`)
 await send('Input.insertText', { text: '未保存输入' })
@@ -408,7 +410,7 @@ await sleep(61_000)
 await ev(`document.dispatchEvent(new Event('visibilitychange'))`)
 await sleep(3000)
 
-const typed = await ev(`(() => { const i = document.querySelector('input[placeholder^="比如"]'); return i ? i.value : null })()`)
+const typed = await ev(`(() => { const i = document.querySelector('input[aria-label="物品名称"]'); return i ? i.value : null })()`)
 check('表单保护：输入内容未丢失', typed === '未保存输入', String(typed))
 check('表单保护：编辑中不 reload（bundle 未变）', (await bundle()) === bundleOnForm, String(await bundle()))
 const banner = await ev(`(() => { const b = document.querySelector('[data-update-banner]'); return b ? b.getAttribute('data-update-banner') : null })()`)
@@ -416,7 +418,7 @@ check('表单保护：显示「新版本已就绪」提示', banner === 'blocked
 
 await ev(`history.back()`)
 await untilPage(`document.body.textContent.includes('放弃此次修改')`)
-check('浏览器返回先确认放弃，确认前仍保留输入和旧版本', (await bundle()) === bundleOnForm && await ev(`document.querySelector('input[placeholder^="比如"]')?.value === '未保存输入'`))
+check('浏览器返回先确认放弃，确认前仍保留输入和旧版本', (await bundle()) === bundleOnForm && await ev(`document.querySelector('input[aria-label="物品名称"]')?.value === '未保存输入'`))
 await ev(`([...document.querySelectorAll('dialog button')].find(button => button.textContent.trim() === '放弃修改')).click()`)
 await sleep(4000)
 const bundleAfterLeave = await bundle()
@@ -430,7 +432,7 @@ async function clickCheckUpdate() {
 async function waitToast(re, timeoutMs = 4000) {
   const started = Date.now()
   while (Date.now() - started < timeoutMs) {
-    const hit = await ev(`(() => { const m = document.body.textContent.match(${re}); return m ? m[0] : null })()`)
+    const hit = await ev(`(() => { const text = [...document.querySelectorAll('[role="status"]')].filter(el => el.getClientRects().length > 0).map(el => el.textContent).join(' '); const m = text.match(${re}); return m ? m[0] : null })()`)
     if (hit) return hit
     await sleep(300)
   }
@@ -445,6 +447,13 @@ await sleep(3500)
 await clickCheckUpdate()
 check('手动检查：在线请求失败时明确提示未能完成检查', (await waitToast('/未能完成线上版本检查|当前已是线上最新版本/')) === '未能完成线上版本检查')
 failSwCheck = false
+
+slowSwCheck = true
+await sleep(2000)
+await clickCheckUpdate()
+check('手动检查：慢请求立即显示明确的检查中状态', await ev(`document.body.textContent.includes('正在检查更新…')`))
+check('手动检查：网络挂住十秒后失败且不误报最新', (await waitToast('/未能完成线上版本检查|当前已是线上最新版本/', 13_000)) === '未能完成线上版本检查')
+slowSwCheck = false
 
 await send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 })
 await clickCheckUpdate()

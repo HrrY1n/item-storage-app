@@ -2,8 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createBrowserRouter, Outlet, Route, Routes, useLocation, type Location } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { itemPanelBackground } from './features/ui/itemPanelRouting'
-import { seedIfEmpty, syncPresetAssets, upgradeSchemaVersionMeta } from './db/seed'
-import { upgradeDefaultCategories } from './db/repositories/categoryRepository'
+import { initializeLocalData } from './db/initialize'
 import { requestPersistentStorage } from './services/pwa'
 import BottomNav from './components/BottomNav'
 import UpdateBanner from './components/UpdateBanner'
@@ -94,11 +93,7 @@ function Boot() {
   useEffect(() => {
     // 尽力申请持久化存储；不支持或被拒绝都静默跳过，绝不阻塞启动
     void requestPersistentStorage()
-    seedIfEmpty()
-      .then(() => upgradeSchemaVersionMeta())
-      .then(() => upgradeDefaultCategories())
-      // 老库补齐新图标：幂等 upsert，绝不触碰用户资产（详见 syncPresetAssets 契约）
-      .then(() => syncPresetAssets())
+    initializeLocalData()
       .then(() => setReady(true))
       .catch(() => setFailed(true))
   }, [])

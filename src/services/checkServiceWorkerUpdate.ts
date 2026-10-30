@@ -4,7 +4,18 @@ export async function checkServiceWorkerUpdate(
 ): Promise<void> {
   if (!registration) throw new Error('Service Worker is not registered')
   const previous = registration.installing ?? registration.waiting
-  await registration.update()
+  // 浏览器的更新请求也可能一直 pending；超时后允许重试，不把旧缓存误报为最新。
+  let requestTimer: ReturnType<typeof setTimeout> | undefined
+  try {
+    await Promise.race([
+      registration.update(),
+      new Promise<never>((_, reject) => {
+        requestTimer = setTimeout(() => reject(new Error('Service Worker update request timed out')), 10_000)
+      }),
+    ])
+  } finally {
+    clearTimeout(requestTimer)
+  }
   const worker = registration.installing ?? registration.waiting ?? previous
   if (!worker) return
 

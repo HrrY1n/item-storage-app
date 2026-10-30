@@ -374,7 +374,7 @@ export default function ItemFormPage() {
           </button>
           <p className="text-caption text-white/60">物品名称</p>
           <input value={name} onChange={event => setName(event.target.value)} aria-label="物品名称"
-            placeholder="比如：AirPods Pro" className="form-name mt-2 w-full min-w-0 bg-transparent text-[26px] font-semibold leading-tight" />
+            className="form-name mt-2 w-full min-w-0 bg-transparent text-[26px] font-semibold leading-tight" />
         </section>
         <button type="button" onClick={() => setRecognitionOpen(true)} data-ai-entry
           className="flex min-h-12 items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3 text-left text-ink-primary">

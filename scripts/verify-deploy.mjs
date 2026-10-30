@@ -125,13 +125,13 @@ async function run() {
   await s.nav(`${PREVIEW}/items/new`)
   await sleep(1200)
   await s.ev(`(() => {
-    const set = (ph, v) => {
-      const el = [...document.querySelectorAll('input')].find(i => (i.placeholder || '').includes(ph));
+    const set = (selector, v) => {
+      const el = document.querySelector(selector);
       if (!el) return false;
       const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
       setter.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })); return true;
     };
-    set('比如：AirPods', '部署烟测物品');
+    set('input[aria-label="物品名称"]', '部署烟测物品');
     return true;
   })()`)
   await s.ev(`(() => {
