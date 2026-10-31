@@ -1,7 +1,8 @@
-// 详情 ⇄ 编辑转场专项回归：连续性、终态、草稿保护、快速往返、滚动、减少动效。
+// 详情 ⇄ 编辑转场专项回归：连续性、终态、草稿保护、快速往返、滚动、减少动效、视觉层级。
 // 需要 Vite dev 服务器（DEV_BASE，默认 127.0.0.1:5173）与项目隔离 Edge（EDGE_TEST_PORT，默认 9222）。
 import assert from 'node:assert/strict'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, writeFile, readFile } from 'node:fs/promises'
+import { inflateSync } from 'node:zlib'
 
 const CDP = `http://127.0.0.1:${process.env.EDGE_TEST_PORT ?? '9222'}`
 const BASE = process.env.DEV_BASE ?? 'http://127.0.0.1:5173'
@@ -9,6 +10,68 @@ const OUT = '.tmp/panel-transition-verification'
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const errors = []
 const results = []
+
+// 最小 PNG 解码（RGBA8 非隔行）：截图像素采样用，替代纯 CSS 字符串断言。
+function decodePng(buffer) {
+  if (buffer.readUInt32BE(0) !== 0x89504e47) throw new Error('not a png')
+  let pos = 8
+  let width = 0, height = 0, bitDepth = 0, colorType = 0, interlace = 0
+  const idat = []
+  while (pos < buffer.length) {
+    const length = buffer.readUInt32BE(pos)
+    const type = buffer.toString('ascii', pos + 4, pos + 8)
+    const data = buffer.subarray(pos + 8, pos + 8 + length)
+    if (type === 'IHDR') { width = data.readUInt32BE(0); height = data.readUInt32BE(4); bitDepth = data[8]; colorType = data[9]; interlace = data[12] }
+    else if (type === 'IDAT') idat.push(data)
+    else if (type === 'IEND') break
+    pos += 12 + length
+  }
+  if (bitDepth !== 8 || (colorType !== 6 && colorType !== 2) || interlace !== 0) throw new Error(`unsupported png: depth=${bitDepth} color=${colorType} interlace=${interlace}`)
+  const bpp = colorType === 6 ? 4 : 3
+  const raw = inflateSync(Buffer.concat(idat))
+  const stride = width * bpp
+  const out = Buffer.alloc(height * stride)
+  let p = 0
+  for (let y = 0; y < height; y++) {
+    const filter = raw[p++]
+    const row = raw.subarray(p, p + stride); p += stride
+    const prev = y > 0 ? out.subarray((y - 1) * stride, y * stride) : null
+    const cur = out.subarray(y * stride, (y + 1) * stride)
+    for (let x = 0; x < stride; x++) {
+      const a = x >= bpp ? cur[x - bpp] : 0
+      const b = prev ? prev[x] : 0
+      const c = prev && x >= bpp ? prev[x - bpp] : 0
+      let v = row[x]
+      if (filter === 1) v = (v + a) & 0xff
+      else if (filter === 2) v = (v + b) & 0xff
+      else if (filter === 3) v = (v + ((a + b) >> 1)) & 0xff
+      else if (filter === 4) {
+        const pa = Math.abs(b - c), pb = Math.abs(a - c), pc = Math.abs(a + b - 2 * c)
+        v = (v + (pa <= pb && pa <= pc ? a : pb <= pc ? b : c)) & 0xff
+      }
+      cur[x] = v
+    }
+  }
+  return { width, height, bpp, data: out }
+}
+
+/** 两个截图中同一 CSS 区域的平均 RGB 差异（0-255） */
+function meanDiff(pngA, pngB, cssRect, scale) {
+  const { width, height, bpp, data } = pngA
+  const x0 = Math.max(0, Math.round(cssRect.x * scale)), y0 = Math.max(0, Math.round(cssRect.y * scale))
+  const x1 = Math.min(width, Math.round((cssRect.x + cssRect.w) * scale)), y1 = Math.min(height, Math.round((cssRect.y + cssRect.h) * scale))
+  let sum = 0, n = 0
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+    const i = (y * width + x) * bpp
+    sum += Math.abs(data[i] - pngB.data[i]) + Math.abs(data[i + 1] - pngB.data[i + 1]) + Math.abs(data[i + 2] - pngB.data[i + 2])
+    n++
+  }
+  return n ? sum / n / 3 : 0
+}
+
+const SHOT_SCALE = 1
+const regionClose = { x: 17, y: 31, w: 44, h: 44 }
+const regionEdit = { x: 318, y: 33, w: 46, h: 32 }
 
 class Session {
   id = 0
@@ -58,7 +121,9 @@ class Session {
   }
   async shot(name) {
     const { data } = await this.send('Page.captureScreenshot', { format: 'png' })
-    await writeFile(`${OUT}/${name}.png`, Buffer.from(data, 'base64'))
+    const path = `${OUT}/${name}.png`
+    await writeFile(path, Buffer.from(data, 'base64'))
+    return path
   }
   async touchStart(selector, text) {
     return this.ev(`(() => {
@@ -146,6 +211,15 @@ try {
     })).id;
   })()`)
   const fixtureId = await page.ev('window.fixtureId')
+
+  const detailHeaderContainedExpr = `(() => {
+    const isStackingContext = el => { const s = getComputedStyle(el); return s.isolation === 'isolate' || (s.position !== 'static' && s.zIndex !== 'auto') || s.transform !== 'none' || s.willChange.includes('transform'); };
+    const detail = [...document.querySelectorAll('.item-panel-content')].find(n => n.inert);
+    const header = detail?.querySelector('header');
+    let node = header?.parentElement, ctx = null;
+    while (node && !ctx) { if (isStackingContext(node)) ctx = node; node = node.parentElement; }
+    return !!ctx && ctx === detail;
+  })()`
   await page.until(`!!document.querySelector('a[href="/items/${fixtureId}"]')`)
   const listScrollY = await page.ev(`(window.scrollY, document.querySelector('input[aria-label="搜索物品"]').closest('main').scrollTop)`)
   await page.ev(`document.querySelector('a[href="/items/' + window.fixtureId + '"]').click()`)
@@ -194,6 +268,8 @@ try {
   await page.check('进入编辑后面板从顶部开始且底层列表滚动未被扰动', `
     document.querySelector('.modal-sheet-panel').scrollTop < 40
     && (document.querySelector('main').scrollTop) === ${JSON.stringify(listScrollY)}`)
+  // 详情滚动 420 后（标题折叠态）进入编辑：header 同样不得穿透（滚动前折叠态由上一断言路径覆盖）
+  await page.check('详情滚动折叠后进入编辑，header 层叠上下文仍被限制在详情容器内', detailHeaderContainedExpr)
   await page.click(`button[aria-label="返回"]`)
   await page.until(`!!document.querySelector('.item-panel-content:not([hidden]) h1')`)
   await sleep(400)
@@ -366,6 +442,75 @@ try {
     document.querySelectorAll('.item-panel-content').length === 1
     && !document.querySelector('.item-panel-edit-layer')
     && location.pathname.endsWith(window.fixtureId)`)
+
+  // ===== 5.6 视觉层级：详情 sticky header 不得穿透编辑覆盖层 =====
+  // 详情滚动归零，使「拖动露出」与「退出后」的像素比较成为纯层级比较
+  //（滚动恢复本身由上文「面板滚动停留落点」断言覆盖）。
+  await page.ev(`document.querySelector('.modal-sheet-panel').scrollTop = 0`)
+  await sleep(150)
+  // 详情 header 是 sticky z-10；底层详情容器必须建立层叠上下文（isolation: isolate），
+  // 否则 header 会以 z-10 直接参与面板层叠、绘制在编辑层（z-5）之上（按钮穿透）。
+  const shotPng = async name => decodePng(await readFile(await page.shot(name)))
+  const enterEdit = async () => {
+    await page.click(`a[href$="/edit"]`)
+    await page.until(`!!document.querySelector('.item-panel-edit-layer[data-state="open"]')`)
+    await sleep(350)
+  }
+  const exitEditViaCancel = async () => {
+    await page.ev(`(() => { const el=[...document.querySelectorAll('.item-panel-edit-layer button')].find(b => b.textContent.trim() === '取消'); if (!el) throw new Error('no cancel'); el.click(); return true })()`)
+    await page.until(`!location.pathname.endsWith('/edit')`)
+    await sleep(600)
+  }
+  await enterEdit()
+  await page.check('详情 sticky header(z-10) 的层叠上下文被限制在详情容器内', detailHeaderContainedExpr)
+  await page.check('左上角命中测试命中编辑层而非下层详情按钮（无点击穿透）', `(() => { const el = document.elementFromPoint(37, 51); return !!el && !!el.closest('.item-panel-edit-layer'); })()`)
+  await page.check('右上角命中测试命中编辑层保存按钮而非下层编辑链接', `(() => { const el = document.elementFromPoint(340, 55); return !!el && !!el.closest('.item-panel-edit-layer'); })()`)
+  const pngRest = await shotPng('z-rest')
+  // 下拖 100px：露出区域应与退出后的详情逐像素一致（下层固定、原位露出）
+  gripPoint = await page.touchStart('.item-panel-edit-layer .modal-sheet-grip')
+  await page.touchMove(gripPoint, 100)
+  const pngDuring = await shotPng('z-during-100px')
+  await page.touchEnd()
+  await page.until(`Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.item-panel-edit-layer')).transform).m42) < 1`)
+  const pngRebound = await shotPng('z-rebound')
+  await exitEditViaCancel()
+  const pngExit = await shotPng('z-exit')
+  console.log('DIFF during-vs-exit close/edit:', meanDiff(pngDuring, pngExit, regionClose, SHOT_SCALE).toFixed(2), meanDiff(pngDuring, pngExit, regionEdit, SHOT_SCALE).toFixed(2))
+  console.log('DIFF rest-vs-rebound close/edit:', meanDiff(pngRest, pngRebound, regionClose, SHOT_SCALE).toFixed(2), meanDiff(pngRest, pngRebound, regionEdit, SHOT_SCALE).toFixed(2))
+  console.log('DIFF rest-vs-exit close/edit:', meanDiff(pngRest, pngExit, regionClose, SHOT_SCALE).toFixed(2), meanDiff(pngRest, pngExit, regionEdit, SHOT_SCALE).toFixed(2))
+  await page.check('拖动露出的区域与退出后的详情渲染一致（下层固定原位）', `
+    ${meanDiff(pngDuring, pngExit, regionClose, SHOT_SCALE).toFixed(2)} < 4
+    && ${meanDiff(pngDuring, pngExit, regionEdit, SHOT_SCALE).toFixed(2)} < 4`)
+  await page.check('编辑层回弹后与覆盖态逐像素一致（无按钮残影或闪现）', `
+    ${meanDiff(pngRest, pngRebound, regionClose, SHOT_SCALE).toFixed(2)} < 3
+    && ${meanDiff(pngRest, pngRebound, regionEdit, SHOT_SCALE).toFixed(2)} < 3`)
+  await page.check('编辑层退出后详情按钮恢复可见（区域内容与覆盖态不同）', `
+    ${meanDiff(pngRest, pngExit, regionEdit, SHOT_SCALE).toFixed(2)} > 5`)
+  // 深色主题
+  await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'dark' }] })
+  await enterEdit()
+  await page.check('深色主题下详情 header 同样无法穿透编辑层', detailHeaderContainedExpr)
+  const pngRestDark = await shotPng('z-rest-dark')
+  await exitEditViaCancel()
+  const pngExitDark = await shotPng('z-exit-dark')
+  await page.check('深色主题下退出后详情按钮恢复可见', `${meanDiff(pngRestDark, pngExitDark, regionEdit, SHOT_SCALE).toFixed(2)} > 5`)
+  await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'light' }] })
+  // 小屏视口
+  await page.send('Emulation.setDeviceMetricsOverride', { width: 360, height: 740, deviceScaleFactor: SHOT_SCALE, mobile: true })
+  await sleep(300)
+  await enterEdit()
+  await page.check('小屏视口(360×740)下详情 header 同样无法穿透编辑层', detailHeaderContainedExpr)
+  await exitEditViaCancel()
+  await page.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: SHOT_SCALE, mobile: true })
+  await sleep(300)
+  // 快速往返五次后再验证无视觉重叠
+  for (let i = 0; i < 5; i++) {
+    await enterEdit()
+    await exitEditViaCancel()
+  }
+  await enterEdit()
+  await page.check('快速五次往返后详情 header 仍无法穿透编辑层', detailHeaderContainedExpr)
+  await exitEditViaCancel()
 
   // 6. 编辑保存 → 详情
   await page.click(`a[href$="/edit"]`)

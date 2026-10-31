@@ -181,7 +181,7 @@ export default function ItemPanel({ path, open, onExited, children }: {
         }}
         tabIndex={-1}
         data-modal-autofocus={isRevealed || undefined}
-        className="item-panel-content outline-none"
+        className="item-panel-content outline-none isolate"
         hidden={!entry.overlay && entry.path.endsWith('/new') && !isRevealed || undefined}
         inert={(!entry.overlay && overlayActive) || undefined}
       >
