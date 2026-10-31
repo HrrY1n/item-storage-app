@@ -1,8 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
 import ModalLayer from './ModalLayer'
 import { sheetDragDirection, shouldDismissSheet, type SheetPoint } from '../features/ui/sheetGesture'
 
-export default function ModalSheet({ open, ready = true, label, onClose, onExited, variant, size, children }: {
+export default function ModalSheet({ open, ready = true, label, onClose, onExited, variant, size, children, surfaceRef, surfaceActive = false }: {
   open: boolean
   ready?: boolean
   label: string
@@ -11,12 +11,17 @@ export default function ModalSheet({ open, ready = true, label, onClose, onExite
   variant: 'detail' | 'picker'
   size?: 'compact' | 'content' | 'tall'
   children: ReactNode
+  /** 覆盖式编辑层：拖拽/回弹/关闭位移只作用于该层，共享面板保持固定。 */
+  surfaceRef?: RefObject<HTMLElement | null>
+  surfaceActive?: boolean
 }) {
   const [present, setPresent] = useState(open)
   const openRef = useRef(open)
   const presentRef = useRef(open)
   const exitedRef = useRef(onExited)
   const closeRef = useRef(onClose)
+  const surfaceActiveRef = useRef(surfaceActive)
+  surfaceActiveRef.current = surfaceActive
   const sheetRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLElement>(null)
   const measuredHeight = useRef<number | null>(null)
@@ -73,6 +78,8 @@ export default function ModalSheet({ open, ready = true, label, onClose, onExite
   useLayoutEffect(() => {
     const sheet = sheetRef.current, panel = panelRef.current
     if (!visible || !sheet || !panel) return
+    // surfaceActiveRef 在组件体逐渲染镜像；surfaceEl 事件期读取，避免 revealed 翻转后读到过期拖拽面。
+    const surfaceEl = () => (surfaceActiveRef.current && surfaceRef?.current) || panelRef.current!
     let gesture: { id: number; kind: 'touch' | 'pointer'; start: SheetPoint; base: number; distance: number; dragging: boolean; samples: SheetPoint[] } | undefined
     let releaseFrame = 0
     const topmost = () => {
@@ -80,14 +87,26 @@ export default function ModalSheet({ open, ready = true, label, onClose, onExite
       return openRef.current && panel.closest('dialog') === dialogs[dialogs.length - 1]
     }
     const reset = () => {
+      const surface = surfaceEl()
+      const onLayer = surface !== panelRef.current
       cancelAnimationFrame(releaseFrame)
       releaseFrame = 0
-      if (openRef.current && sheet.style.getPropertyValue('--sheet-drag-y')) sheet.dataset.rebounding = 'true'
-      else delete sheet.dataset.rebounding
+      if (onLayer) {
+        if (openRef.current && surface.style.getPropertyValue('--sheet-drag-y')) surface.dataset.rebounding = 'true'
+        else delete surface.dataset.rebounding
+      } else if (openRef.current && sheet.style.getPropertyValue('--sheet-drag-y')) {
+        sheet.dataset.rebounding = 'true'
+      } else {
+        delete sheet.dataset.rebounding
+      }
       gesture = undefined
       delete sheet.dataset.dragging
       sheet.style.removeProperty('--sheet-drag-y')
       sheet.style.removeProperty('--sheet-drag-progress')
+      if (onLayer) {
+        surface.style.removeProperty('--sheet-drag-y')
+        surface.style.removeProperty('--sheet-drag-progress')
+      }
     }
     const start = (target: EventTarget | null, point: SheetPoint, id: number, kind: 'touch' | 'pointer') => {
       if (!topmost() || !(target instanceof Element) || target.closest('button,a,input,textarea,select,[contenteditable="true"],[role="slider"]')) return
@@ -100,7 +119,7 @@ export default function ModalSheet({ open, ready = true, label, onClose, onExite
           if (node === panel) break
         }
       }
-      const base = Math.max(0, new DOMMatrixReadOnly(getComputedStyle(panel).transform).m42)
+      const base = Math.max(0, new DOMMatrixReadOnly(getComputedStyle(surfaceEl()).transform).m42)
       gesture = { id, kind, start: point, base, distance: base, dragging: false, samples: [point] }
     }
     const move = (point: SheetPoint, event: Event) => {
@@ -111,8 +130,10 @@ export default function ModalSheet({ open, ready = true, label, onClose, onExite
         if (direction === 'pending') return
         if (direction === 'scroll') { reset(); return }
         // 入场/回弹在方向判定期间仍可移动，接管时使用当前视觉位置。
-        gesture.base = Math.max(0, new DOMMatrixReadOnly(getComputedStyle(panel).transform).m42)
+        gesture.base = Math.max(0, new DOMMatrixReadOnly(getComputedStyle(surfaceEl()).transform).m42)
         delete sheet.dataset.rebounding
+        const surface = surfaceEl()
+        if (surface !== panelRef.current) delete surface.dataset.rebounding
         gesture.dragging = true
       }
       if (event.cancelable) event.preventDefault()
@@ -120,8 +141,15 @@ export default function ModalSheet({ open, ready = true, label, onClose, onExite
       while (gesture.samples.length > 2 && point.time - gesture.samples[0].time > 100) gesture.samples.shift()
       gesture.distance = Math.max(0, gesture.base + point.y - gesture.start.y)
       sheet.dataset.dragging = 'true'
-      sheet.style.setProperty('--sheet-drag-y', `${gesture.distance}px`)
-      sheet.style.setProperty('--sheet-drag-progress', String(Math.min(1, gesture.distance / panel.clientHeight)))
+      const surface = surfaceEl()
+      if (surface === panelRef.current) {
+        sheet.style.setProperty('--sheet-drag-y', `${gesture.distance}px`)
+        sheet.style.setProperty('--sheet-drag-progress', String(Math.min(1, gesture.distance / panel.clientHeight)))
+      } else {
+        // 编辑层拖拽：位移变量只写到编辑层，共享面板与背板保持原位。
+        surface.style.setProperty('--sheet-drag-y', `${gesture.distance}px`)
+        surface.style.setProperty('--sheet-drag-progress', String(Math.min(1, gesture.distance / panel.clientHeight)))
+      }
     }
     const finish = (point?: SheetPoint) => {
       const current = gesture

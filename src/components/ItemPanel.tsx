@@ -29,7 +29,7 @@ export function useItemPanel(onClose: () => void, ready = true) {
 }
 
 type PanelIntent = 'open' | 'forward' | 'back'
-type PanelEntry = { path: string; children: ReactNode; intent: PanelIntent; nonce: number }
+type PanelEntry = { path: string; children: ReactNode; intent: PanelIntent; nonce: number; overlay?: boolean; exiting?: boolean }
 
 /** 每个内容树独立的 context 值；active 随导航翻转，驱动恢复与关闭责任的交接。 */
 function EntryScope({ entry, active, entering, close, markReady, children }: {
@@ -92,6 +92,8 @@ export default function ItemPanel({ path, open, onExited, children }: {
   /**
    * 内容切换状态机：路径变化时保留旧内容显示，新页面的数据就绪信号（restore）到达后
    * 才整体揭示——转场动画因此在真实内容的首帧启动，占位态全程不可见。
+   * 经由详情进入的编辑页（/edit）渲染为面板内独立的覆盖编辑层：下拉手势只作用于该层，
+   * 详情作为底层固定不动，编辑层退出后直接露出详情，共享面板全程不参与位移。
    * 表单路径永远重新初始化，保证放弃草稿后旧输入不会复活。
    */
   const [entries, setEntries] = useState<PanelEntry[]>(() => [{ path, children, intent: 'open', nonce: 0 }])
@@ -101,17 +103,20 @@ export default function ItemPanel({ path, open, onExited, children }: {
   const nextNonce = useRef(1)
   const lastPath = useRef(path)
   if (lastPath.current !== path) {
+    const prevPath = lastPath.current
     lastPath.current = path
     if (open) {
       const intent: PanelIntent = path.endsWith('/edit') ? 'forward' : 'back'
       const isForm = path.endsWith('/edit') || path.endsWith('/new')
       ready.current = false
       setEntries(current => {
-        const existing = current.find(entry => entry.path === path)
-        if (existing && !isForm) return current.map(entry => entry.path === path ? { ...entry, intent } : entry)
+        // 已揭示过的覆盖编辑层进入退出动画（下滑让出详情）；从未揭示的保持隐藏，交由 prune 静默回收。
+        const marked = current.map(entry => entry.overlay && entry.path === prevPath && revealed === prevPath ? { ...entry, exiting: true } : entry)
+        const existing = marked.find(entry => entry.path === path)
+        if (existing && !isForm) return marked.map(entry => entry.path === path ? { ...entry, intent } : entry)
         // 重新挂载的条目换新 nonce 改变 key：同一提交内「移除+追加」同 key 会被
         // React 视为移动而保留旧表单状态（例如已放弃的草稿）。
-        return [...current.filter(entry => entry.path !== path), { path, children, intent, nonce: nextNonce.current++ }]
+        return [...marked.filter(entry => entry.path !== path), { path, children, intent, nonce: nextNonce.current++, overlay: path.endsWith('/edit') }]
       })
     }
   }
@@ -120,6 +125,9 @@ export default function ItemPanel({ path, open, onExited, children }: {
     if (!openRef.current || entryPath !== targetRef.current) return
     setRevealed(entryPath)
   }, [])
+
+  const revealedEntry = entries.find(entry => entry.path === revealed)
+  const overlayActive = open && revealedEntry?.overlay === true
 
   // 揭示（含首次入场完成）后恢复面板滚动与焦点；pending 期间旧内容保持可见可交互。
   // 滚动恢复放在微任务里：揭示提交后浏览器才算完新可见内容的布局，
@@ -149,33 +157,56 @@ export default function ItemPanel({ path, open, onExited, children }: {
     return () => { panel.removeEventListener('scroll', save) }
   }, [revealed])
 
-  // 揭示完成后回收旧内容树；期间再次导航会重置计时，被隐藏的树继续充当显示内容。
+  // 回收离开的表单条目：退出动画（约300ms）结束后移除；底层详情与正在加载的目标永不回收。
   useEffect(() => {
-    if (revealed !== path || entries.length < 2) return
     const timer = window.setTimeout(() => {
-      setEntries(current => current.filter(entry => entry.path === revealed))
+      setEntries(current => current.filter(entry =>
+        entry.path === revealed             // 当前显示层
+        || entry.path === targetRef.current // 正在加载的目标（pending）
+        || (!entry.overlay && !entry.path.endsWith('/new')) // 底层详情常驻
+      ))
     }, 320)
     return () => window.clearTimeout(timer)
   }, [entries, revealed, path])
 
   const label = path.endsWith('/new') ? '新增物品' : path.endsWith('/edit') ? '编辑物品' : '物品详情'
-  return <ModalSheet open={open} ready={entered} label={label} onClose={() => close.current?.()} onExited={onExited} variant="detail">
-    {entries.map(entry => (
-      <EntryScope key={`${entry.path}#${entry.nonce}`} entry={entry} active={entry.path === path} entering={entering} close={close} markReady={markReady}>
-        <div
-          ref={node => {
-            if (node) nodes.current.set(entry.path, node)
-            else nodes.current.delete(entry.path)
-          }}
-          tabIndex={-1}
-          data-modal-autofocus={entry.path === revealed || undefined}
-          className="item-panel-content outline-none"
-          data-intent={entry.path === revealed ? entry.intent : undefined}
-          hidden={entry.path !== revealed}
-        >
-          {entry.path === path ? children : entry.children}
-        </div>
-      </EntryScope>
-    ))}
+  const editSurface = useRef<HTMLElement | null>(null)
+  return <ModalSheet open={open} ready={entered} label={label} onClose={() => close.current?.()} onExited={onExited} variant="detail" surfaceRef={editSurface} surfaceActive={overlayActive}>
+    {entries.map(entry => {
+      const isRevealed = entry.path === revealed
+      const body = <div
+        ref={node => {
+          if (node) nodes.current.set(entry.path, node)
+          else nodes.current.delete(entry.path)
+        }}
+        tabIndex={-1}
+        data-modal-autofocus={isRevealed || undefined}
+        className="item-panel-content outline-none"
+        hidden={!entry.overlay && entry.path.endsWith('/new') && !isRevealed || undefined}
+        inert={(!entry.overlay && overlayActive) || undefined}
+      >
+        {entry.path === path ? children : entry.children}
+      </div>
+      if (!entry.overlay) {
+        // 底层详情：保持在面板文档流中维持挂载与滚动位置；被编辑层覆盖时禁止交互。
+        return <EntryScope key={`${entry.path}#${entry.nonce}`} entry={entry} active={entry.path === path} entering={entering} close={close} markReady={markReady}>{body}</EntryScope>
+      }
+      // 覆盖编辑层：独立位移/滚动/退出生命周期；退出时整体下滑让出底层详情。
+      return <div
+        key={`${entry.path}#${entry.nonce}`}
+        ref={node => {
+          if (node) editSurface.current = node
+          else if (editSurface.current === node) editSurface.current = null
+        }}
+        className="item-panel-edit-layer"
+        data-state={entry.exiting ? 'closing' : isRevealed ? 'open' : 'pending'}
+        data-intent={isRevealed ? entry.intent : undefined}
+        hidden={!isRevealed && !entry.exiting ? true : undefined}
+        inert={entry.exiting || undefined}
+      >
+        <div className="modal-sheet-grip" data-sheet-grip aria-hidden="true"><div className="modal-sheet-handle" /></div>
+        <EntryScope entry={entry} active={entry.path === path} entering={entering} close={close} markReady={markReady}>{body}</EntryScope>
+      </div>
+    })}
   </ModalSheet>
 }

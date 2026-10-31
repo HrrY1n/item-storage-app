@@ -60,6 +60,24 @@ class Session {
     const { data } = await this.send('Page.captureScreenshot', { format: 'png' })
     await writeFile(`${OUT}/${name}.png`, Buffer.from(data, 'base64'))
   }
+  async touchStart(selector, text) {
+    return this.ev(`(() => {
+      const element = [...document.querySelectorAll(${JSON.stringify(selector)})]
+        .find(element => ${text === undefined ? 'true' : `element.textContent.includes(${JSON.stringify(text)})`});
+      if (!element) throw new Error('Missing touch target: ' + ${JSON.stringify(selector)});
+      const r = element.getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: Math.max(r.y + r.height / 2, 40) };
+    })()`).then(point => this.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, ...point }] }).then(() => point))
+  }
+  async touchMove(point, distance, duration = 300) {
+    for (let i = 1; i <= 6; i++) {
+      await this.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ id: 1, x: point.x, y: point.y + distance * i / 6 }] })
+      await sleep(duration / 6)
+    }
+  }
+  async touchEnd(cancel = false) {
+    await this.send('Input.dispatchTouchEvent', { type: cancel ? 'touchCancel' : 'touchEnd', touchPoints: [] })
+  }
   async check(name, expression) {
     assert.equal(await this.ev(expression), true, name)
     results.push(name)
@@ -86,9 +104,9 @@ try {
   const page = await connect(target.webSocketDebuggerUrl)
   await page.send('Page.enable')
   await page.send('Runtime.enable')
-  // 转场采样器：记录任意时刻「可见的内容树数量/是否出现可见占位」与动画事件。
+  // 转场采样器：记录任意时刻「可见的内容树数量/是否出现可见占位」、动画事件与面板 transform 过渡。
   await page.send('Page.addScriptToEvaluateOnNewDocument', { source: `
-    window.__transition = { visiblePlaceholders: 0, visibleContents: [], samples: 0 };
+    window.__transition = { visiblePlaceholders: 0, visibleContents: [], samples: 0, panelRises: 0 };
     (() => {
       const t = window.__transition;
       const sample = () => {
@@ -100,6 +118,13 @@ try {
         requestAnimationFrame(sample);
       };
       requestAnimationFrame(sample);
+      document.addEventListener('transitionstart', event => {
+        if (event.target.classList?.contains('modal-sheet-panel') && event.propertyName === 'transform') {
+          const matrix = new DOMMatrixReadOnly(getComputedStyle(event.target).transform);
+          // 初始入场是从视口外上滑；编辑退出后再出现的上滑属于回归。
+          if (matrix.m42 > 0) t.panelRises++;
+        }
+      }, true);
     })();
   ` })
   await page.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true })
@@ -200,10 +225,152 @@ try {
     && document.body.innerText.includes('转场回归样品')
     && !document.body.innerText.includes('转场回归草稿')`)
 
+  // ===== 5.5 编辑层下拉（独立层级交互）=====
+  await page.click(`a[href$="/edit"]`)
+  await page.until(`!!document.querySelector('.item-panel-edit-layer[data-state="open"]')`)
+  await sleep(400)
+  await page.check('编辑态存在覆盖编辑层且底层详情被 inert 隔离', `
+    !!document.querySelector('.item-panel-edit-layer[data-state="open"] .modal-sheet-grip')
+    && [...document.querySelectorAll('.item-panel-content')].some(n => n.inert && n.textContent.includes('物品详情'))`)
+  const dragBase = await page.ev(`(() => {
+    const panel = document.querySelector('.modal-sheet-panel');
+    const layer = document.querySelector('.item-panel-edit-layer');
+    const detail = [...document.querySelectorAll('.item-panel-content')].find(n => n.inert);
+    return { panelTop: panel.getBoundingClientRect().top, layerTop: layer.getBoundingClientRect().top, detailTop: detail.getBoundingClientRect().top };
+  })()`)
+  // 下拉 100px（低于关闭阈值 160px）：只有编辑层移动，面板与详情坐标不变
+  let gripPoint = await page.touchStart('.item-panel-edit-layer .modal-sheet-grip')
+  await page.touchMove(gripPoint, 100)
+  const during = await page.ev(`(() => {
+    const panel = document.querySelector('.modal-sheet-panel');
+    const layer = document.querySelector('.item-panel-edit-layer');
+    const detail = [...document.querySelectorAll('.item-panel-content')].find(n => n.inert);
+    return {
+      layerM42: new DOMMatrixReadOnly(getComputedStyle(layer).transform).m42,
+      panelM42: new DOMMatrixReadOnly(getComputedStyle(panel).transform).m42,
+      panelTop: panel.getBoundingClientRect().top,
+      detailTop: detail.getBoundingClientRect().top,
+    };
+  })()`)
+  await page.shot('drag-edit-layer-100px')
+  await page.check('编辑下拉时只有编辑层跟随位移', `Math.abs((${JSON.stringify(during)}).layerM42 - 100) < 12`)
+  await page.check('编辑下拉期间共享面板 transform 恒为 0', `(${JSON.stringify(during)}).panelM42 === 0`)
+  await page.check('编辑下拉期间面板几何位置不变（不露出列表）', `Math.abs((${JSON.stringify(during)}).panelTop - (${JSON.stringify(dragBase)}).panelTop) < 1`)
+  await page.check('编辑下拉期间详情层坐标保持不变', `Math.abs((${JSON.stringify(during)}).detailTop - (${JSON.stringify(dragBase)}).detailTop) < 1`)
+  // 未达阈值松手 → 编辑层回弹
+  await page.touchEnd()
+  await page.until(`Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.item-panel-edit-layer')).transform).m42) < 1`)
+  await page.check('未达关闭阈值时编辑层回弹且仍在编辑态', `location.pathname.endsWith('/edit') && !!document.querySelector('.item-panel-edit-layer[data-state="open"]')`)
+  // 越过阈值 → 编辑层下滑退出，详情原位显示，面板不重新上滑
+  await page.ev(`window.__transition.panelRises = 0`)
+  gripPoint = await page.touchStart('.item-panel-edit-layer .modal-sheet-grip')
+  await page.touchMove(gripPoint, 260)
+  await page.touchEnd()
+  await page.until(`!location.pathname.endsWith('/edit')`)
+  await sleep(500)
+  await page.shot('after-edit-drag-dismiss')
+  await page.check('下拉越过阈值后返回详情且面板未发生新的上滑过渡', `
+    location.pathname.endsWith(window.fixtureId)
+    && window.__transition.panelRises === 0
+    && !document.querySelector('.item-panel-edit-layer')
+    && !!document.querySelector('.item-panel-content:not([hidden]) h1')`)
+  await page.check('下拉退出与点击取消的终态一致（详情原位、无占位）', `
+    document.querySelectorAll('dialog[open]').length === 1
+    && window.__transition.visiblePlaceholders === 0`)
+  // 长表单滚动：内容不在顶部时下拉应滚动内容而非拖动编辑层
+  await page.click(`a[href$="/edit"]`)
+  await page.until(`!!document.querySelector('.item-panel-edit-layer[data-state="open"]')`)
+  await sleep(350)
+  await page.ev(`document.querySelector('.item-panel-edit-layer').scrollTop = 240`)
+  await sleep(120)
+  const scrollPoint = await page.ev(`(() => {
+    const layer = document.querySelector('.item-panel-edit-layer');
+    const r = layer.getBoundingClientRect();
+    for (let y = r.top + 60; y < r.bottom - 60; y += 30) {
+      const el = document.elementFromPoint(r.x + r.width / 2, y);
+      if (el && layer.contains(el) && !el.closest('button,a,input,textarea,select,[role="slider"]')) {
+        const cr = el.getBoundingClientRect();
+        return { x: Math.round(cr.x + cr.width / 2), y: Math.round(cr.y + cr.height / 2) };
+      }
+    }
+    throw new Error('no static scroll target in layer');
+  })()`)
+  await page.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, ...scrollPoint }] })
+  for (let i = 1; i <= 6; i++) {
+    await page.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ id: 1, x: scrollPoint.x, y: scrollPoint.y + 120 * i / 6 }] })
+    await sleep(50)
+  }
+  const scrolled = await page.ev(`(() => {
+    const layer = document.querySelector('.item-panel-edit-layer');
+    return { scrollTop: layer.scrollTop, m42: new DOMMatrixReadOnly(getComputedStyle(layer).transform).m42 };
+  })()`)
+  await page.touchEnd()
+  await page.check('内容不在顶部时下拉优先滚动表单而不拖动编辑层', `
+    (${JSON.stringify(scrolled)}).scrollTop < 220 && (${JSON.stringify(scrolled)}).m42 === 0 && location.pathname.endsWith('/edit')`)
+  await page.ev(`document.querySelector('.item-panel-edit-layer').scrollTop = 0`)
+  // 嵌套弹层优先级：分类选择器打开时，下拉不带走编辑层
+  await page.click('button[aria-label="选择分类"]')
+  await page.until(`!!document.querySelectorAll('dialog[aria-label="分类"][open] .choice-chip').length`)
+  gripPoint = await page.touchStart('.item-panel-edit-layer .modal-sheet-grip')
+  await page.touchMove(gripPoint, 120)
+  const nested = await page.ev(`(() => {
+    const layer = document.querySelector('.item-panel-edit-layer');
+    const picker = document.querySelector('dialog[aria-label="分类"][open] .modal-sheet-panel');
+    return { layerM42: layer ? new DOMMatrixReadOnly(getComputedStyle(layer).transform).m42 : null, pickerM42: picker ? new DOMMatrixReadOnly(getComputedStyle(picker).transform).m42 : null, pickerOpen: !!document.querySelector('dialog[aria-label="分类"][open]') };
+  })()`)
+  await page.touchEnd(true)
+  await page.check('嵌套弹层打开时编辑层保持静止', `(${JSON.stringify(nested)}).layerM42 === 0 && (${JSON.stringify(nested)}).pickerOpen`)
+  await page.ev(`(() => { const done=[...document.querySelectorAll('dialog[aria-label="分类"][open] button')].find(b => b.textContent.includes('完成')); if (done) done.click(); return true })()`)
+  await page.until(`!document.querySelector('dialog[aria-label="分类"]')`)
+  await sleep(200)
+  // 有草稿时下拉触发确认：继续编辑恢复位置与内容
+  await page.ev(`(() => { const el = document.querySelector('.item-panel-edit-layer input[aria-label="物品名称"]'); el.focus(); el.select(); return true })()`)
+  await page.send('Input.insertText', { text: '下拉草稿样品' })
+  await sleep(150)
+  gripPoint = await page.touchStart('.item-panel-edit-layer .modal-sheet-grip')
+  await page.touchMove(gripPoint, 260)
+  await page.touchEnd()
+  await page.until(`document.body.innerText.includes('放弃此次修改')`)
+  await page.until(`Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.item-panel-edit-layer')).transform).m42) < 1`)
+  await page.check('有草稿时下拉越过阈值弹出确认且编辑层回弹待命', `
+    location.pathname.endsWith('/edit')
+    && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.item-panel-edit-layer')).transform).m42) < 1`)
+  await page.click('button', '继续编辑')
+  await sleep(300)
+  await page.check('继续编辑后草稿保留且编辑层在正常位置', `
+    document.querySelector('.item-panel-edit-layer input[aria-label="物品名称"]').value === '下拉草稿样品'
+    && !!document.querySelector('.item-panel-edit-layer[data-state="open"]')`)
+  // 放弃：下拉再次触发确认 → 放弃 → 详情，草稿不复活
+  gripPoint = await page.touchStart('.item-panel-edit-layer .modal-sheet-grip')
+  await page.touchMove(gripPoint, 260)
+  await page.touchEnd()
+  await page.until(`document.body.innerText.includes('放弃此次修改')`)
+  await page.click('button', '放弃修改')
+  await page.until(`!!document.querySelector('.item-panel-content:not([hidden]) h1')`)
+  await sleep(600)
+  await page.check('下拉放弃后回到详情且草稿不会再次出现', `
+    location.pathname.endsWith(window.fixtureId)
+    && !document.body.innerText.includes('下拉草稿样品')
+    && !document.querySelector('.item-panel-edit-layer')`)
+  // 快速下拉往返无残留
+  for (let i = 0; i < 3; i++) {
+    await page.click(`a[href$="/edit"]`)
+    await page.until(`!!document.querySelector('.item-panel-edit-layer[data-state="open"]')`)
+    gripPoint = await page.touchStart('.item-panel-edit-layer .modal-sheet-grip')
+    await page.touchMove(gripPoint, 260)
+    await page.touchEnd()
+    await page.until(`!location.pathname.endsWith('/edit')`)
+  }
+  await sleep(700)
+  await page.check('快速三次下拉往返后无残留编辑层或重复内容树', `
+    document.querySelectorAll('.item-panel-content').length === 1
+    && !document.querySelector('.item-panel-edit-layer')
+    && location.pathname.endsWith(window.fixtureId)`)
+
   // 6. 编辑保存 → 详情
   await page.click(`a[href$="/edit"]`)
-  await page.until(`!!document.querySelector('.item-panel-content:not([hidden]) input[aria-label="物品名称"]')`)
-  await page.ev(`(() => { const el = document.querySelector('.item-panel-content:not([hidden]) input[aria-label="物品名称"]'); el.focus(); el.select(); return true })()`)
+  await page.until(`!!document.querySelector('.item-panel-edit-layer[data-state="open"] input[aria-label="物品名称"]')`)
+  await page.ev(`(() => { const el = document.querySelector('.item-panel-edit-layer input[aria-label="物品名称"]'); el.focus(); el.select(); return true })()`)
   await page.send('Input.insertText', { text: '转场回归样品二' })
   await sleep(120)
   await page.click('button', '保存更改')
@@ -221,7 +388,21 @@ try {
     && document.querySelector('input[aria-label="物品名称"]').value === '转场回归样品二'
     && !!document.querySelector('button[aria-label="返回"]')`)
 
-  // 8. 减少动效：转场立即完成、无 panel 动画运行
+  // 8. 详情页原有下拉关闭不受影响：拖动详情（无编辑层状态）关闭整个面板回列表
+  await page.send('Page.navigate', { url: `${BASE}/items` })
+  await page.until(`!!document.querySelector('a[href="/items/${fixtureId}"]')`)
+  await page.ev(`document.querySelector('a[href="/items/${fixtureId}"]').click()`)
+  await page.until(`!!document.querySelector('[data-sheet="detail"][data-state="open"]')`)
+  await sleep(800)
+  await page.check('详情态没有覆盖编辑层', `!document.querySelector('.item-panel-edit-layer')`)
+  const detailGrip = await page.touchStart('.modal-sheet-grip')
+  await page.touchMove(detailGrip, 260)
+  await page.touchEnd()
+  await page.until(`!document.querySelector('dialog[open]')`)
+  await sleep(400)
+  await page.check('详情下拉关闭整个面板回到列表', `location.pathname === '/items' && document.body.style.overflow === ''`)
+
+  // 9. 减少动效：转场立即完成、无 panel 动画，编辑层退出无过渡
   await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
   await page.send('Page.navigate', { url: `${BASE}/items` })
   await page.until(`!!document.querySelector('a[href="/items/${fixtureId}"]')`)
@@ -229,10 +410,17 @@ try {
   await page.until(`!!document.querySelector('[data-sheet="detail"][data-state="open"]')`)
   await sleep(600)
   await page.click(`a[href$="/edit"]`)
-  await page.until(`!!document.querySelector('.item-panel-content:not([hidden]) input[aria-label="物品名称"]')`)
+  await page.until(`!!document.querySelector('.item-panel-edit-layer[data-state="open"] input[aria-label="物品名称"]')`)
   await page.check('减少动效下内容切换不播放 panel 动画', `
-    document.querySelector('.item-panel-content:not([hidden])').getAnimations().length === 0
+    document.querySelector('.item-panel-edit-layer').getAnimations().length === 0
     && location.pathname.endsWith('/edit')`)
+  // sticky 头部按钮在个别环境下 scrollIntoView 测量不稳，这里用原生点击保证语义等价
+  await page.ev(`(() => { const el=[...document.querySelectorAll('.item-panel-edit-layer button')].find(b => b.textContent.trim() === '取消'); if (!el) throw new Error('no cancel button'); el.click(); return true })()`)
+  await page.until(`!location.pathname.endsWith('/edit')`)
+  await sleep(500)
+  await page.check('减少动效下编辑层退出无过渡且详情立即可见', `
+    !document.querySelector('.item-panel-edit-layer')
+    && !!document.querySelector('.item-panel-content:not([hidden]) h1')`)
   await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: '' }] })
 
   await page.shot('final-detail')

@@ -241,6 +241,19 @@
 .modal-sheet-panel .page-header-row { padding-top: 0; }
 .modal-sheet[data-dragging='true'] .modal-sheet-panel,
 .modal-sheet[data-dragging='true'] .modal-sheet-backdrop { transition: none; user-select: none; }
+/* 覆盖编辑层：详情进入编辑后的独立可拖拽视觉层。拖拽位移变量只由手势写到本层，
+   共享面板保持原位，因此拖动编辑不会露出面板后方的列表。 */
+.item-panel-edit-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--color-canvas);
+  transform: translateY(var(--sheet-drag-y, 0px));
+  will-change: transform;
+}
+.item-panel-edit-layer[data-state='closing'] { transform: translateY(100dvh); pointer-events: none; }
 .modal-sheet[data-sheet='picker'] .modal-sheet-panel {
   display: flex;
   flex-direction: column;
@@ -287,6 +300,10 @@
   .nav-indicator { transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), scale 240ms ease, opacity 140ms ease; }
   .item-panel-content[data-intent='forward'] { animation: panel-forward 200ms ease-out; }
   .item-panel-content[data-intent='back'] { animation: panel-back 180ms ease-out; }
+  .item-panel-edit-layer { transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .item-panel-edit-layer[data-intent='forward'] { animation: panel-forward 200ms ease-out; }
+  .item-panel-edit-layer[data-rebounding='true'] { transition-duration: 260ms; }
+  .modal-sheet[data-dragging='true'] .item-panel-edit-layer { transition: none; }
   .route-content[data-direction='forward'] { animation: route-forward 180ms ease-out; }
   .route-content[data-direction='back'] { animation: route-back 180ms ease-out; }
   @starting-style {
@@ -754,7 +771,7 @@ input[type='search']::-webkit-search-cancel-button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .modal-sheet-panel, .modal-sheet-backdrop { transition: none !important; }
+  .modal-sheet-panel, .modal-sheet-backdrop, .item-panel-edit-layer { transition: none !important; }
   *,
   *::before,
   *::after {
