@@ -16,7 +16,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 
 const CDP = 'http://127.0.0.1:9222'
-const BASE = 'http://127.0.0.1:5173'
+const BASE = process.env.DEV_BASE ?? 'http://127.0.0.1:5173'
 const OUT = '.tmp/browser-verification'
 let browserWs
 

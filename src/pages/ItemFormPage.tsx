@@ -146,14 +146,21 @@ export default function ItemFormPage() {
   const [saving, setSaving] = useState(false)
   const missing = isEdit && existingItem === null
 
+  const handleBack = () => {
+    if (window.history.state?.idx > 0) navigate(-1)
+    else navigate('/items', { replace: true })
+  }
+  const initialized = useRef(false)
+  const loading = !categories || !tags || !links || !assetMap || (isEdit && !missing && !initialized.current)
+  const { entering, active } = useItemPanel(handleBack, !loading)
+
   /**
    * 编辑态不允许自动刷新到新版本：用户正在输入，reload 会丢掉未保存内容。
    * 发现新版本时改为"新版本已就绪"，保存/离开后自动应用。
    */
-  useUpdateGuard(!missing, 'item-form')
+  useUpdateGuard(active && !missing, 'item-form')
 
   // 编辑模式：数据就绪后初始化一次表单
-  const initialized = useRef(false)
   useEffect(() => {
     if (!isEdit || initialized.current || !existingItem || !categories || !links) return
     initialized.current = true
@@ -178,8 +185,6 @@ export default function ItemFormPage() {
     setWarranty(warrantySelectionFromDates(existingItem.purchaseDate, existingItem.warrantyExpiresAt))
     setWarrantyExpanded(existingItem.warrantyExpiresAt !== null)
   }, [isEdit, existingItem, categories, links])
-
-  const loading = !categories || !tags || !links || !assetMap || (isEdit && !missing && !initialized.current)
 
   /** dirty 判定用的表单快照：任何参与保存的字段都必须在此 */
   const formSnapshot = () =>
@@ -225,22 +230,17 @@ export default function ItemFormPage() {
   ])
 
   const protectDraft = dirty && !saving && !missing
-  const blocker = useBlocker(protectDraft)
+  const blocker = useBlocker(protectDraft && active)
   // 整页刷新/离开不经过 SPA 路由，交给浏览器原生离开确认。
   useEffect(() => {
-    if (!protectDraft) return
+    if (!protectDraft || !active) return
     const confirmLeave = (event: BeforeUnloadEvent) => {
       event.preventDefault()
       event.returnValue = ''
     }
     window.addEventListener('beforeunload', confirmLeave)
     return () => window.removeEventListener('beforeunload', confirmLeave)
-  }, [protectDraft])
-  const handleBack = () => {
-    if (window.history.state?.idx > 0) navigate(-1)
-    else navigate('/items', { replace: true })
-  }
-  const { entering } = useItemPanel(handleBack, !loading)
+  }, [protectDraft, active])
 
   if (loading || entering) {
     const pending = <div><PageHeader title={isEdit ? '编辑物品' : '新增物品'} onBack={handleBack} />

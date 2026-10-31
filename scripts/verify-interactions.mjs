@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdir, writeFile } from 'node:fs/promises'
 
 const CDP = `http://127.0.0.1:${process.env.EDGE_TEST_PORT ?? '9222'}`
-const BASE = 'http://127.0.0.1:5173'
+const BASE = process.env.DEV_BASE ?? 'http://127.0.0.1:5173'
 const OUT = '.tmp/browser-verification/interactions'
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const errors = []

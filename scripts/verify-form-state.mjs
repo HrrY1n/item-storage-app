@@ -1,7 +1,7 @@
 // Project-local Edge :9222 and Vite :5173. Disposable fixtures only; all API requests are intercepted.
 import assert from 'node:assert/strict'
 import { mkdir, writeFile } from 'node:fs/promises'
-const BASE = 'http://127.0.0.1:5173', CDP = 'http://127.0.0.1:9222'
+const BASE = process.env.DEV_BASE ?? 'http://127.0.0.1:5173', CDP = `http://127.0.0.1:${process.env.EDGE_TEST_PORT ?? '9222'}`
 const OUT = '.tmp/form-state-verification'
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
 const observations = [], exceptions = [], requests = []

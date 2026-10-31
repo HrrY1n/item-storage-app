@@ -6,7 +6,7 @@
  * 本脚本用 CDP 模拟系统「减少动效」偏好，断言关键内容仍在页面上。
  */
 const CDP = 'http://127.0.0.1:9223'
-const BASE = 'http://127.0.0.1:5173'
+const BASE = process.env.DEV_BASE ?? 'http://127.0.0.1:5173'
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 let failures = 0
