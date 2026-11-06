@@ -142,6 +142,7 @@ export default function ItemFormPage() {
   const [warranty, setWarranty] = useState<WarrantySelection>({ kind: 'months', months: DEFAULT_WARRANTY_MONTHS })
   const [warrantyExpanded, setWarrantyExpanded] = useState(false)
   const warrantyPanelId = useId()
+  const nameFieldId = useId()
   const warrantyExpiresAt = warrantyDate(purchaseDate, warranty)
   const [saving, setSaving] = useState(false)
   const missing = isEdit && existingItem === null
@@ -372,9 +373,19 @@ export default function ItemFormPage() {
             <span className="sr-only">{currentIcon?.label ?? '自定义图片'}，点击本行更换图标</span>
             <span className="form-cover-edit" aria-hidden>✎</span>
           </button>
-          <p className="text-caption text-white/60">物品名称</p>
-          <input value={name} onChange={event => setName(event.target.value)} aria-label="物品名称"
-            className="form-name mt-2 w-full min-w-0 bg-transparent text-[26px] font-semibold leading-tight" />
+          {/* 浮动标签：空态标签留在框内，聚焦或有内容时缩小上移并常驻，避免只剩占位符找不到输入框。 */}
+          <div className="form-name-field">
+            <input
+              id={nameFieldId}
+              value={name}
+              onChange={event => setName(event.target.value)}
+              aria-label="物品名称"
+              placeholder=" "
+              autoComplete="off"
+              className="form-name"
+            />
+            <label htmlFor={nameFieldId} className="form-name-label">物品名称</label>
+          </div>
         </section>
         <button type="button" onClick={() => setRecognitionOpen(true)} data-ai-entry
           className="flex min-h-12 items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3 text-left text-ink-primary">
