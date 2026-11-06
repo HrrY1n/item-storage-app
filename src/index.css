@@ -530,18 +530,40 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
+  padding: 0 6px;
+  white-space: nowrap;
   font-size: 16px;
   line-height: 1.2;
   color: rgba(255, 255, 255, .66);
   pointer-events: none;
 }
+/* 缺口式浮动标签：收起后骑在边框上，::before 用卡片同色盖掉身后那段边框，
+   形成"边框在文字处断开"的效果（参考 Material outlined 输入框）。
+   #262931 是卡片渐变在该位置的取样色，避免接缝。 */
+.form-name-label::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(50% + 1px);
+  background: #262931;
+  /* 定位伪元素默认画在文字之上；压到文字下方（标签的 transform 已形成
+     层叠上下文，不会掉到字段背景之下）。 */
+  z-index: -1;
+  opacity: 0;
+}
 .form-name:focus + .form-name-label,
 .form-name:not(:placeholder-shown) + .form-name-label {
-  top: 9px;
-  transform: translateY(0);
+  top: 0;
+  transform: translateY(-50%);
   font-size: 11px;
   letter-spacing: .04em;
   color: rgba(255, 255, 255, .74);
+}
+.form-name:focus + .form-name-label::before,
+.form-name:not(:placeholder-shown) + .form-name-label::before {
+  opacity: 1;
 }
 @media (prefers-reduced-motion: no-preference) {
   .form-name-field { transition: border-color 160ms ease, background-color 160ms ease; }
@@ -549,6 +571,7 @@
     transition: top 180ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
       font-size 180ms cubic-bezier(0.22, 1, 0.36, 1), color 160ms ease;
   }
+  .form-name-label::before { transition: opacity 160ms ease; }
 }
 .form-cover { position: absolute; top: -20px; left: 18px; width: 72px; height: 72px; border-radius: 22px; padding: 5px; background: #30343f; box-shadow: 0 3px 12px rgba(0,0,0,.12); }
 .form-cover-edit { position: absolute; bottom: -4px; right: -5px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-surface); color: var(--color-ink-primary); border: 1px solid var(--color-line); font-size: 14px; }
