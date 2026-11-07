@@ -259,7 +259,7 @@ export function validateDisposal(input: {
   const { disposedAt, purchaseDate, disposalMethod, salePriceCents } = input
 
   if (disposalMethod === null) return { ok: false, error: '请选择处置方式' }
-  if (disposedAt === null) return { ok: false, error: '请填写处置日期' }
+  if (!disposedAt) return { ok: false, error: '请填写处置日期' }
   if (parseDateToDayNumber(disposedAt) === null) return { ok: false, error: '处置日期格式无效' }
   if (purchaseDate !== null && parseDateToDayNumber(purchaseDate) !== null) {
     const d = parseDateToDayNumber(disposedAt)!

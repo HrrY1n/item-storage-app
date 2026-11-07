@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useItemPanel } from '../components/ItemPanel'
 import { itemPanelBackground } from '../features/ui/itemPanelRouting'
@@ -192,6 +192,11 @@ function ItemDetailContent({ onBack }: { onBack: () => void }) {
   const editState = background ? { itemBackground: background } : undefined
   const { toast, show } = useToast()
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [restoring, setRestoring] = useState(false)
+  // 「已删除」的返回导航定时器：组件卸载（用户提前返回）时必须取消，
+  // 否则会在用户已经离开后再补一刀导航，把人从当前页面拽走。
+  const deleteBackTimer = useRef(0)
+  useEffect(() => () => clearTimeout(deleteBackTimer.current), [])
   const [disposalOpen, setDisposalOpen] = useState(false)
   const [convertOpen, setConvertOpen] = useState(false)
   const { sentinelRef, collapsed } = useHeaderCollapse<HTMLDivElement>()
@@ -286,11 +291,15 @@ function ItemDetailContent({ onBack }: { onBack: () => void }) {
   }
 
   const handleRestore = async () => {
+    if (restoring) return
+    setRestoring(true)
     try {
       await itemRepository.restoreToOwned(item.id)
       show('已恢复为持有')
     } catch (e) {
       show(e instanceof Error ? e.message : '操作失败')
+    } finally {
+      setRestoring(false)
     }
   }
 
@@ -299,7 +308,7 @@ function ItemDetailContent({ onBack }: { onBack: () => void }) {
     try {
       await itemRepository.softDelete(item.id)
       show('已删除')
-      setTimeout(onBack, 350)
+      deleteBackTimer.current = window.setTimeout(onBack, 650)
     } catch (e) {
       show(e instanceof Error ? e.message : '删除失败')
     }

@@ -369,7 +369,7 @@ export default function ItemsListPage() {
           <EmptyState
             title={filtered ? '没有匹配的物品' : items.length === 0 ? '还没有物品' : `没有${ITEM_STATUS_LABELS[status]}物品`}
             subtitle={
-              query !== ''
+              query.trim() !== ''
                 ? `没有匹配「${query.trim()}」的物品`
                 : filtered
                   ? '试试其他分类，或重置筛选查看全部物品'

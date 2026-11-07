@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ModalLayer from './ModalLayer'
+import DateField from './DateField'
 import { DISPOSAL_METHOD_LABELS, validateDisposal } from '../domain/lifecycle'
 import type { DisposalMethod, Item } from '../domain/types'
 import { parsePriceInput, todayString, validatePriceInput } from '../domain/purchase'
@@ -123,12 +124,12 @@ export default function DisposalSheet({
 
         <div className="mt-4">
           <p className="mb-2 text-label text-ink-tertiary">处置日期</p>
-          <input
-            type="date"
+          <DateField
+            label="处置日期"
             value={disposedAt}
+            min={item.purchaseDate ?? undefined}
             max={todayString()}
-            onChange={(e) => setDisposedAt(e.target.value)}
-            className="num h-11 w-full rounded-control border border-line bg-surface px-3 text-body text-ink-primary outline-none transition-colors focus:border-line-strong"
+            onChange={(value) => setDisposedAt(value)}
           />
         </div>
 

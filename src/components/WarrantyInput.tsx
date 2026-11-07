@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import { WARRANTY_MONTH_OPTIONS, warrantyDate, type WarrantySelection } from '../domain/warranty'
+import { formatPurchaseDate } from '../domain/purchase'
 import DateField from './DateField'
 
 export default function WarrantyInput({ purchaseDate, value, onChange }: {
@@ -28,8 +29,30 @@ export default function WarrantyInput({ purchaseDate, value, onChange }: {
     <div className="mb-2 mt-4 flex items-center justify-between text-caption text-ink-tertiary">
       <span>保修到期日</span><span>{value.kind === 'date' ? '手动指定日期' : value.kind === 'none' ? '不记录保修' : '按购买日期计算'}</span>
     </div>
-    <DateField label="保修到期日" value={expiresAt ?? ''} min={purchaseDate || undefined}
-      onChange={date => onChange(date ? { kind: 'date', date } : { kind: 'none' })} />
+    {value.kind === 'date' ? (
+      <DateField label="保修到期日" value={expiresAt ?? ''} min={purchaseDate || undefined}
+        onChange={date => onChange(date ? { kind: 'date', date } : { kind: 'none' })} />
+    ) : (
+      /* 月数/自定义模式下到期日是派生值：只读展示。此前这里嵌的是可点入的日期
+         选择器，一次「确定/清除」会把保修静默切成手动日期或不再记录——现在
+         改为显式按钮才能进入手动日期模式。 */
+      <div>
+        <div data-date-field="保修到期日" data-date-value={expiresAt ?? ''} className="flex h-11 w-full items-center justify-between gap-3 rounded-control border border-line bg-surface-sunken px-3 text-body" aria-live="polite">
+          <span className={expiresAt ? 'num' : 'text-ink-tertiary'}>
+            {value.kind === 'none' ? '不记录保修'
+              : expiresAt ? formatPurchaseDate(expiresAt)
+              : '选择购买日期后自动计算'}
+          </span>
+          <span className="text-caption text-ink-tertiary">{value.kind === 'none' ? '不适用' : '自动计算'}</span>
+        </div>
+        {expiresAt !== null && (
+          <button type="button" onClick={() => onChange({ kind: 'date', date: expiresAt })}
+            className="mt-2 text-caption text-accent underline-offset-2 hover:underline">
+            改为手动指定到期日
+          </button>
+        )}
+      </div>
+    )}
     <p className="mt-2 text-caption leading-relaxed text-ink-tertiary">
       {(value.kind === 'months' || value.kind === 'custom') && !purchaseDate
         ? '选择购买日期后自动计算；未填购买日期时不记录保修。'

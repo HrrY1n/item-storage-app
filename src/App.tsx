@@ -24,7 +24,15 @@ import { tabMotionDirection } from './features/ui/navigationMotion'
 import { dismissUpdateTransition, finishUpdateTransition } from './services/pwaUpdateTransition'
 import { useToast } from './components/Toast'
 
-/** 路由切换时回到顶部 */
+/**
+ * 路由切换时回到顶部。
+ *
+ * 不变量：Layout 子树的 useLocation() 返回的是「背景路由」（面板打开时是
+ * /items 这类底层页面路径，对象引用每次渲染都变但 pathname 不变），因此
+ * 面板开合（列表⇄详情/编辑）不会触发这里的 effect，底层列表的滚动位置
+ * 得以保留——不要把依赖改成会随面板过渡变化的东西，也不要在这里加
+ * 面板判断（面板内部的滚动由 ItemPanel 自己管理）。
+ */
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {

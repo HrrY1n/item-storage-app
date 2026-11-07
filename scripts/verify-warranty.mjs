@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { selectDate, setDateDraft } from './date-picker.mjs'
 
-const BASE = 'http://127.0.0.1:4173'
+const BASE = process.env.BASE ?? 'http://127.0.0.1:4173'
 const CDP = `http://127.0.0.1:${process.env.EDGE_TEST_PORT ?? '9222'}`
 const OUT = '.tmp/browser-verification/warranty'
 const expectedBundle = (await readFile('dist/index.html', 'utf8')).match(/src="([^" ]+\/index-[^" ]+\.js)"/)[1]
@@ -119,6 +119,7 @@ try {
   check('取消日期修改保留原值并恢复触发按钮焦点', await dateValue('购买日期') === '2024-01-31' && await ev(`document.activeElement?.dataset.dateField === '购买日期'`))
   await selectDate(session, '购买日期', '2024-02-29')
   check('点确定才联动重算保修到期日', await dateValue('保修到期日') === '2024-03-29')
+  await ev(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === '改为手动指定到期日').click()`)
   await ev(`document.querySelector('[data-date-field="保修到期日"]').click()`)
   await setDateDraft(session, '2024-01-29')
   check('早于购买日时不能确认到期日', await ev(`[...document.querySelectorAll('[data-date-picker] button')].find(b=>b.textContent==='确定').disabled && !!document.querySelector('[data-date-picker] [role="alert"]')`))
@@ -144,6 +145,7 @@ try {
   check('修改保存到同一物品，不新增重复记录', (await records()).length === countBefore + 1 && (await record(id)).warrantyExpiresAt === '2024-09-30')
 
   await navigate(`/items/${id}/edit`)
+  await ev(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === '改为手动指定到期日').click()`)
   await selectDate(session, '保修到期日', '2027-02-03')
   await save()
   await navigate(`/items/${id}/edit`)

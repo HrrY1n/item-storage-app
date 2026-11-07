@@ -145,6 +145,9 @@ export default function ItemFormPage() {
   const nameFieldId = useId()
   const warrantyExpiresAt = warrantyDate(purchaseDate, warranty)
   const [saving, setSaving] = useState(false)
+  // 「已保存/已添加」后的返回导航定时器：卸载（用户在窗口期内返回）时必须取消，
+  // 否则用户明明已经离开，定时器还会把人拽回刚保存的详情页。
+  const savedNavigateTimer = useRef(0)
   const missing = isEdit && existingItem === null
 
   const handleBack = () => {
@@ -243,6 +246,8 @@ export default function ItemFormPage() {
     return () => window.removeEventListener('beforeunload', confirmLeave)
   }, [protectDraft, active])
 
+  useEffect(() => () => clearTimeout(savedNavigateTimer.current), [])
+
   if (loading || entering) {
     const pending = <div><PageHeader title={isEdit ? '编辑物品' : '新增物品'} onBack={handleBack} />
       <p className="px-5 py-10 text-secondary text-ink-tertiary" role="status">正在载入表单…</p></div>
@@ -325,7 +330,7 @@ export default function ItemFormPage() {
           ...purchase,
         })
         show('已保存')
-        setTimeout(() => navigate(`/items/${id}`, { replace: true, state: location.state }), 300)
+        savedNavigateTimer.current = window.setTimeout(() => navigate(`/items/${id}`, { replace: true, state: location.state }), 650)
       } else {
         const item = await itemRepository.create({
           name,
@@ -336,7 +341,7 @@ export default function ItemFormPage() {
           ...purchase,
         })
         show('已添加')
-        setTimeout(() => navigate(`/items/${item.id}`, { replace: true, state: location.state }), 300)
+        savedNavigateTimer.current = window.setTimeout(() => navigate(`/items/${item.id}`, { replace: true, state: location.state }), 650)
       }
     } catch (e) {
       show(e instanceof Error ? e.message : '保存失败')
