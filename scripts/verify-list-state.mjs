@@ -1,10 +1,10 @@
 // 列表会话状态验证:同一会话内底栏切页返回/刷新恢复,新会话回默认,损坏与非法值安全回退。
-// 与其它 verify 脚本一致:Vite :5173 + 项目隔离 Edge :9222,一次性浏览器上下文,合成数据。
+// 与其它 verify 脚本一致:Vite dev(DEV_BASE,默认 127.0.0.1:5173) + 项目隔离 Edge(EDGE_TEST_PORT,默认 9222),一次性浏览器上下文,合成数据。
 import assert from 'node:assert/strict'
 import { mkdir, writeFile } from 'node:fs/promises'
 
-const BASE = 'http://127.0.0.1:5173'
-const CDP = 'http://127.0.0.1:9222'
+const BASE = process.env.DEV_BASE ?? 'http://127.0.0.1:5173'
+const CDP = `http://127.0.0.1:${process.env.EDGE_TEST_PORT ?? '9222'}`
 const OUT = '.tmp/list-state-verification'
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const results = []

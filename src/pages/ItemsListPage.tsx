@@ -71,6 +71,19 @@ const DISPOSITION_FILTERS: { key: DispositionKind | 'all'; label: string }[] = [
   { key: 'other', label: DISPOSITION_BADGE_LABELS.other },
 ]
 
+/** 瀑布流列数：断点与原网格一致（2 列，sm 起 3 列，xl 起 4 列），旋转/拉宽实时跟随。 */
+function useColumnCount(): number {
+  const compute = () => (window.innerWidth >= 1280 ? 4 : window.innerWidth >= 640 ? 3 : 2)
+  const [count, setCount] = useState(compute)
+  useEffect(() => {
+    const queries = [matchMedia('(min-width: 640px)'), matchMedia('(min-width: 1280px)')]
+    const update = () => setCount(compute())
+    for (const query of queries) query.addEventListener('change', update)
+    return () => { for (const query of queries) query.removeEventListener('change', update) }
+  }, [])
+  return count
+}
+
 /**
  * 列表视图：一行一件，横向信息密度更高。
  *
@@ -253,6 +266,19 @@ export default function ItemsListPage() {
     [items],
   )
 
+  /**
+   * 瀑布流分列（网格视图）：等宽列、高度随内容、按序轮流落列。
+   * round-robin 而非按高度贪心——保持「从左到右、逐行往下」的浏览顺序
+   * 与筛选/排序的语义一致；卡片自身高度由内容决定，列内无行对齐留白。
+   * ⚠️ 必须在 early return 之前（hooks 顺序，见上方 dispCounts 的说明）。
+   */
+  const columnCount = useColumnCount()
+  const gridColumns = useMemo(() => {
+    const columns: Item[][] = Array.from({ length: columnCount }, () => [])
+    visible.forEach((item, index) => { columns[index % columnCount].push(item) })
+    return columns
+  }, [visible, columnCount])
+
   const loading = !items || !categories || !tags || !links || !assetMap
   if (loading) return null
 
@@ -381,19 +407,25 @@ export default function ItemsListPage() {
             }
           />
         ) : (
-          <div ref={layout.ref} data-layout-view={view} className={view === 'grid' ? 'grid grid-cols-2 gap-4 pb-2 sm:grid-cols-3 xl:grid-cols-4' : 'divide-y divide-line-inner rounded-surface border border-line bg-surface shadow-card'}>
-            {visible.map((item) => view === 'grid' ? (
-              <ItemCard
-                key={item.id}
-                item={item}
-                name={item.name}
-                to={`/items/${item.id}`}
-                iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'}
-                categoryName={categoryNameOf(categories, item.categoryId)}
-                tagNames={tagNamesOf(item.id, links, tags)}
-                today={today}
-              />
-            ) : (
+          <div ref={layout.ref} data-layout-view={view} className={view === 'grid' ? 'flex items-start gap-4 pb-2' : 'divide-y divide-line-inner rounded-surface border border-line bg-surface shadow-card'}>
+            {view === 'grid' ? gridColumns.map((column, index) => (
+              // 块流 + space-y：卡片 article 自带 self-start（防网格行拉伸），
+              // 在 flex-col 列里会收缩宽度，块流下它无效果、卡片自然撑满列宽。
+              <div key={index} className="min-w-0 flex-1 space-y-4">
+                {column.map((item) => (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    name={item.name}
+                    to={`/items/${item.id}`}
+                    iconUrl={assetMap.get(item.iconAssetId) ?? '/icons/items/other.webp'}
+                    categoryName={categoryNameOf(categories, item.categoryId)}
+                    tagNames={tagNamesOf(item.id, links, tags)}
+                    today={today}
+                  />
+                ))}
+              </div>
+            )) : visible.map((item) => (
               <ListRow
                 key={item.id}
                 item={item}

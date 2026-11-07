@@ -152,14 +152,14 @@ try {
     select.value=value; select.dispatchEvent(new Event('change',{bubbles:true}));
   }`)
   await page.until(`[...document.querySelectorAll('[data-layout-id]')].every(node=>node.getAnimations().length===0)`)
-  await page.ev(`document.querySelectorAll('.item-card-toggle[aria-expanded="true"]').forEach(button=>button.click());document.querySelector('[data-item-card]:nth-child(5) button[aria-expanded]').scrollIntoView({block:'center'})`)
+  await page.ev(`document.querySelectorAll('.item-card-toggle[aria-expanded="true"]').forEach(button=>button.click());document.querySelector('[data-layout-view="grid"] > div:first-child > [data-item-card]:nth-child(3) button[aria-expanded]').scrollIntoView({block:'center'})`)
   await sleep(300)
   await page.ev(`document.documentElement.classList.add('theme-shift')`)
-  await page.check('Theme color changes preserve disclosure layout transitions', `getComputedStyle(document.querySelector('[data-item-card]:nth-child(5) .item-card-details')).transitionProperty.includes('grid-template-rows')`)
+  await page.check('Theme color changes preserve disclosure layout transitions', `getComputedStyle(document.querySelector('[data-layout-view="grid"] > div:first-child > [data-item-card]:nth-child(3) .item-card-details')).transitionProperty.includes('grid-template-rows')`)
   const disclosureSamples = await page.ev(`new Promise(resolve=>{
-    const sibling=document.querySelector('[data-item-card]:nth-child(7)');
+    const sibling=document.querySelector('[data-layout-view="grid"] > div:first-child > [data-item-card]:nth-child(4)');
     const samples=[sibling.getBoundingClientRect().top+scrollY];const start=performance.now();
-    document.querySelector('[data-item-card]:nth-child(5) button[aria-expanded]').click();
+    document.querySelector('[data-layout-view="grid"] > div:first-child > [data-item-card]:nth-child(3) button[aria-expanded]').click();
     const sample=()=>{samples.push(sibling.getBoundingClientRect().top+scrollY);if(performance.now()-start>400)resolve(samples);else requestAnimationFrame(sample)};
     requestAnimationFrame(sample);
   })`)
@@ -167,11 +167,11 @@ try {
   assert.ok(disclosureSamples.at(-1)>disclosureSamples[0]+5 && new Set(disclosureSamples.map(value=>Math.round(value))).size>2, 'Disclosure moves following rows continuously: '+JSON.stringify({first:disclosureSamples[0],last:disclosureSamples.at(-1),positions:new Set(disclosureSamples.map(value=>Math.round(value))).size}))
   results.push('Disclosure moves following rows continuously using existing CSS layout')
   console.log('PASS Disclosure moves following rows continuously using existing CSS layout')
-  await page.ev(`window.listCard=document.querySelector('[data-item-card]:nth-child(5)');
+  await page.ev(`window.listCard=document.querySelector('[data-layout-view="grid"] > div:first-child > [data-item-card]:nth-child(3)');
     window.listLink=listCard.querySelector('a'); listLink.scrollIntoView({block:'center'});
     window.listInput=document.querySelector('input[aria-label="搜索物品"]'); window.listY=scrollY;
     window.itemPath=listLink.getAttribute('href'); window.listX=listLink.getBoundingClientRect().left;`)
-  await page.click('[data-item-card]:nth-child(5) a')
+  await page.click('[data-layout-view="grid"] > div:first-child > [data-item-card]:nth-child(3) a')
   await page.until(`!!document.querySelector('[data-sheet="detail"][data-state="open"]')`)
   await page.check('Entry runs a transform transition', `document.querySelector('.modal-sheet-panel').getAnimations().some(animation=>animation.transitionProperty==='transform')`)
   await sleep(550)
@@ -202,7 +202,7 @@ try {
     && document.querySelector('select[aria-label="物品排序"]').value==='name' && document.body.style.overflow===''
     && document.body.style.paddingRight===''`)
 
-  await page.click('[data-item-card]:nth-child(5) a')
+  await page.click('[data-layout-view="grid"] > div:first-child > [data-item-card]:nth-child(3) a')
   await sleep(550)
   await page.ev('history.back()')
   await page.until(`!!document.querySelector('[data-state="closing"]')`)
@@ -320,13 +320,13 @@ try {
   await page.check('Discard returns through detail to the original list and releases all locks', `listCard.isConnected && document.body.style.overflow===''`)
 
   await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
-  await page.click('[data-item-card]:nth-child(5) a')
+  await page.click('[data-layout-view="grid"] > div:first-child > [data-item-card]:nth-child(3) a')
   await page.until(`!!document.querySelector('dialog:modal')`)
   await page.escape()
   await page.until(`!document.querySelector('dialog[open]')`)
   await page.check('Reduced motion still completes close and focus restoration', `document.body.style.overflow==='' && document.activeElement===listLink`)
   await page.send('Emulation.setEmulatedMedia', { features: [] })
-  await page.click('[data-item-card]:nth-child(5) a')
+  await page.click('[data-layout-view="grid"] > div:first-child > [data-item-card]:nth-child(3) a')
   await page.until(`!!document.querySelector('.modal-sheet-panel') && Math.abs(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.modal-sheet-panel')).transform).m42)<1`)
   for (const width of [375, 430, 768, 1280]) {
     await page.send('Emulation.setDeviceMetricsOverride', { width, height: 844, deviceScaleFactor: 1, mobile: width < 640 })
@@ -501,7 +501,8 @@ try {
   await page.check('Discard after gestures writes no business records and releases locks', `creationList.isConnected && document.querySelectorAll('[data-item-card]').length===18 && document.body.style.overflow===''`)
   await page.ev(`window.layoutIds=[...document.querySelectorAll('[data-layout-id]')].map(node=>node.dataset.layoutId);document.querySelector('button[aria-label="切换为列表视图"]').click()`)
   await page.until(`document.querySelector('[data-layout-view]')?.dataset.layoutView==='list'`)
-  await page.check('View switch animates stable visible item identities', `JSON.stringify(layoutIds)===JSON.stringify([...document.querySelectorAll('[data-layout-id]')].map(node=>node.dataset.layoutId)) && [...document.querySelectorAll('[data-layout-id]')].some(node=>node.getAnimations().length>0)`)
+  // 身份稳定 = 同一物品集合（网格视图是瀑布流，DOM 为列优先序，与列表行序不同，只比集合）。
+  await page.check('View switch animates stable visible item identities', `JSON.stringify([...layoutIds].sort())===JSON.stringify([...document.querySelectorAll('[data-layout-id]')].map(node=>node.dataset.layoutId).sort()) && [...document.querySelectorAll('[data-layout-id]')].some(node=>node.getAnimations().length>0)`)
   await page.click('button[aria-label="切换为网格视图"]')
   await sleep(300)
   await page.check('Interrupted layout motion settles without stale transforms or ghosts', `document.querySelectorAll('[data-item-card]').length===18 && [...document.querySelectorAll('[data-layout-id]')].every(node=>node.getAnimations().length===0)`)

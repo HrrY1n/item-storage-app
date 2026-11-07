@@ -5,7 +5,9 @@ export function useLayoutMotion(key: string) {
   const ref = useRef<HTMLDivElement>(null)
   const before = useRef<Map<string, DOMRect> | null>(null)
   const animations = useRef<Animation[]>([])
-  const nodes = () => Array.from(ref.current?.children ?? []).filter((node): node is HTMLElement => node instanceof HTMLElement)
+  // 卡片可能是容器的直接子元素（列表视图），也可能嵌在瀑布流的列容器里（网格视图）：
+  // 统一按 data-layout-id 在整个容器内查找，两种布局共用同一条 FLIP 路径。
+  const nodes = () => Array.from(ref.current?.querySelectorAll<HTMLElement>('[data-layout-id]') ?? [])
   const cancel = useCallback(() => { animations.current.forEach(animation => animation.cancel()); animations.current = [] }, [])
   const capture = useCallback(() => {
     const positions = new Map<string, DOMRect>()
