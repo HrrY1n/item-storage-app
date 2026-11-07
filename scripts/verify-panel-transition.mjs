@@ -520,7 +520,8 @@ try {
   await sleep(120)
   await page.click('button', '保存更改')
   await page.until(`!!document.querySelector('.item-panel-content:not([hidden]) h1')`)
-  await sleep(500)
+  // 「已保存」反馈窗口 650ms 后才导航，等待需覆盖它。
+  await sleep(800)
   await page.check('保存后回到详情并显示新名称', `location.pathname.endsWith(window.fixtureId)
     && document.body.innerText.includes('转场回归样品二')`)
 

@@ -276,6 +276,10 @@
      固定视口偏移保证起点与内容高度变化解耦，桌面端也不会残留可见缝隙。 */
   .modal-sheet[data-state='closing'] .modal-sheet-panel { transform: translateY(100dvh); }
 .modal-sheet[data-state='closing'] .modal-sheet-backdrop { opacity: 0; }
+  /* 关闭首帧立即摘除背景模糊：backdrop-filter 随 opacity 逐帧淡出会迫使 iOS
+     对整页内容做连续重采样，列表卡片在真机上出现可见抖动。2px 模糊的质感
+     保留给静止展示，退出时只淡出颜色。 */
+  .modal-sheet[data-state='closing'] .modal-sheet-backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
   .modal-sheet[data-state='pending'] .modal-sheet-panel { transform: translateY(100dvh); }
 .modal-sheet[data-state='pending'] .modal-sheet-backdrop { opacity: 0; }
 .modal-sheet[data-ready='false'] .modal-sheet-panel { opacity: 0; }
